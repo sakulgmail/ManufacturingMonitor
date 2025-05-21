@@ -1,0 +1,318 @@
+import { 
+  stations, 
+  gauges, 
+  staff, 
+  readings, 
+  type Station, 
+  type Gauge, 
+  type Staff, 
+  type Reading, 
+  type InsertStation, 
+  type InsertGauge, 
+  type InsertStaff, 
+  type InsertReading, 
+  type ReadingWithDetails, 
+  type StationWithGauges 
+} from "@shared/schema";
+import { IStorage } from "./storage";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
+
+export class DatabaseStorage implements IStorage {
+  // Stations
+  async getStation(id: number): Promise<Station | undefined> {
+    const [station] = await db.select().from(stations).where(eq(stations.id, id));
+    return station || undefined;
+  }
+
+  async getAllStations(): Promise<Station[]> {
+    return db.select().from(stations);
+  }
+
+  async createStation(station: InsertStation): Promise<Station> {
+    const [newStation] = await db.insert(stations).values(station).returning();
+    return newStation;
+  }
+
+  async getStationWithGauges(id: number): Promise<StationWithGauges | undefined> {
+    const station = await this.getStation(id);
+    if (!station) return undefined;
+    
+    const stationGauges = await this.getGaugesByStation(id);
+    return { ...station, gauges: stationGauges };
+  }
+
+  async getAllStationsWithGauges(): Promise<StationWithGauges[]> {
+    const allStations = await this.getAllStations();
+    const result: StationWithGauges[] = [];
+
+    for (const station of allStations) {
+      const stationGauges = await this.getGaugesByStation(station.id);
+      result.push({ ...station, gauges: stationGauges });
+    }
+
+    return result;
+  }
+
+  // Gauges
+  async getGauge(id: number): Promise<Gauge | undefined> {
+    const [gauge] = await db.select().from(gauges).where(eq(gauges.id, id));
+    return gauge || undefined;
+  }
+
+  async getGaugesByStation(stationId: number): Promise<Gauge[]> {
+    return db.select().from(gauges).where(eq(gauges.stationId, stationId));
+  }
+
+  async createGauge(gauge: InsertGauge): Promise<Gauge> {
+    const [newGauge] = await db.insert(gauges).values(gauge).returning();
+    return newGauge;
+  }
+
+  async updateGaugeReading(id: number, value: number, timestamp: string): Promise<Gauge> {
+    const [updatedGauge] = await db
+      .update(gauges)
+      .set({ 
+        currentReading: value, 
+        lastChecked: timestamp 
+      })
+      .where(eq(gauges.id, id))
+      .returning();
+    
+    return updatedGauge;
+  }
+
+  // Staff
+  async getStaff(id: number): Promise<Staff | undefined> {
+    const [staffMember] = await db.select().from(staff).where(eq(staff.id, id));
+    return staffMember || undefined;
+  }
+
+  async getAllStaff(): Promise<Staff[]> {
+    return db.select().from(staff);
+  }
+
+  async createStaff(staffData: InsertStaff): Promise<Staff> {
+    const [newStaff] = await db.insert(staff).values(staffData).returning();
+    return newStaff;
+  }
+
+  // Readings
+  async getReading(id: number): Promise<Reading | undefined> {
+    const [reading] = await db.select().from(readings).where(eq(readings.id, id));
+    return reading || undefined;
+  }
+
+  async getReadingsByStation(stationId: number): Promise<ReadingWithDetails[]> {
+    const stationReadings = await db
+      .select()
+      .from(readings)
+      .where(eq(readings.stationId, stationId))
+      .orderBy(desc(readings.timestamp));
+
+    return Promise.all(stationReadings.map(reading => this.enrichReadingWithDetails(reading)));
+  }
+
+  async getReadingsByGauge(gaugeId: number): Promise<ReadingWithDetails[]> {
+    const gaugeReadings = await db
+      .select()
+      .from(readings)
+      .where(eq(readings.gaugeId, gaugeId))
+      .orderBy(desc(readings.timestamp));
+
+    return Promise.all(gaugeReadings.map(reading => this.enrichReadingWithDetails(reading)));
+  }
+
+  async createReading(readingData: InsertReading): Promise<Reading> {
+    const [newReading] = await db.insert(readings).values(readingData).returning();
+    return newReading;
+  }
+
+  async getAllReadingsWithDetails(): Promise<ReadingWithDetails[]> {
+    const allReadings = await db
+      .select()
+      .from(readings)
+      .orderBy(desc(readings.timestamp));
+
+    return Promise.all(allReadings.map(reading => this.enrichReadingWithDetails(reading)));
+  }
+
+  private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {
+    const [station] = await db.select().from(stations).where(eq(stations.id, reading.stationId));
+    const [gauge] = await db.select().from(gauges).where(eq(gauges.id, reading.gaugeId));
+    
+    let staffName = "Unknown";
+    if (reading.staffId) {
+      const [staffMember] = await db.select().from(staff).where(eq(staff.id, reading.staffId));
+      if (staffMember) {
+        staffName = staffMember.name;
+      }
+    }
+
+    return {
+      ...reading,
+      stationName: station ? station.name : "Unknown Station",
+      gaugeName: gauge ? gauge.name : "Unknown Gauge",
+      unit: gauge ? gauge.unit : "",
+      minValue: gauge ? gauge.minValue : 0,
+      maxValue: gauge ? gauge.maxValue : 0,
+      staffName
+    };
+  }
+
+  async initializeTestData(): Promise<void> {
+    // Create stations
+    const station1 = await this.createStation({
+      name: "Station 1: Assembly Line",
+      description: "Main assembly line for product A"
+    });
+    
+    const station2 = await this.createStation({
+      name: "Station 2: Packaging",
+      description: "Final packaging for finished products"
+    });
+    
+    const station3 = await this.createStation({
+      name: "Station 3: Quality Control",
+      description: "Testing and quality verification"
+    });
+    
+    const station4 = await this.createStation({
+      name: "Station 4: Warehouse",
+      description: "Storage and inventory management"
+    });
+    
+    const station5 = await this.createStation({
+      name: "Station 5: Maintenance",
+      description: "Equipment maintenance and repairs"
+    });
+    
+    const station6 = await this.createStation({
+      name: "Station 6: Receiving",
+      description: "Materials receiving and intake"
+    });
+    
+    const station7 = await this.createStation({
+      name: "Station 7: Shipping",
+      description: "Product shipping and logistics"
+    });
+    
+    const station8 = await this.createStation({
+      name: "Station 8: Molding",
+      description: "Plastic molding and forming"
+    });
+    
+    const station9 = await this.createStation({
+      name: "Station 9: Painting",
+      description: "Surface finishing and painting"
+    });
+    
+    const station10 = await this.createStation({
+      name: "Station 10: R&D Lab",
+      description: "Research and development testing"
+    });
+
+    // Create staff members
+    const staff1 = await this.createStaff({ name: "John Smith" });
+    const staff2 = await this.createStaff({ name: "Sarah Johnson" });
+    const staff3 = await this.createStaff({ name: "Michael Brown" });
+    const staff4 = await this.createStaff({ name: "Emily Wilson" });
+    const staff5 = await this.createStaff({ name: "David Garcia" });
+
+    // Create gauges for each station (5 gauges per station)
+    // For Station 1
+    const gauge1_1 = await this.createGauge({
+      name: "Main Line Pressure",
+      type: "pressure",
+      unit: "PSI",
+      minValue: 50,
+      maxValue: 100,
+      currentReading: 75,
+      lastChecked: new Date().toISOString(),
+      stationId: station1.id,
+      step: 1
+    });
+    
+    const gauge1_2 = await this.createGauge({
+      name: "Assembly Temperature",
+      type: "temperature",
+      unit: "°C",
+      minValue: 15,
+      maxValue: 30,
+      currentReading: 23,
+      lastChecked: new Date().toISOString(),
+      stationId: station1.id,
+      step: 0.5
+    });
+    
+    const gauge1_3 = await this.createGauge({
+      name: "Line Runtime",
+      type: "runtime",
+      unit: "hours",
+      minValue: 0,
+      maxValue: 8000,
+      currentReading: 3567,
+      lastChecked: new Date().toISOString(),
+      stationId: station1.id,
+      step: 0.5
+    });
+    
+    const gauge1_4 = await this.createGauge({
+      name: "Power Consumption",
+      type: "electrical_power",
+      unit: "kW",
+      minValue: 5,
+      maxValue: 30,
+      currentReading: 15.5,
+      lastChecked: new Date().toISOString(),
+      stationId: station1.id,
+      step: 0.1
+    });
+    
+    const gauge1_5 = await this.createGauge({
+      name: "Motor Current",
+      type: "electrical_current",
+      unit: "A",
+      minValue: 1,
+      maxValue: 15,
+      currentReading: 8.7,
+      lastChecked: new Date().toISOString(),
+      stationId: station1.id,
+      step: 0.1
+    });
+
+    // For Station 2 (similar pattern for other stations)
+    const gauge2_1 = await this.createGauge({
+      name: "Sealing Pressure",
+      type: "pressure",
+      unit: "PSI",
+      minValue: 30,
+      maxValue: 80,
+      currentReading: 55,
+      lastChecked: new Date().toISOString(),
+      stationId: station2.id,
+      step: 1
+    });
+    
+    // ... Add more gauges for each station
+
+    // Create some sample readings
+    const reading1 = await this.createReading({
+      stationId: station1.id,
+      gaugeId: gauge1_1.id,
+      value: 78,
+      timestamp: new Date().toISOString(),
+      staffId: staff1.id
+    });
+    
+    const reading2 = await this.createReading({
+      stationId: station1.id,
+      gaugeId: gauge1_2.id,
+      value: 26,
+      timestamp: new Date().toISOString(),
+      staffId: staff2.id
+    });
+    
+    // ... Add more sample readings
+  }
+}
