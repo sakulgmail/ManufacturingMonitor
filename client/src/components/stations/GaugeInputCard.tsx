@@ -100,7 +100,7 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
               className={`border-2 ${isOutOfRange ? 'border-error-500' : 'border-success-500'} rounded-l p-2 w-full text-lg`} 
               value={inputValue} 
               min="0"
-              step={gauge.step || 1}
+              step={(gauge.step !== null) ? gauge.step : 1}
               onChange={(e) => setInputValue(Number(e.target.value))}
             />
             <span className={`bg-gray-100 flex items-center px-3 rounded-r border-2 border-l-0 ${isOutOfRange ? 'border-error-500' : 'border-success-500'}`}>

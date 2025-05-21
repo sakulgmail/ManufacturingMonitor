@@ -10,7 +10,7 @@ export interface Gauge {
   maxValue: number;
   currentReading: number;
   lastChecked: string;
-  step: number | null;
+  step?: number;
 }
 
 export interface Station {

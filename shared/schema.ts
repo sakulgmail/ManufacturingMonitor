@@ -2,6 +2,9 @@ import { pgTable, text, serial, integer, boolean, real, timestamp } from "drizzl
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Define custom types for our application
+export type GaugeType = 'pressure' | 'temperature' | 'runtime' | 'electrical_power' | 'electrical_current';
+
 // Define the stations table
 export const stations = pgTable("stations", {
   id: serial("id").primaryKey(),
@@ -20,7 +23,7 @@ export const gauges = pgTable("gauges", {
   maxValue: real("max_value").notNull(),
   currentReading: real("current_reading").notNull().default(0),
   lastChecked: text("last_checked").notNull().default(''),
-  step: real("step").default(1),
+  step: real("step"),
 });
 
 // Define the staff members table
@@ -56,3 +59,18 @@ export type Station = typeof stations.$inferSelect;
 export type Gauge = typeof gauges.$inferSelect;
 export type Staff = typeof staff.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
+
+// Extended Reading type with additional details for the frontend
+export interface ReadingWithDetails extends Reading {
+  stationName: string;
+  gaugeName: string;
+  unit: string;
+  minValue: number;
+  maxValue: number;
+  staffName: string;
+}
+
+// Extended Station type with gauges for the frontend
+export interface StationWithGauges extends Station {
+  gauges: Gauge[];
+}

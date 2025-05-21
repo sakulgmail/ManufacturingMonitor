@@ -12,21 +12,8 @@ const dateToString = (date: Date | string): string => {
   return date.toISOString();
 };
 
-// Extended Reading type with additional details for the frontend
-interface ReadingWithDetails extends Omit<Reading, 'staffId'> {
-  stationName: string;
-  gaugeName: string;
-  unit: string;
-  minValue: number;
-  maxValue: number;
-  staffName: string;
-  staffId: number | null;
-}
-
-// Extended Station type with gauges for the frontend
-interface StationWithGauges extends Station {
-  gauges: Gauge[];
-}
+// Import interface definitions from schema
+import { ReadingWithDetails, StationWithGauges } from "@shared/schema";
 
 export interface IStorage {
   // Stations
