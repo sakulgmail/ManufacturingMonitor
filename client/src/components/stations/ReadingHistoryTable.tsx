@@ -10,7 +10,14 @@ export default function ReadingHistoryTable({ readings }: ReadingHistoryTablePro
   // Sort readings by timestamp (newest first)
   const sortedReadings = useMemo(() => {
     return [...readings].sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      // Safely handle potentially invalid dates
+      try {
+        const bDate = new Date(b.timestamp);
+        const aDate = new Date(a.timestamp);
+        return bDate.getTime() - aDate.getTime();
+      } catch (e) {
+        return 0;
+      }
     });
   }, [readings]);
 
@@ -40,7 +47,13 @@ export default function ReadingHistoryTable({ readings }: ReadingHistoryTablePro
             
             return (
               <tr key={reading.id}>
-                <td className="px-6 py-3">{formatDateTime(reading.timestamp)}</td>
+                <td className="px-6 py-3">{
+                  try {
+                    return formatDateTime(reading.timestamp);
+                  } catch (e) {
+                    return reading.timestamp || 'Unknown date';
+                  }
+                }</td>
                 <td className="px-6 py-3">{reading.gaugeName}</td>
                 <td className="px-6 py-3">{reading.value} {reading.unit}</td>
                 <td className="px-6 py-3">
