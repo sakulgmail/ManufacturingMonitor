@@ -72,11 +72,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Gauge not found" });
       }
       
+      // Ensure timestamp is a string
+      const timestamp = typeof readingData.timestamp === 'string' 
+        ? readingData.timestamp 
+        : (readingData.timestamp || new Date()).toISOString();
+      
       // Save the reading
-      const reading = await storage.createReading(readingData);
+      const reading = await storage.createReading({
+        ...readingData,
+        timestamp
+      });
       
       // Update the current reading and last checked timestamp for the gauge
-      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp);
+      await storage.updateGaugeReading(gaugeId, readingData.value, timestamp);
       
       res.status(201).json(reading);
     } catch (error) {

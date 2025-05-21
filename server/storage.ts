@@ -6,6 +6,12 @@ import {
   stations, gauges, staff, readings
 } from "@shared/schema";
 
+// Helper function to ensure date values are stored as strings
+const dateToString = (date: Date | string): string => {
+  if (typeof date === 'string') return date;
+  return date.toISOString();
+};
+
 // Extended Reading type with additional details for the frontend
 interface ReadingWithDetails extends Reading {
   stationName: string;
@@ -85,7 +91,11 @@ export class MemStorage implements IStorage {
 
   async createStation(station: InsertStation): Promise<Station> {
     const id = this.stationCurrentId++;
-    const newStation: Station = { id, ...station };
+    const newStation: Station = { 
+      id, 
+      name: station.name,
+      description: station.description || null
+    };
     this.stations.set(id, newStation);
     return newStation;
   }
@@ -127,7 +137,12 @@ export class MemStorage implements IStorage {
 
   async createGauge(gauge: InsertGauge): Promise<Gauge> {
     const id = this.gaugeCurrentId++;
-    const newGauge: Gauge = { id, ...gauge };
+    const newGauge: Gauge = { 
+      id, 
+      ...gauge,
+      currentReading: gauge.currentReading || 0,
+      lastChecked: gauge.lastChecked || new Date().toISOString()
+    };
     this.gauges.set(id, newGauge);
     return newGauge;
   }
@@ -189,7 +204,14 @@ export class MemStorage implements IStorage {
 
   async createReading(readingData: InsertReading): Promise<Reading> {
     const id = this.readingCurrentId++;
-    const newReading: Reading = { id, ...readingData };
+    const newReading: Reading = { 
+      id, 
+      stationId: readingData.stationId,
+      gaugeId: readingData.gaugeId,
+      value: readingData.value,
+      timestamp: readingData.timestamp || new Date().toISOString(),
+      staffId: readingData.staffId || null
+    };
     this.readingRecords.set(id, newReading);
     return newReading;
   }

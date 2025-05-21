@@ -19,7 +19,7 @@ export const gauges = pgTable("gauges", {
   minValue: real("min_value").notNull(),
   maxValue: real("max_value").notNull(),
   currentReading: real("current_reading").notNull().default(0),
-  lastChecked: timestamp("last_checked").notNull().defaultNow(),
+  lastChecked: text("last_checked").notNull().default(''),
 });
 
 // Define the staff members table
@@ -34,7 +34,7 @@ export const readings = pgTable("readings", {
   stationId: integer("station_id").notNull().references(() => stations.id),
   gaugeId: integer("gauge_id").notNull().references(() => gauges.id),
   value: real("value").notNull(),
-  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  timestamp: text("timestamp").notNull().default(''),
   staffId: integer("staff_id").references(() => staff.id),
 });
 
