@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -37,6 +38,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize the database with test data if needed
+  try {
+    // Check if we need to initialize test data (no stations exist)
+    const stations = await storage.getAllStations();
+    if (stations.length === 0) {
+      log("Initializing database with test data...");
+      await storage.initializeTestData();
+      log("Test data initialized successfully");
+    }
+  } catch (error) {
+    console.error("Error initializing test data:", error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
