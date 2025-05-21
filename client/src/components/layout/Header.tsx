@@ -145,7 +145,7 @@ export default function Header() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5 mr-1 text-gray-600"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
