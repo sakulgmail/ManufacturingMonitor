@@ -13,13 +13,14 @@ const dateToString = (date: Date | string): string => {
 };
 
 // Extended Reading type with additional details for the frontend
-interface ReadingWithDetails extends Reading {
+interface ReadingWithDetails extends Omit<Reading, 'staffId'> {
   stationName: string;
   gaugeName: string;
   unit: string;
   minValue: number;
   maxValue: number;
   staffName: string;
+  staffId: number | null;
 }
 
 // Extended Station type with gauges for the frontend
@@ -139,9 +140,15 @@ export class MemStorage implements IStorage {
     const id = this.gaugeCurrentId++;
     const newGauge: Gauge = { 
       id, 
-      ...gauge,
+      name: gauge.name,
+      stationId: gauge.stationId,
+      type: gauge.type,
+      unit: gauge.unit,
+      minValue: gauge.minValue,
+      maxValue: gauge.maxValue,
       currentReading: gauge.currentReading || 0,
-      lastChecked: gauge.lastChecked || new Date().toISOString()
+      lastChecked: gauge.lastChecked || new Date().toISOString(),
+      step: gauge.step || 1
     };
     this.gauges.set(id, newGauge);
     return newGauge;
@@ -279,7 +286,8 @@ export class MemStorage implements IStorage {
         minValue: 70,
         maxValue: 90,
         currentReading: Math.floor(Math.random() * 30) + 65, // Random between 65-95
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
+        step: 1
       });
 
       // Temperature gauge
@@ -291,7 +299,8 @@ export class MemStorage implements IStorage {
         minValue: 60,
         maxValue: 80,
         currentReading: Math.floor(Math.random() * 30) + 55, // Random between 55-85
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
+        step: 0.1
       });
 
       // Runtime meter
@@ -303,7 +312,8 @@ export class MemStorage implements IStorage {
         minValue: 0,
         maxValue: 10000,
         currentReading: Math.floor(Math.random() * 5000) + 1000, // Random between 1000-6000
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
+        step: 1
       });
 
       // Electrical power gauge
@@ -315,7 +325,8 @@ export class MemStorage implements IStorage {
         minValue: 2,
         maxValue: 4,
         currentReading: Math.random() * 3 + 1.5, // Random between 1.5-4.5
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
+        step: 0.1
       });
 
       // Electrical current gauge
@@ -327,7 +338,8 @@ export class MemStorage implements IStorage {
         minValue: 10,
         maxValue: 15,
         currentReading: Math.random() * 7 + 8, // Random between 8-15
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
+        step: 0.1
       });
     }
 

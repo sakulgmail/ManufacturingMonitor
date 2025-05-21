@@ -20,6 +20,7 @@ export const gauges = pgTable("gauges", {
   maxValue: real("max_value").notNull(),
   currentReading: real("current_reading").notNull().default(0),
   lastChecked: text("last_checked").notNull().default(''),
+  step: real("step").default(1),
 });
 
 // Define the staff members table
