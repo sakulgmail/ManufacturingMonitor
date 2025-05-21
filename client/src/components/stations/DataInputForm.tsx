@@ -17,9 +17,14 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch all stations
-  const { data: allStations = [] } = useQuery<Station[]>({
+  const { data: stations = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
+  
+  // Filter out duplicate stations by name
+  const uniqueStations = stations.filter((station: Station, index: number, self: Station[]) => 
+    index === self.findIndex((s: Station) => s.name === station.name)
+  );
   
   // Fetch all staff members
   const { data: staffMembers = [] } = useQuery<StaffMember[]>({
@@ -145,7 +150,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             required
           >
             <option value="">-- Select Station --</option>
-            {allStations.map(station => (
+            {uniqueStations.map(station => (
               <option key={station.id} value={station.id}>
                 {station.name}
               </option>
