@@ -106,7 +106,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-primary-600 text-white shadow-md sticky top-0 z-50 w-full backdrop-blur-md bg-opacity-100">
+    <header className="bg-[#1e88e5] text-white shadow-md sticky top-0 z-50 w-full" style={{ backgroundColor: '#1e88e5' }}>
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div
           className="flex items-center space-x-2"
