@@ -1,10 +1,14 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, ReactElement } from "react";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useClock } from "@/hooks/useClock";
 
+// Define types for icons
+type IconKey = 'factory' | 'gauge' | 'monitor';
+type IconsObject = Record<IconKey, ReactElement>;
+
 // Define icons for manufacturing
-const icons = {
+const icons: IconsObject = {
   factory: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19.5 8.5V2a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v6.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v6.5a1 1 0 0 1-1 1 1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h17a1 1 0 0 0 1-1v-9.5a1 1 0 0 0-1-1 1 1 0 0 1-1-1Z" />
@@ -42,20 +46,31 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { formattedTime } = useClock();
   
-  // Use local storage for persistent settings
-  const storedTitle = localStorage.getItem('appTitle') || 'Manufacturing Monitor System';
-  const storedIcon = localStorage.getItem('appIcon') || 'gauge';
-  
-  const [title, setTitle] = useState(storedTitle);
-  const [currentIcon, setCurrentIcon] = useState(storedIcon);
+  // Store state with default values
+  const [title, setTitle] = useState('Manufacturing Monitor System');
+  const [currentIcon, setCurrentIcon] = useState<IconKey>('gauge');
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Load settings from local storage on component mount
+  useEffect(() => {
+    const storedTitle = localStorage.getItem('appTitle');
+    const storedIcon = localStorage.getItem('appIcon') as IconKey;
+    
+    if (storedTitle) {
+      setTitle(storedTitle);
+    }
+    
+    if (storedIcon && Object.keys(icons).includes(storedIcon)) {
+      setCurrentIcon(storedIcon);
+    }
+  }, []);
   
   const handleRefresh = useCallback(() => {
     // Invalidate all queries to force a refresh of data
     queryClient.invalidateQueries();
   }, []);
   
-  const saveSettings = (newTitle, newIcon) => {
+  const saveSettings = (newTitle: string, newIcon: IconKey) => {
     localStorage.setItem('appTitle', newTitle);
     localStorage.setItem('appIcon', newIcon);
     setTitle(newTitle);
@@ -64,7 +79,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-primary-600 text-white shadow-md">
+    <header className="bg-primary-600 text-white shadow-md sticky top-0 z-50 w-full">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2" onClick={() => setLocation("/")} style={{ cursor: "pointer" }}>
           {icons[currentIcon]}
