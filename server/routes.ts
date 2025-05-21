@@ -1,5 +1,5 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { Express, Request, Response, NextFunction } from "express";
+import { createServer, Server } from "http";
 import { storage } from "./storage";
 import { insertReadingSchema } from "@shared/schema";
 import { ZodError } from "zod";
@@ -87,31 +87,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Gauge not found" });
       }
       
-      // Ensure timestamp is a string
-      const timestamp = typeof readingData.timestamp === 'string' 
-        ? readingData.timestamp 
-        : (readingData.timestamp || new Date()).toISOString();
+      const reading = await storage.createReading(readingData);
       
-      // Save the reading
-      const reading = await storage.createReading({
-        ...readingData,
-        timestamp
-      });
-      
-      // Update the current reading and last checked timestamp for the gauge
-      await storage.updateGaugeReading(gaugeId, readingData.value, timestamp);
+      // Update gauge current reading
+      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp);
       
       res.status(201).json(reading);
     } catch (error) {
       console.error("Error saving reading:", error);
       if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid reading data", errors: error.errors });
+        res.status(400).json({ message: "Invalid reading data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to save reading" });
       }
-      res.status(500).json({ message: "Failed to save reading" });
     }
   });
 
-  // Get all readings (with pagination if needed)
+  // Get all staff
+  app.get('/api/staff', async (req, res) => {
+    try {
+      const staff = await storage.getAllStaff();
+      res.json(staff);
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
+  // Create a new reading 
+  app.post('/api/readings', async (req, res) => {
+    try {
+      // Validate the request body
+      const readingData = insertReadingSchema.parse(req.body);
+      
+      const station = await storage.getStation(readingData.stationId);
+      if (!station) {
+        return res.status(404).json({ message: "Station not found" });
+      }
+      
+      const gauge = await storage.getGauge(readingData.gaugeId);
+      if (!gauge) {
+        return res.status(404).json({ message: "Gauge not found" });
+      }
+      
+      const reading = await storage.createReading(readingData);
+      
+      // Update gauge current reading
+      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp);
+      
+      res.status(201).json(reading);
+    } catch (error) {
+      console.error("Error saving reading:", error);
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid reading data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to save reading" });
+      }
+    }
+  });
+
+  // Get all readings with details
   app.get('/api/readings', async (req, res) => {
     try {
       const readings = await storage.getAllReadingsWithDetails();

@@ -16,23 +16,25 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [readingValue, setReadingValue] = useState<number | string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch stations, gauges, and staff
-  const { data: stations = [] } = useQuery<Station[]>({
+  // Fetch all stations
+  const { data: allStations = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
+  // Fetch all staff members
   const { data: staffMembers = [] } = useQuery<StaffMember[]>({
     queryKey: ['/api/staff'],
   });
   
-  const { data: selectedStationGauges = [] } = useQuery<Gauge[]>({
+  // Fetch gauges for the selected station
+  const { data: stationGauges = [] } = useQuery<Gauge[]>({
     queryKey: ['/api/stations', selectedStationId, 'gauges'],
     enabled: !!selectedStationId,
   });
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
-    ? selectedStationGauges.find(g => g.id === selectedGaugeId) 
+    ? stationGauges.find(g => g.id === selectedGaugeId) 
     : null;
 
   // API call to save a new reading
@@ -81,7 +83,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     setSelectedGaugeId(gaugeId);
     
     // Auto-fill with current reading if available
-    const gauge = selectedStationGauges.find(g => g.id === gaugeId);
+    const gauge = stationGauges.find(g => g.id === gaugeId);
     if (gauge) {
       setReadingValue(gauge.currentReading);
     } else {
@@ -143,7 +145,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             required
           >
             <option value="">-- Select Station --</option>
-            {stations.map(station => (
+            {allStations.map(station => (
               <option key={station.id} value={station.id}>
                 {station.name}
               </option>
@@ -164,7 +166,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               required
             >
               <option value="">-- Select Gauge --</option>
-              {selectedStationGauges.map(gauge => (
+              {stationGauges.map(gauge => (
                 <option key={gauge.id} value={gauge.id}>
                   {gauge.name} ({gauge.unit})
                 </option>
