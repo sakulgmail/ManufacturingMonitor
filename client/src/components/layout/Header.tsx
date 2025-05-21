@@ -118,7 +118,7 @@ export default function Header() {
           <h3 className="text-lg font-semibold mb-3">Application Settings</h3>
           
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="appTitleInput" className="block text-sm font-medium mb-1">
               Application Title
             </label>
             <input 
@@ -134,18 +134,24 @@ export default function Header() {
               Select Icon
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {Object.entries(icons).map(([key, icon]) => (
+              {(Object.entries(icons) as [IconKey, ReactElement][]).map(([key, icon]) => (
                 <div 
                   key={key}
                   className={`border p-2 rounded flex justify-center items-center cursor-pointer ${currentIcon === key ? 'border-primary-500 bg-primary-50' : 'border-gray-300'}`}
-                  onClick={() => document.getElementById('iconSelection').value = key}
+                  onClick={() => {
+                    const selection = document.getElementById('iconSelection') as HTMLSelectElement;
+                    if (selection) {
+                      selection.value = key;
+                    }
+                  }}
                 >
-                  {React.cloneElement(icon, { className: 'h-6 w-6 text-gray-700' })}
+                  {/* Clone element with Typescript safety */}
+                  {icon && {...icon, props: {...icon.props, className: 'h-6 w-6 text-gray-700'}}}
                 </div>
               ))}
             </div>
             <select id="iconSelection" className="hidden" defaultValue={currentIcon}>
-              {Object.keys(icons).map(key => (
+              {(Object.keys(icons) as IconKey[]).map(key => (
                 <option key={key} value={key}>{key}</option>
               ))}
             </select>
@@ -161,9 +167,14 @@ export default function Header() {
             <button 
               className="px-3 py-1.5 bg-primary-600 text-white rounded"
               onClick={() => {
-                const newTitle = document.getElementById('appTitleInput').value;
-                const newIcon = document.getElementById('iconSelection').value;
-                saveSettings(newTitle, newIcon);
+                const titleInput = document.getElementById('appTitleInput') as HTMLInputElement;
+                const iconSelect = document.getElementById('iconSelection') as HTMLSelectElement;
+                
+                if (titleInput && iconSelect) {
+                  const newTitle = titleInput.value || 'Manufacturing Monitor System';
+                  const newIcon = (iconSelect.value as IconKey) || 'gauge';
+                  saveSettings(newTitle, newIcon);
+                }
               }}
             >
               Save
