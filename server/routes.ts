@@ -47,6 +47,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch readings" });
     }
   });
+  
+  // Get gauges for a specific station
+  app.get('/api/stations/:id/gauges', async (req, res) => {
+    try {
+      const stationId = parseInt(req.params.id);
+      const gauges = await storage.getGaugesByStation(stationId);
+      res.json(gauges);
+    } catch (error) {
+      console.error("Error fetching gauges:", error);
+      res.status(500).json({ message: "Failed to fetch gauges" });
+    }
+  });
 
   // Save a new reading for a gauge
   app.post('/api/stations/:stationId/gauges/:gaugeId/readings', async (req, res) => {
