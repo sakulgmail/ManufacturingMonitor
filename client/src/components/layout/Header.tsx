@@ -83,7 +83,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2" onClick={() => setLocation("/")} style={{ cursor: "pointer" }}>
           {icons[currentIcon]}
-          <h1 className="text-xl font-bold">{title}</h1>
+          <h1 className="text-xl font-bold text-yellow-300">{title}</h1>
         </div>
         <div className="flex items-center space-x-4">
           <span>{formattedTime}</span>
