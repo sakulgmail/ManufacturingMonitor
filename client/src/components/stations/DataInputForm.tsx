@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Station, Gauge, StaffMember, InsertReading } from "@/lib/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -17,28 +17,28 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch stations, gauges, and staff
-  const { data: stations = [] as Station[] } = useQuery({
+  const { data: stations = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
-  const { data: staffMembers = [] as StaffMember[] } = useQuery({
+  const { data: staffMembers = [] } = useQuery<StaffMember[]>({
     queryKey: ['/api/staff'],
   });
   
-  const { data: selectedStationGauges = [] as Gauge[] } = useQuery({
+  const { data: selectedStationGauges = [] } = useQuery<Gauge[]>({
     queryKey: ['/api/stations', selectedStationId, 'gauges'],
     enabled: !!selectedStationId,
   });
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
-    ? selectedStationGauges.find((g: Gauge) => g.id === selectedGaugeId) 
+    ? selectedStationGauges.find(g => g.id === selectedGaugeId) 
     : null;
 
   // API call to save a new reading
   const saveReadingMutation = useMutation({
     mutationFn: async (reading: InsertReading) => {
-      return apiRequest('/api/readings', 'POST', reading);
+      return apiRequest('POST', '/api/readings', reading);
     },
     onSuccess: () => {
       // Invalidate queries to refresh data
@@ -143,7 +143,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             required
           >
             <option value="">-- Select Station --</option>
-            {stations.map((station) => (
+            {stations.map(station => (
               <option key={station.id} value={station.id}>
                 {station.name}
               </option>
@@ -164,7 +164,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               required
             >
               <option value="">-- Select Gauge --</option>
-              {selectedStationGauges.map((gauge) => (
+              {selectedStationGauges.map(gauge => (
                 <option key={gauge.id} value={gauge.id}>
                   {gauge.name} ({gauge.unit})
                 </option>
@@ -209,7 +209,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             onChange={handleStaffChange}
           >
             <option value="">-- Select Staff Member --</option>
-            {staffMembers.map((staff) => (
+            {staffMembers.map(staff => (
               <option key={staff.id} value={staff.id}>
                 {staff.name}
               </option>
