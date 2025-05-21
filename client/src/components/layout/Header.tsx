@@ -94,7 +94,20 @@ export default function Header() {
 
   const handleRefresh = useCallback(() => {
     // Invalidate all queries to force a refresh of data
-    queryClient.invalidateQueries();
+    queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/readings'] });
+    
+    // Add visual feedback for the refresh action
+    const refreshButton = document.querySelector('.refresh-button');
+    if (refreshButton) {
+      refreshButton.classList.add('animate-spin');
+      setTimeout(() => {
+        refreshButton.classList.remove('animate-spin');
+      }, 500);
+    }
+    
+    // Show a toast notification
+    alert("Data refreshed successfully");
   }, []);
 
   const saveSettings = (newTitle: string, newIcon: IconKey) => {
@@ -124,7 +137,7 @@ export default function Header() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1 text-gray-600"
+              className="h-5 w-5 mr-1 text-gray-600 refresh-button"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
