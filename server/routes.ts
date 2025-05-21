@@ -5,8 +5,11 @@ import { insertReadingSchema } from "@shared/schema";
 import { ZodError } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize test data
-  await storage.initializeTestData();
+  // Initialize test data only if no stations exist yet
+  const existingStations = await storage.getAllStations();
+  if (existingStations.length === 0) {
+    await storage.initializeTestData();
+  }
 
   // Get all stations with gauges
   app.get('/api/stations', async (req, res) => {
