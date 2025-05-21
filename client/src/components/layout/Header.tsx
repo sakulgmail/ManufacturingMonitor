@@ -233,7 +233,7 @@ export default function Header() {
               Cancel
             </button>
             <button
-              className="px-3 py-1.5 bg-primary-600 text-white rounded"
+              className="px-3 py-1.5 bg-green-600 text-white rounded font-bold"
               onClick={() => {
                 const titleInput = document.getElementById(
                   "appTitleInput",
@@ -250,7 +250,7 @@ export default function Header() {
                 }
               }}
             >
-              Save
+              OK
             </button>
           </div>
         </div>
