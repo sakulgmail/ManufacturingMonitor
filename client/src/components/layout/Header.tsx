@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect, ReactElement } from "react";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useClock } from "@/hooks/useClock";
+import DataInputModal from "./DataInputModal";
 
 // Define types for icons
 type IconKey = "factory" | "gauge" | "monitor";
@@ -77,6 +78,7 @@ export default function Header() {
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [showSettings, setShowSettings] = useState(false);
+  const [showDataInput, setShowDataInput] = useState(false);
 
   // Load settings from local storage on component mount
   useEffect(() => {
