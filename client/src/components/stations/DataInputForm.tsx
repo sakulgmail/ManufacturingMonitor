@@ -17,31 +17,28 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch stations, gauges, and staff
-  const { data: stations = [] } = useQuery<Station[]>({
+  const { data: stations = [] as Station[] } = useQuery({
     queryKey: ['/api/stations'],
   });
   
-  const { data: staffMembers = [] } = useQuery<StaffMember[]>({
+  const { data: staffMembers = [] as StaffMember[] } = useQuery({
     queryKey: ['/api/staff'],
   });
   
-  const { data: selectedStationGauges = [] } = useQuery<Gauge[]>({
+  const { data: selectedStationGauges = [] as Gauge[] } = useQuery({
     queryKey: ['/api/stations', selectedStationId, 'gauges'],
     enabled: !!selectedStationId,
   });
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
-    ? selectedStationGauges.find(g => g.id === selectedGaugeId) 
+    ? selectedStationGauges.find((g: Gauge) => g.id === selectedGaugeId) 
     : null;
 
   // API call to save a new reading
   const saveReadingMutation = useMutation({
     mutationFn: async (reading: InsertReading) => {
-      return apiRequest<any>('/api/readings', {
-        method: 'POST',
-        body: JSON.stringify(reading),
-      });
+      return apiRequest('/api/readings', 'POST', reading);
     },
     onSuccess: () => {
       // Invalidate queries to refresh data

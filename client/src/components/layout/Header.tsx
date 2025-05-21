@@ -155,6 +155,26 @@ export default function Header() {
             <span className="text-gray-600">Refresh</span>
           </button>
           <button
+            className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
+            onClick={() => setShowDataInput(true)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1 text-gray-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14"></path>
+              <path d="M5 12h14"></path>
+            </svg>
+            <span className="text-gray-600">Enter Data</span>
+          </button>
+          
+          <button
             className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
             onClick={() => setShowSettings(!showSettings)}
           >
@@ -270,6 +290,12 @@ export default function Header() {
           </div>
         </div>
       )}
+      
+      {/* Data Input Modal */}
+      <DataInputModal 
+        isOpen={showDataInput} 
+        onClose={() => setShowDataInput(false)} 
+      />
     </header>
   );
 }
