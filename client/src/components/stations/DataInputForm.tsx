@@ -17,12 +17,12 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch all stations
-  const { data: stations = [] } = useQuery<Station[]>({
+  const { data: allStations = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
   // Filter out duplicate stations by name
-  const uniqueStations = stations.filter((station: Station, index: number, self: Station[]) => 
+  const uniqueStations = allStations.filter((station: Station, index: number, self: Station[]) => 
     index === self.findIndex((s: Station) => s.name === station.name)
   );
   
@@ -31,15 +31,17 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     queryKey: ['/api/staff'],
   });
   
-  // Fetch gauges for the selected station
-  const { data: stationGauges = [] } = useQuery<Gauge[]>({
-    queryKey: ['/api/stations', selectedStationId, 'gauges'],
-    enabled: !!selectedStationId,
-  });
+  // Get the selected station
+  const selectedStation = selectedStationId 
+    ? allStations.find((station: Station) => station.id === selectedStationId)
+    : null;
+    
+  // Get gauges from the selected station
+  const stationGauges = selectedStation?.gauges || [];
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
-    ? stationGauges.find(g => g.id === selectedGaugeId) 
+    ? stationGauges.find((g: Gauge) => g.id === selectedGaugeId) 
     : null;
 
   // API call to save a new reading
@@ -88,7 +90,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     setSelectedGaugeId(gaugeId);
     
     // Auto-fill with current reading if available
-    const gauge = stationGauges.find(g => g.id === gaugeId);
+    const gauge = stationGauges.find((g: Gauge) => g.id === gaugeId);
     if (gauge) {
       setReadingValue(gauge.currentReading);
     } else {
@@ -133,6 +135,10 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     saveReadingMutation.mutate(reading);
   };
 
+  // For debugging
+  console.log("Selected station:", selectedStation);
+  console.log("Station gauges:", stationGauges);
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-auto">
       <h2 className="text-xl font-bold mb-4">Enter New Reading</h2>
@@ -150,7 +156,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             required
           >
             <option value="">-- Select Station --</option>
-            {uniqueStations.map(station => (
+            {uniqueStations.map((station: Station) => (
               <option key={station.id} value={station.id}>
                 {station.name}
               </option>
@@ -171,11 +177,15 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               required
             >
               <option value="">-- Select Gauge --</option>
-              {stationGauges.map(gauge => (
-                <option key={gauge.id} value={gauge.id}>
-                  {gauge.name} ({gauge.unit})
-                </option>
-              ))}
+              {stationGauges && stationGauges.length > 0 ? (
+                stationGauges.map((gauge: Gauge) => (
+                  <option key={gauge.id} value={gauge.id}>
+                    {gauge.name} ({gauge.unit})
+                  </option>
+                ))
+              ) : (
+                <option disabled>No gauges available for this station</option>
+              )}
             </select>
           </div>
         )}
@@ -216,7 +226,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             onChange={handleStaffChange}
           >
             <option value="">-- Select Staff Member --</option>
-            {staffMembers.map(staff => (
+            {staffMembers.map((staff: StaffMember) => (
               <option key={staff.id} value={staff.id}>
                 {staff.name}
               </option>
