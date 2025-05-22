@@ -95,8 +95,8 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
         <div className="mb-3">
           <div className="flex justify-between mb-1">
             <label className="block text-gray-700 font-medium">Current Reading</label>
-            <span className={`${isOutOfRange ? 'text-error-600' : 'text-success-600'} text-sm font-medium`}>
-              {isOutOfRange ? 'Out of Range' : 'Within Range'}
+            <span className={`${isOutOfRange ? 'bg-red-600' : 'bg-green-600'} text-white text-xs font-bold px-2 py-1 rounded`}>
+              {isOutOfRange ? 'ALERT' : 'NORMAL'}
             </span>
           </div>
           <div className="flex">
