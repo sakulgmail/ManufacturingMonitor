@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Gauge, Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 

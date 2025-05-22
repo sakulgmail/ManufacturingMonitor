@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Gauge, Reading } from "@/lib/types";
+import { Gauge } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
-import GaugeImageDisplay from "./GaugeImageDisplay";
+import GaugeImagePreview from "./GaugeImagePreview";
 
 interface GaugeInputCardProps {
   gauge: Gauge;
@@ -90,8 +90,8 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
         </div>
       </div>
       <div className="p-4">
-        {/* Display the latest image for this gauge */}
-        <GaugeImageDisplay gauge={gauge} stationId={stationId} />
+        {/* Display the latest image for this gauge using our new component */}
+        <GaugeImagePreview gauge={gauge} />
         
         <div className="mb-3">
           <div className="flex justify-between mb-1">
