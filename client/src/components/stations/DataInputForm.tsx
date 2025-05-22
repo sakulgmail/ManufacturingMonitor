@@ -113,6 +113,55 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     setReadingValue(e.target.value);
   };
 
+  // Handle file upload
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check if file is an image
+    if (!file.type.match('image.*')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (JPEG, PNG)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setGaugeImage(file);
+    
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+  
+  // Clear selected image
+  const clearImage = () => {
+    setGaugeImage(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +182,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       gaugeId: selectedGaugeId,
       value: parseFloat(readingValue.toString()),
       timestamp: new Date().toISOString(),
-      staffId: selectedStaffId
+      staffId: selectedStaffId,
+      imageUrl: previewUrl
     };
     
     saveReadingMutation.mutate(reading);

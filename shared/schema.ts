@@ -40,6 +40,7 @@ export const readings = pgTable("readings", {
   value: real("value").notNull(),
   timestamp: text("timestamp").notNull().default(''),
   staffId: integer("staff_id").references(() => staff.id),
+  imageUrl: text("image_url"),
 });
 
 // Insert schemas for validation

@@ -45,4 +45,5 @@ export interface InsertReading {
   value: number;
   timestamp: string;
   staffId?: number | null;
+  imageUrl?: string | null;
 }
