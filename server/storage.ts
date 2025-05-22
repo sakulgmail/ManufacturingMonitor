@@ -3,7 +3,8 @@ import {
   Gauge, InsertGauge, 
   Staff, InsertStaff, 
   Reading, InsertReading,
-  stations, gauges, staff, readings
+  User, InsertUser,
+  stations, gauges, staff, readings, users
 } from "@shared/schema";
 
 // Helper function to ensure date values are stored as strings
@@ -55,11 +56,13 @@ export class MemStorage implements IStorage {
   private gauges: Map<number, Gauge>;
   private staffMembers: Map<number, Staff>;
   private readingRecords: Map<number, Reading>;
+  private users: Map<number, User>;
   
   private stationCurrentId: number;
   private gaugeCurrentId: number;
   private staffCurrentId: number;
   private readingCurrentId: number;
+  private userCurrentId: number;
 
   constructor() {
     this.stations = new Map();
@@ -240,6 +243,30 @@ export class MemStorage implements IStorage {
       maxValue: gauge?.maxValue || 0,
       staffName: staffMember?.name || 'Unknown Staff'
     };
+  }
+
+  // User authentication methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      user => user.username === username
+    );
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const id = this.userCurrentId++;
+    const newUser: User = {
+      id,
+      username: userData.username,
+      password: userData.password,
+      isAdmin: userData.isAdmin || false,
+      createdAt: new Date()
+    };
+    this.users.set(id, newUser);
+    return newUser;
   }
 
   // Initialize test data for the application
