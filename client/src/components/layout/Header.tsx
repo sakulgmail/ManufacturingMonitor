@@ -4,8 +4,9 @@ import { queryClient } from "@/lib/queryClient";
 import { useClock } from "@/hooks/useClock";
 import DataInputModal from "./DataInputModal";
 import AuthButtons from "./AuthButtons";
-import { RefreshCcw, Settings, Plus } from "lucide-react";
+import { RefreshCcw, Settings, Plus, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Define types for icons
 type IconKey = "factory" | "gauge" | "monitor";
