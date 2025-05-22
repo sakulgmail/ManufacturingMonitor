@@ -32,6 +32,7 @@ export interface Reading {
   maxValue: number;
   timestamp: string;
   staffName: string;
+  imageUrl?: string | null;
 }
 
 export interface StaffMember {

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
@@ -7,6 +7,8 @@ interface ReadingHistoryTableProps {
 }
 
 export default function ReadingHistoryTable({ readings }: ReadingHistoryTableProps) {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
   // Sort readings by timestamp (newest first)
   const sortedReadings = useMemo(() => {
     return [...readings].sort((a, b) => {
@@ -57,11 +59,44 @@ export default function ReadingHistoryTable({ readings }: ReadingHistoryTablePro
                   </span>
                 </td>
                 <td className="px-6 py-3">{reading.staffName}</td>
+                <td className="px-6 py-3">
+                  {reading.imageUrl ? (
+                    <button 
+                      onClick={() => setSelectedImage(reading.imageUrl || null)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      View Image
+                    </button>
+                  ) : (
+                    <span className="text-gray-400 text-sm">No image</span>
+                  )}
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSelectedImage(null)}>
+          <div className="bg-white p-4 rounded-lg max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-medium">Gauge Image</h3>
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <img 
+              src={selectedImage} 
+              alt="Gauge reading" 
+              className="max-w-full max-h-[70vh] object-contain mx-auto"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
