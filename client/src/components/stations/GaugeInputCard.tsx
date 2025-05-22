@@ -12,23 +12,29 @@ interface GaugeInputCardProps {
 export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps) {
   const [inputValue, setInputValue] = useState<number>(gauge.currentReading);
   
-  // Fetch the latest reading with image for this gauge
+  // Fetch all readings to find ones with images
   const { data: latestReadings = [] } = useQuery<Reading[]>({
-    queryKey: ['/api/stations', stationId, 'gauges', gauge.id, 'readings']
+    queryKey: ['/api/readings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/readings`);
+      return response || [];
+    }
   });
   
-  // Get the latest reading with an image
+  // Get the latest reading with an image for this specific gauge
   const latestReadingWithImage = useMemo(() => {
     if (!latestReadings || !Array.isArray(latestReadings) || latestReadings.length === 0) return null;
     
-    // Debug the readings - check what we're getting
-    console.log(`Gauge ${gauge.id} readings:`, latestReadings);
+    // Filter readings for this gauge only and sort by timestamp (newest first)
+    const gaugeReadings = latestReadings
+      .filter(reading => reading.gaugeId === gauge.id)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     
-    // Find the most recent reading that has an image
-    const readingWithImage = latestReadings.find(reading => reading && reading.imageUrl && reading.imageUrl.length > 0);
+    // Find the first reading with an image
+    const readingWithImage = gaugeReadings.find(reading => reading.imageUrl && reading.imageUrl.length > 0);
     
     if (readingWithImage) {
-      console.log("Found reading with image:", readingWithImage);
+      console.log(`Found image for gauge ${gauge.id}:`, readingWithImage.imageUrl?.substring(0, 30) + '...');
     }
     
     return readingWithImage;
