@@ -69,7 +69,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify password
-      const bcrypt = require('bcrypt');
       const passwordMatches = await bcrypt.compare(password, user.password);
       if (!passwordMatches) {
         return res.status(401).json({ message: "Invalid username or password" });
