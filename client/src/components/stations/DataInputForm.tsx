@@ -256,15 +256,18 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={readingValue}
                 onChange={handleReadingChange}
-                min={selectedGauge.minValue}
-                max={selectedGauge.maxValue}
                 step={selectedGauge.step || 1}
                 required
               />
               <span className="ml-2 text-gray-500">{selectedGauge.unit}</span>
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Valid range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
+              Expected range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
+              {readingValue < selectedGauge.minValue || readingValue > selectedGauge.maxValue ? (
+                <span className="text-red-600 ml-2 font-bold">
+                  (ALERT: Current value is outside expected range)
+                </span>
+              ) : null}
             </div>
           </div>
         )}
