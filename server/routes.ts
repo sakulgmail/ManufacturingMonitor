@@ -3,6 +3,7 @@ import { createServer, Server } from "http";
 import { storage } from "./storage";
 import { insertReadingSchema, insertUserSchema } from "@shared/schema";
 import session from "express-session";
+import bcrypt from "bcrypt";
 import { ZodError } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -26,7 +27,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = insertUserSchema.parse(req.body);
       
       // Hash the password before storing
-      const bcrypt = require('bcrypt');
       const hashedPassword = await bcrypt.hash(userData.password, 10);
       
       const user = await storage.createUser({
