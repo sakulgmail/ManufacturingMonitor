@@ -17,6 +17,13 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
     queryKey: ['/api/stations', stationId, 'gauges', gauge.id, 'readings']
   });
   
+  // Get the latest reading with an image
+  const latestReadingWithImage = useMemo(() => {
+    if (!latestReadings || latestReadings.length === 0) return null;
+    // Find the most recent reading that has an image
+    return latestReadings.find(reading => reading && reading.imageUrl);
+  }, [latestReadings]);
+  
   const isOutOfRange = useMemo(() => {
     return inputValue < gauge.minValue || inputValue > gauge.maxValue;
   }, [inputValue, gauge.minValue, gauge.maxValue]);
@@ -92,6 +99,23 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
         </div>
       </div>
       <div className="p-4">
+        {/* Latest Reading Image (if available) */}
+        {latestReadingWithImage && latestReadingWithImage.imageUrl && (
+          <div className="mb-4">
+            <h5 className="text-sm font-medium text-gray-600 mb-2">Latest Image ({formatDateTime(latestReadingWithImage.timestamp)})</h5>
+            <div className="border rounded-md p-1 bg-gray-50 relative">
+              <img 
+                src={latestReadingWithImage.imageUrl} 
+                alt={`${gauge.name} reading on ${formatDateTime(latestReadingWithImage.timestamp)}`}
+                className="w-full h-auto max-h-48 object-contain rounded"
+              />
+              <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                {latestReadingWithImage.value} {gauge.unit}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="mb-3">
           <div className="flex justify-between mb-1">
             <label className="block text-gray-700 font-medium">Current Reading</label>
