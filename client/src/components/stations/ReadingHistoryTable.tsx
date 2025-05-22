@@ -8,6 +8,11 @@ interface ReadingHistoryTableProps {
 
 export default function ReadingHistoryTable({ readings }: ReadingHistoryTableProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const handleImageClick = (img: string | null | undefined) => {
+    if (img) {
+      setSelectedImage(img);
+    }
+  };
   
   // Sort readings by timestamp (newest first)
   const sortedReadings = useMemo(() => {
@@ -62,7 +67,7 @@ export default function ReadingHistoryTable({ readings }: ReadingHistoryTablePro
                 <td className="px-6 py-3">
                   {reading.imageUrl ? (
                     <button 
-                      onClick={() => setSelectedImage(reading.imageUrl || null)}
+                      onClick={() => handleImageClick(reading.imageUrl)}
                       className="text-blue-600 hover:text-blue-800"
                     >
                       View Image
