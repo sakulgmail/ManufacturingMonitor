@@ -77,13 +77,17 @@ export default function Header() {
   // Store state with default values
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
+  const [customImage, setCustomImage] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showDataInput, setShowDataInput] = useState(false);
+  const [useCustomImage, setUseCustomImage] = useState(false);
 
   // Load settings from local storage on component mount
   useEffect(() => {
     const storedTitle = localStorage.getItem("appTitle");
     const storedIcon = localStorage.getItem("appIcon") as IconKey;
+    const storedCustomImage = localStorage.getItem("customImage");
+    const storedUseCustomImage = localStorage.getItem("useCustomImage");
 
     if (storedTitle) {
       setTitle(storedTitle);
@@ -91,6 +95,14 @@ export default function Header() {
 
     if (storedIcon && Object.keys(icons).includes(storedIcon)) {
       setCurrentIcon(storedIcon);
+    }
+    
+    if (storedCustomImage) {
+      setCustomImage(storedCustomImage);
+    }
+    
+    if (storedUseCustomImage === "true") {
+      setUseCustomImage(true);
     }
   }, []);
 
@@ -112,9 +124,22 @@ export default function Header() {
     alert("Data refreshed successfully");
   }, []);
 
-  const saveSettings = (newTitle: string, newIcon: IconKey) => {
+  const saveSettings = (newTitle: string, newIcon: IconKey, newCustomImage?: string | null, newUseCustomImage?: boolean) => {
     localStorage.setItem("appTitle", newTitle);
     localStorage.setItem("appIcon", newIcon);
+    
+    if (newCustomImage !== undefined) {
+      if (newCustomImage) {
+        localStorage.setItem("customImage", newCustomImage);
+        setCustomImage(newCustomImage);
+      }
+    }
+    
+    if (newUseCustomImage !== undefined) {
+      localStorage.setItem("useCustomImage", newUseCustomImage ? "true" : "false");
+      setUseCustomImage(newUseCustomImage);
+    }
+    
     setTitle(newTitle);
     setCurrentIcon(newIcon);
     setShowSettings(false);
