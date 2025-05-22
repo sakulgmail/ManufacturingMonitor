@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import GaugeInputCard from "./GaugeInputCard";
+import GaugeCard from "./GaugeCard";
 import ReadingHistoryTable from "./ReadingHistoryTable";
 import { Station, Reading } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 interface StationCardProps {
   station: Station;
@@ -11,6 +13,7 @@ interface StationCardProps {
 }
 
 export default function StationCard({ station, isExpanded, onToggleExpand }: StationCardProps) {
+  const { user, isAuthenticated } = useAuth();
   const { data: readings = [] } = useQuery<Reading[]>({
     queryKey: ['/api/stations', station.id, 'readings'],
     enabled: isExpanded,
@@ -79,11 +82,19 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
         <div className="station-gauges p-4 pt-0 border-t">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {station.gauges.map((gauge) => (
-              <GaugeInputCard 
-                key={gauge.id} 
-                gauge={gauge} 
-                stationId={station.id} 
-              />
+              isAuthenticated ? (
+                <GaugeInputCard 
+                  key={gauge.id} 
+                  gauge={gauge} 
+                  stationId={station.id} 
+                />
+              ) : (
+                <GaugeCard
+                  key={gauge.id}
+                  gauge={gauge}
+                  stationId={station.id}
+                />
+              )
             ))}
           </div>
           
