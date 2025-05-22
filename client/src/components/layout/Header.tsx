@@ -5,6 +5,7 @@ import { useClock } from "@/hooks/useClock";
 import DataInputModal from "./DataInputModal";
 import AuthButtons from "./AuthButtons";
 import { RefreshCcw, Settings, Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Define types for icons
 type IconKey = "factory" | "gauge" | "monitor";
@@ -75,6 +76,7 @@ const icons: IconsObject = {
 export default function Header() {
   const [location, setLocation] = useLocation();
   const { formattedTime } = useClock();
+  const { isAuthenticated } = useAuth();
 
   // Store state with default values
   const [title, setTitle] = useState("Manufacturing Monitor System");
@@ -178,21 +180,26 @@ export default function Header() {
             <RefreshCcw className="h-4 w-4 mr-1" />
             <span className="text-gray-600">Refresh</span>
           </button>
-          <button
-            className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
-            onClick={() => setShowDataInput(true)}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            <span className="text-gray-600">Enter Data</span>
-          </button>
           
-          <button
-            className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <Settings className="h-4 w-4 mr-1" />
-            <span className="text-gray-600">Settings</span>
-          </button>
+          {isAuthenticated && (
+            <>
+              <button
+                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
+                onClick={() => setShowDataInput(true)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                <span className="text-gray-600">Enter Data</span>
+              </button>
+              
+              <button
+                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                <span className="text-gray-600">Settings</span>
+              </button>
+            </>
+          )}
           <AuthButtons />
         </div>
       </div>
