@@ -163,6 +163,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get readings for a specific gauge
+  app.get('/api/stations/:stationId/gauges/:gaugeId/readings', async (req, res) => {
+    try {
+      const gaugeId = parseInt(req.params.gaugeId);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      let readings = await storage.getReadingsByGauge(gaugeId);
+      
+      // Sort by timestamp descending (most recent first)
+      readings = readings.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      
+      // Limit results if requested
+      if (limit) {
+        readings = readings.slice(0, limit);
+      }
+      
+      res.json(readings);
+    } catch (error) {
+      console.error("Error fetching gauge readings:", error);
+      res.status(500).json({ message: "Failed to fetch gauge readings" });
+    }
+  });
+  
   // Get gauges for a specific station
   app.get('/api/stations/:id/gauges', async (req, res) => {
     try {

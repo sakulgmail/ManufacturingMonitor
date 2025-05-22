@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Gauge } from "@/lib/types";
+import { Gauge, Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 interface GaugeInputCardProps {
@@ -11,6 +11,11 @@ interface GaugeInputCardProps {
 
 export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps) {
   const [inputValue, setInputValue] = useState<number>(gauge.currentReading);
+  
+  // Fetch the latest reading with image for this gauge
+  const { data: latestReadings = [] } = useQuery<Reading[]>({
+    queryKey: ['/api/stations', stationId, 'gauges', gauge.id, 'readings']
+  });
   
   const isOutOfRange = useMemo(() => {
     return inputValue < gauge.minValue || inputValue > gauge.maxValue;
