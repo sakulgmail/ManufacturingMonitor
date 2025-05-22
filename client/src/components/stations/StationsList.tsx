@@ -4,13 +4,12 @@ import StationCard from "./StationCard";
 import { Station } from "@/lib/types";
 
 interface StationsListProps {
+  stations: Station[];
+  isLoading?: boolean;
   selectedStationId?: number;
 }
 
-export default function StationsList({ selectedStationId }: StationsListProps) {
-  const { data: stations = [], isLoading } = useQuery<Station[]>({
-    queryKey: ['/api/stations'],
-  });
+export default function StationsList({ stations, isLoading = false, selectedStationId }: StationsListProps) {
   
   // Track which stations are expanded
   const [expandedStationIds, setExpandedStationIds] = useState<number[]>([]);

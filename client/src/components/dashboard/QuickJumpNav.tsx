@@ -3,13 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Station } from "@/lib/types";
 
 interface QuickJumpNavProps {
+  stations: Station[];
+  isLoading?: boolean;
   onStationSelect: (stationId: number) => void;
 }
 
-export default function QuickJumpNav({ onStationSelect }: QuickJumpNavProps) {
-  const { data: stations = [], isLoading } = useQuery<Station[]>({
-    queryKey: ['/api/stations'],
-  });
+export default function QuickJumpNav({ stations, isLoading = false, onStationSelect }: QuickJumpNavProps) {
 
   const handleQuickJump = useCallback((stationId: number) => {
     onStationSelect(stationId);

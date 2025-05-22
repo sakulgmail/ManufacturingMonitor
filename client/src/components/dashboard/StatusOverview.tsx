@@ -3,13 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Station } from "@/lib/types";
 
 interface StatusOverviewProps {
-  stationIds: number[];
+  stations: Station[];
+  isLoading?: boolean;
 }
 
-export default function StatusOverview({ stationIds }: StatusOverviewProps) {
-  const { data: stations = [], isLoading } = useQuery<Station[]>({
-    queryKey: ['/api/stations'],
-  });
+export default function StatusOverview({ stations, isLoading = false }: StatusOverviewProps) {
 
   // Calculate station statuses
   const stationStatuses = useMemo(() => {
