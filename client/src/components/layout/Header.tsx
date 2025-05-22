@@ -153,7 +153,15 @@ export default function Header() {
           onClick={() => setLocation("/")}
           style={{ cursor: "pointer" }}
         >
-          {icons[currentIcon]}
+          {useCustomImage && customImage ? (
+            <img 
+              src={customImage} 
+              alt="Logo" 
+              className="h-8 w-8 object-cover rounded"
+            />
+          ) : (
+            icons[currentIcon]
+          )}
           <h1 className="text-xl font-bold text-gray-600">{title}</h1>
         </div>
         <div className="flex items-center space-x-4">
@@ -242,47 +250,115 @@ export default function Header() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
-              Select Icon
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.entries(icons) as [IconKey, ReactElement][]).map(
-                ([key, icon]) => (
-                  <div
-                    key={key}
-                    className={`border p-2 rounded flex justify-center items-center cursor-pointer ${currentIcon === key ? "border-primary-500 bg-primary-50" : "border-gray-300"}`}
-                    onClick={() => {
-                      const selection = document.getElementById(
-                        "iconSelection",
-                      ) as HTMLSelectElement;
-                      if (selection) {
-                        selection.value = key;
+            <div className="flex items-center mb-2">
+              <label className="text-sm font-medium">
+                <input
+                  type="radio"
+                  name="logoType"
+                  className="mr-2"
+                  checked={!useCustomImage}
+                  onChange={() => setUseCustomImage(false)}
+                  id="useIcon"
+                />
+                Use Icon
+              </label>
+              <label className="text-sm font-medium ml-4">
+                <input
+                  type="radio"
+                  name="logoType"
+                  className="mr-2"
+                  checked={useCustomImage}
+                  onChange={() => setUseCustomImage(true)}
+                  id="useCustomImage"
+                />
+                Use Custom Image
+              </label>
+            </div>
+            
+            {/* Icon Selection */}
+            {!useCustomImage && (
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Select Icon
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.entries(icons) as [IconKey, ReactElement][]).map(
+                    ([key, icon]) => (
+                      <div
+                        key={key}
+                        className={`border p-2 rounded flex justify-center items-center cursor-pointer ${currentIcon === key ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
+                        onClick={() => {
+                          const selection = document.getElementById(
+                            "iconSelection",
+                          ) as HTMLSelectElement;
+                          if (selection) {
+                            selection.value = key;
+                          }
+                        }}
+                      >
+                        {/* Clone element with Typescript safety */}
+                        {icon && {
+                          ...icon,
+                          props: {
+                            ...icon.props,
+                            className: "h-6 w-6 text-gray-700",
+                          },
+                        }}
+                      </div>
+                    ),
+                  )}
+                </div>
+                <select
+                  id="iconSelection"
+                  className="hidden"
+                  defaultValue={currentIcon}
+                >
+                  {(Object.keys(icons) as IconKey[]).map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            {/* Image Upload */}
+            {useCustomImage && (
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Upload Image
+                </label>
+                <div className="mb-2">
+                  <input
+                    type="file"
+                    id="imageUpload"
+                    accept=".jpg,.jpeg,.png"
+                    className="border p-2 rounded w-full"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const imageDataUrl = event.target?.result as string;
+                          setCustomImage(imageDataUrl);
+                        };
+                        reader.readAsDataURL(file);
                       }
                     }}
-                  >
-                    {/* Clone element with Typescript safety */}
-                    {icon && {
-                      ...icon,
-                      props: {
-                        ...icon.props,
-                        className: "h-6 w-6 text-gray-700",
-                      },
-                    }}
+                  />
+                </div>
+                {customImage && (
+                  <div className="mt-2 border p-2 rounded">
+                    <p className="text-sm mb-1">Preview:</p>
+                    <img
+                      src={customImage}
+                      alt="Custom logo preview"
+                      className="h-12 w-12 object-cover rounded"
+                    />
                   </div>
-                ),
-              )}
-            </div>
-            <select
-              id="iconSelection"
-              className="hidden"
-              defaultValue={currentIcon}
-            >
-              {(Object.keys(icons) as IconKey[]).map((key) => (
-                <option key={key} value={key}>
-                  {key}
-                </option>
-              ))}
-            </select>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2">
@@ -302,11 +378,13 @@ export default function Header() {
                   "iconSelection",
                 ) as HTMLSelectElement;
 
-                if (titleInput && iconSelect) {
+                if (titleInput) {
                   const newTitle =
                     titleInput.value || "Manufacturing Monitor System";
-                  const newIcon = (iconSelect.value as IconKey) || "gauge";
-                  saveSettings(newTitle, newIcon);
+                  const newIcon = iconSelect?.value as IconKey || "gauge";
+                  
+                  // Save with current image settings
+                  saveSettings(newTitle, newIcon, customImage, useCustomImage);
                 }
               }}
             >
