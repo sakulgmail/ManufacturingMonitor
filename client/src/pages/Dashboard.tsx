@@ -13,9 +13,9 @@ export default function Dashboard() {
   
   const [selectedStationId, setSelectedStationId] = useState<number | undefined>(undefined);
 
-  // Remove duplicate stations (if any)
+  // Remove duplicate stations by name (keeping only the first occurrence)
   const uniqueStations = stations.filter((station, index, self) => 
-    index === self.findIndex(s => s.id === station.id)
+    index === self.findIndex(s => s.name === station.name)
   );
 
   return (
