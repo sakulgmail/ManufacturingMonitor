@@ -270,7 +270,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
         )}
         
         {/* Staff Selection */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Staff Member (Optional)
           </label>
@@ -286,6 +286,50 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               </option>
             ))}
           </select>
+        </div>
+        
+        {/* Image Upload Section */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Gauge Image (Optional)
+          </label>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/jpeg, image/png"
+            onChange={handleFileChange}
+          />
+          
+          {previewUrl ? (
+            <div className="relative border rounded-md p-2 bg-gray-50">
+              <img 
+                src={previewUrl} 
+                alt="Gauge preview" 
+                className="w-full max-h-48 object-contain mx-auto"
+              />
+              <button 
+                type="button"
+                onClick={clearImage}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                title="Remove image"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={triggerFileUpload}
+              className="w-full flex items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              <Upload className="h-5 w-5 mr-2 text-gray-500" />
+              <span>Upload Gauge Picture</span>
+            </button>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Attach a photo of the gauge reading (JPEG or PNG, max 5MB)
+          </p>
         </div>
         
         {/* Submit Button */}

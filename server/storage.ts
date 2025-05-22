@@ -214,7 +214,8 @@ export class MemStorage implements IStorage {
       gaugeId: readingData.gaugeId,
       value: readingData.value,
       timestamp: readingData.timestamp || new Date().toISOString(),
-      staffId: readingData.staffId || null
+      staffId: readingData.staffId || null,
+      imageUrl: readingData.imageUrl || null
     };
     this.readingRecords.set(id, newReading);
     return newReading;

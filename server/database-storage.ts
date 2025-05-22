@@ -127,7 +127,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReading(readingData: InsertReading): Promise<Reading> {
-    const [newReading] = await db.insert(readings).values(readingData).returning();
+    // Ensure we have all required fields
+    const dataToInsert = {
+      ...readingData,
+      // Set imageUrl to null if not provided
+      imageUrl: readingData.imageUrl || null
+    };
+    
+    const [newReading] = await db.insert(readings).values(dataToInsert).returning();
     return newReading;
   }
 
