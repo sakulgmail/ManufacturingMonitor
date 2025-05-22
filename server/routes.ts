@@ -181,6 +181,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         readings = readings.slice(0, limit);
       }
       
+      // Debug what we're returning
+      console.log(`Readings for gauge ${gaugeId}:`, 
+        readings.map(r => ({id: r.id, value: r.value, hasImage: !!r.imageUrl}))
+      );
+      
       res.json(readings);
     } catch (error) {
       console.error("Error fetching gauge readings:", error);

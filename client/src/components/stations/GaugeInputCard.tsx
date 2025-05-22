@@ -19,10 +19,20 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
   
   // Get the latest reading with an image
   const latestReadingWithImage = useMemo(() => {
-    if (!latestReadings || latestReadings.length === 0) return null;
+    if (!latestReadings || !Array.isArray(latestReadings) || latestReadings.length === 0) return null;
+    
+    // Debug the readings - check what we're getting
+    console.log(`Gauge ${gauge.id} readings:`, latestReadings);
+    
     // Find the most recent reading that has an image
-    return latestReadings.find(reading => reading && reading.imageUrl);
-  }, [latestReadings]);
+    const readingWithImage = latestReadings.find(reading => reading && reading.imageUrl && reading.imageUrl.length > 0);
+    
+    if (readingWithImage) {
+      console.log("Found reading with image:", readingWithImage);
+    }
+    
+    return readingWithImage;
+  }, [latestReadings, gauge.id]);
   
   const isOutOfRange = useMemo(() => {
     return inputValue < gauge.minValue || inputValue > gauge.maxValue;
