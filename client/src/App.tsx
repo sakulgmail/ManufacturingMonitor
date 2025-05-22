@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 

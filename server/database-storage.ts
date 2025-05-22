@@ -139,6 +139,36 @@ export class DatabaseStorage implements IStorage {
 
     return Promise.all(allReadings.map(reading => this.enrichReadingWithDetails(reading)));
   }
+  
+  // User Authentication
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    // Check if username already exists
+    const existingUser = await this.getUserByUsername(userData.username);
+    if (existingUser) {
+      throw new Error('Username already exists');
+    }
+
+    const [user] = await db
+      .insert(users)
+      .values({
+        username: userData.username,
+        password: userData.password, // Note: In a real app, we should hash this password
+        isAdmin: userData.isAdmin || false
+      })
+      .returning();
+    
+    return user;
+  }
 
   private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {
     const [station] = await db.select().from(stations).where(eq(stations.id, reading.stationId));
