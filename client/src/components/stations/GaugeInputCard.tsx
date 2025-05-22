@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Gauge, Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
+import GaugeImageDisplay from "./GaugeImageDisplay";
 
 interface GaugeInputCardProps {
   gauge: Gauge;
@@ -12,33 +13,7 @@ interface GaugeInputCardProps {
 export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps) {
   const [inputValue, setInputValue] = useState<number>(gauge.currentReading);
   
-  // Fetch all readings to find ones with images
-  const { data: latestReadings = [] } = useQuery<Reading[]>({
-    queryKey: ['/api/readings'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/readings`);
-      return response || [];
-    }
-  });
-  
-  // Get the latest reading with an image for this specific gauge
-  const latestReadingWithImage = useMemo(() => {
-    if (!latestReadings || !Array.isArray(latestReadings) || latestReadings.length === 0) return null;
-    
-    // Filter readings for this gauge only and sort by timestamp (newest first)
-    const gaugeReadings = latestReadings
-      .filter(reading => reading.gaugeId === gauge.id)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
-    // Find the first reading with an image
-    const readingWithImage = gaugeReadings.find(reading => reading.imageUrl && reading.imageUrl.length > 0);
-    
-    if (readingWithImage) {
-      console.log(`Found image for gauge ${gauge.id}:`, readingWithImage.imageUrl?.substring(0, 30) + '...');
-    }
-    
-    return readingWithImage;
-  }, [latestReadings, gauge.id]);
+  // No longer needed as we're using the new GaugeImageDisplay component
   
   const isOutOfRange = useMemo(() => {
     return inputValue < gauge.minValue || inputValue > gauge.maxValue;
@@ -115,22 +90,8 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
         </div>
       </div>
       <div className="p-4">
-        {/* Latest Reading Image (if available) */}
-        {latestReadingWithImage && latestReadingWithImage.imageUrl && (
-          <div className="mb-4">
-            <h5 className="text-sm font-medium text-gray-600 mb-2">Latest Image ({formatDateTime(latestReadingWithImage.timestamp)})</h5>
-            <div className="border rounded-md p-1 bg-gray-50 relative">
-              <img 
-                src={latestReadingWithImage.imageUrl} 
-                alt={`${gauge.name} reading on ${formatDateTime(latestReadingWithImage.timestamp)}`}
-                className="w-full h-auto max-h-48 object-contain rounded"
-              />
-              <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                {latestReadingWithImage.value} {gauge.unit}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Display the latest image for this gauge */}
+        <GaugeImageDisplay gauge={gauge} stationId={stationId} />
         
         <div className="mb-3">
           <div className="flex justify-between mb-1">
