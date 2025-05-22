@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Station, Gauge, StaffMember, InsertReading } from "@/lib/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Image, Upload } from "lucide-react";
 
 interface DataInputFormProps {
   onClose: () => void;
@@ -15,6 +16,9 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [readingValue, setReadingValue] = useState<number | string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gaugeImage, setGaugeImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all stations
   const { data: allStations = [] } = useQuery<Station[]>({
