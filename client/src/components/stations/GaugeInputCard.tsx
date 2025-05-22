@@ -13,8 +13,7 @@ interface GaugeInputCardProps {
 export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps) {
   const [inputValue, setInputValue] = useState<number>(gauge.currentReading);
   
-  // No longer needed as we're using the new GaugeImageDisplay component
-  
+  // Check if the value is outside the expected range
   const isOutOfRange = useMemo(() => {
     return inputValue < gauge.minValue || inputValue > gauge.maxValue;
   }, [inputValue, gauge.minValue, gauge.maxValue]);
@@ -105,7 +104,6 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
               type="number" 
               className={`border-2 ${isOutOfRange ? 'border-error-500' : 'border-success-500'} rounded-l p-2 w-full text-lg`} 
               value={inputValue} 
-              min="0"
               step={(gauge.step !== null) ? gauge.step : 1}
               onChange={(e) => setInputValue(Number(e.target.value))}
             />
