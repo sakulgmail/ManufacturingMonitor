@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useClock } from "@/hooks/useClock";
 import DataInputModal from "./DataInputModal";
+import AuthButtons from "./AuthButtons";
+import { RefreshCcw, Settings, Plus } from "lucide-react";
 
 // Define types for icons
 type IconKey = "factory" | "gauge" | "monitor";
@@ -173,40 +175,14 @@ export default function Header() {
             className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
             onClick={handleRefresh}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1 text-gray-600 refresh-button"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-              <path d="M8 16H3v5" />
-            </svg>
+            <RefreshCcw className="h-4 w-4 mr-1" />
             <span className="text-gray-600">Refresh</span>
           </button>
           <button
             className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
             onClick={() => setShowDataInput(true)}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1 text-gray-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14"></path>
-              <path d="M5 12h14"></path>
-            </svg>
+            <Plus className="h-4 w-4 mr-1" />
             <span className="text-gray-600">Enter Data</span>
           </button>
           
