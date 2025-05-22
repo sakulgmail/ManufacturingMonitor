@@ -41,6 +41,11 @@ export interface IStorage {
   createReading(reading: InsertReading): Promise<Reading>;
   getAllReadingsWithDetails(): Promise<ReadingWithDetails[]>;
   
+  // User Authentication
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
   // Initialize test data
   initializeTestData(): Promise<void>;
 }
@@ -61,11 +66,13 @@ export class MemStorage implements IStorage {
     this.gauges = new Map();
     this.staffMembers = new Map();
     this.readingRecords = new Map();
+    this.users = new Map();
     
     this.stationCurrentId = 1;
     this.gaugeCurrentId = 1;
     this.staffCurrentId = 1;
     this.readingCurrentId = 1;
+    this.userCurrentId = 1;
   }
 
   // Station methods
