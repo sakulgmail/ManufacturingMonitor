@@ -154,11 +154,14 @@ export default function Header() {
           style={{ cursor: "pointer" }}
         >
           {useCustomImage && customImage ? (
-            <img 
-              src={customImage} 
-              alt="Logo" 
-              className="h-8 w-8 object-cover rounded"
-            />
+            <div className="h-8 w-8 flex items-center justify-center">
+              <img 
+                src={customImage} 
+                alt="Logo" 
+                className="max-h-8 max-w-8 object-contain rounded"
+                style={{ maxHeight: "32px", maxWidth: "32px" }}
+              />
+            </div>
           ) : (
             icons[currentIcon]
           )}
@@ -350,11 +353,14 @@ export default function Header() {
                 {customImage && (
                   <div className="mt-2 border p-2 rounded">
                     <p className="text-sm mb-1">Preview:</p>
-                    <img
-                      src={customImage}
-                      alt="Custom logo preview"
-                      className="h-12 w-12 object-cover rounded"
-                    />
+                    <div className="flex items-center justify-center h-16 w-16">
+                      <img
+                        src={customImage}
+                        alt="Custom logo preview"
+                        className="max-h-16 max-w-16 object-contain rounded"
+                        style={{ maxHeight: "64px", maxWidth: "64px" }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
