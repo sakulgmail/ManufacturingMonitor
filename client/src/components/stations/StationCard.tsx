@@ -18,6 +18,9 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
     queryKey: ['/api/stations', station.id, 'readings'],
     enabled: isExpanded,
   });
+  
+  // Log readings when they change to help debug
+  console.log(`Station ${station.id} readings:`, readings);
 
   // Calculate if there are any alerts for this station
   const stationStatus = useMemo(() => {
