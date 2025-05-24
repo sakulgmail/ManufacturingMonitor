@@ -14,13 +14,15 @@ interface StationCardProps {
 
 export default function StationCard({ station, isExpanded, onToggleExpand }: StationCardProps) {
   const { user, isAuthenticated } = useAuth();
+  // Fetch station-specific readings directly
   const { data: readings = [] } = useQuery<Reading[]>({
-    queryKey: ['/api/stations', station.id, 'readings'],
+    queryKey: ['/api/readings'],
     enabled: isExpanded,
+    select: (data) => {
+      // Filter readings to only show ones for this specific station
+      return data.filter((reading) => reading.stationId === station.id);
+    }
   });
-  
-  // Log readings when they change to help debug
-  console.log(`Station ${station.id} readings:`, readings);
 
   // Calculate if there are any alerts for this station
   const stationStatus = useMemo(() => {

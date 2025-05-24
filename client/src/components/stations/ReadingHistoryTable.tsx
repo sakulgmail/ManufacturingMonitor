@@ -16,6 +16,11 @@ export default function ReadingHistoryTable({ readings }: ReadingHistoryTablePro
   
   // Sort readings by timestamp (newest first)
   const sortedReadings = useMemo(() => {
+    if (!readings || !Array.isArray(readings)) {
+      console.warn("No valid readings array provided");
+      return [];
+    }
+    
     return [...readings].sort((a, b) => {
       // Safely handle potentially invalid dates
       try {
