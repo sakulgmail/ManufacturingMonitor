@@ -176,6 +176,11 @@ export default function Header() {
         <div className="flex items-center space-x-1 sm:space-x-4">
           <span className="text-gray-600 text-sm hidden md:block">{formattedTime}</span>
           
+          {/* Always show AuthButtons on mobile */}
+          <div className="md:hidden">
+            <AuthButtons />
+          </div>
+          
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
