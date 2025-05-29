@@ -14,10 +14,10 @@ export default function NavigationTabs({ activeTab }: NavigationTabsProps) {
 
   return (
     <div className="bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4">
+      <div className="mobile-container">
         <div className="flex overflow-x-auto">
           <button 
-            className={`px-4 py-3 ${activeTab === "dashboard" 
+            className={`px-3 sm:px-4 py-3 touch-target whitespace-nowrap text-sm sm:text-base ${activeTab === "dashboard" 
               ? "text-primary-600 border-b-2 border-primary-600 font-medium" 
               : "text-gray-600 hover:text-primary-600"}`}
             onClick={() => handleTabChange("/")}
@@ -25,22 +25,12 @@ export default function NavigationTabs({ activeTab }: NavigationTabsProps) {
             Dashboard
           </button>
           <button 
-            className={`px-4 py-3 ${activeTab === "history" 
+            className={`px-3 sm:px-4 py-3 touch-target whitespace-nowrap text-sm sm:text-base ${activeTab === "history" 
               ? "text-primary-600 border-b-2 border-primary-600 font-medium" 
               : "text-gray-600 hover:text-primary-600"}`}
             onClick={() => handleTabChange("/history")}
           >
             History
-          </button>
-          <button 
-            className="px-4 py-3 text-gray-600 hover:text-primary-600"
-          >
-            Reports
-          </button>
-          <button 
-            className="px-4 py-3 text-gray-600 hover:text-primary-600"
-          >
-            Settings
           </button>
         </div>
       </div>
