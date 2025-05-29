@@ -383,6 +383,13 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           </button>
         </div>
       </form>
+      
+      {/* Camera Capture Component */}
+      <CameraCapture
+        isOpen={showCamera}
+        onCapture={handleCameraCapture}
+        onCancel={() => setShowCamera(false)}
+      />
     </div>
   );
 }
