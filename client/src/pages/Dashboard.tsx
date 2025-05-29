@@ -19,22 +19,24 @@ export default function Dashboard() {
   );
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
       <NavigationTabs activeTab="dashboard" />
       
-      <StatusOverview stations={uniqueStations} isLoading={isLoading} />
-      
-      <QuickJumpNav 
-        stations={uniqueStations} 
-        isLoading={isLoading} 
-        onStationSelect={setSelectedStationId} 
-      />
-      
-      <StationsList 
-        stations={uniqueStations} 
-        isLoading={isLoading} 
-        selectedStationId={selectedStationId} 
-      />
-    </>
+      <div className="mobile-container py-4 sm:py-8 space-y-4 sm:space-y-6">
+        <StatusOverview stations={uniqueStations} isLoading={isLoading} />
+        
+        <QuickJumpNav 
+          stations={uniqueStations} 
+          isLoading={isLoading} 
+          onStationSelect={setSelectedStationId} 
+        />
+        
+        <StationsList 
+          stations={uniqueStations} 
+          isLoading={isLoading} 
+          selectedStationId={selectedStationId} 
+        />
+      </div>
+    </div>
   );
 }
