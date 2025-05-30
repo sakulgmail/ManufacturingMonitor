@@ -1,0 +1,28 @@
+PayloadTooLargeError: request entity too large
+    at readStream (D:\ManufacturingMonitor\node_modules\raw-body\index.js:163:17)
+    at getRawBody (D:\ManufacturingMonitor\node_modules\raw-body\index.js:116:12)
+    at read (D:\ManufacturingMonitor\node_modules\body-parser\lib\read.js:79:3)
+    at jsonParser (D:\ManufacturingMonitor\node_modules\body-parser\lib\types\json.js:138:5)
+    at Layer.handle [as handle_request] (D:\ManufacturingMonitor\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:328:13)
+    at D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:280:10)
+    at expressInit (D:\ManufacturingMonitor\node_modules\express\lib\middleware\init.js:40:5)
+    at Layer.handle [as handle_request] (D:\ManufacturingMonitor\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:328:13)
+    at D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:280:10)
+    at query (D:\ManufacturingMonitor\node_modules\express\lib\middleware\query.js:45:5)
+    at Layer.handle [as handle_request] (D:\ManufacturingMonitor\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:328:13)
+    at D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:175:3)
+    at Function.handle (D:\ManufacturingMonitor\node_modules\express\lib\application.js:181:10)
+    at Server.app (D:\ManufacturingMonitor\node_modules\express\lib\express.js:39:9)
+    at Server.emit (node:events:518:28)
+    at parserOnIncoming (node:_http_server:1153:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:117:17)
