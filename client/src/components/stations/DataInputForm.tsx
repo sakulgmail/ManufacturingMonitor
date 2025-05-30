@@ -3,8 +3,7 @@ import { Station, Gauge, StaffMember, InsertReading } from "@/lib/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Upload, Camera } from "lucide-react";
-import CameraCapture from "@/components/ui/camera-capture";
+import { Image, Upload } from "lucide-react";
 
 interface DataInputFormProps {
   onClose: () => void;
@@ -19,7 +18,6 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gaugeImage, setGaugeImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all stations
@@ -149,19 +147,6 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     };
     reader.readAsDataURL(file);
   };
-
-  // Handle camera capture
-  const handleCameraCapture = (imageDataUrl: string) => {
-    // Convert data URL to File object
-    fetch(imageDataUrl)
-      .then(res => res.blob())
-      .then(blob => {
-        const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-        setGaugeImage(file);
-        setPreviewUrl(imageDataUrl);
-        setShowCamera(false);
-      });
-  };
   
   // Trigger file input click
   const triggerFileUpload = () => {
@@ -278,7 +263,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             </div>
             <div className="text-xs text-gray-500 mt-1">
               Expected range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
-              {(Number(readingValue) < selectedGauge.minValue || Number(readingValue) > selectedGauge.maxValue) && readingValue !== "" ? (
+              {readingValue < selectedGauge.minValue || readingValue > selectedGauge.maxValue ? (
                 <span className="text-red-600 ml-2 font-bold">
                   (ALERT: Current value is outside expected range)
                 </span>
@@ -336,30 +321,17 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {/* Mobile camera button and desktop upload button */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCamera(true)}
-                  className="mobile-button flex items-center justify-center p-3 border-2 border-dashed border-blue-300 rounded-md hover:bg-blue-50 text-blue-600"
-                >
-                  <Camera className="h-5 w-5 mr-2" />
-                  <span>Take Photo</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={triggerFileUpload}
-                  className="mobile-button flex items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  <Upload className="h-5 w-5 mr-2 text-gray-500" />
-                  <span>Upload Image</span>
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={triggerFileUpload}
+              className="w-full flex items-center justify-center p-3 border-2 border-dashed border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              <Upload className="h-5 w-5 mr-2 text-gray-500" />
+              <span>Upload Gauge Picture</span>
+            </button>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Take a photo or upload an image of the gauge reading (JPEG or PNG, max 5MB)
+            Attach a photo of the gauge reading (JPEG or PNG, max 5MB)
           </p>
         </div>
         
@@ -383,13 +355,6 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           </button>
         </div>
       </form>
-      
-      {/* Camera Capture Component */}
-      <CameraCapture
-        isOpen={showCamera}
-        onCapture={handleCameraCapture}
-        onCancel={() => setShowCamera(false)}
-      />
     </div>
   );
 }

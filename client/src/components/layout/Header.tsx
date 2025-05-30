@@ -152,82 +152,62 @@ export default function Header() {
 
   return (
     <header className="bg-[#e0e0e0] shadow-md sticky top-0 z-50 w-full" style={{ backgroundColor: '#e0e0e0' }}>
-      <div className="mobile-container py-3 sm:py-4 flex justify-between items-center">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div
           className="flex items-center space-x-2"
           onClick={() => setLocation("/")}
           style={{ cursor: "pointer" }}
         >
           {useCustomImage && customImage ? (
-            <div className="h-10 w-10 sm:h-16 sm:w-16 flex items-center justify-center">
+            <div className="h-16 w-16 flex items-center justify-center">
               <img 
                 src={customImage} 
                 alt="Logo" 
-                className="max-h-10 max-w-10 sm:max-h-16 sm:max-w-16 object-contain rounded"
+                className="max-h-16 max-w-16 object-contain rounded"
+                style={{ maxHeight: "64px", maxWidth: "64px" }}
               />
             </div>
           ) : (
-            <div className="h-10 w-10 sm:h-16 sm:w-16 flex items-center justify-center">
-              {icons[currentIcon]}
-            </div>
+            icons[currentIcon]
           )}
-          <h1 className="text-lg sm:text-xl font-bold text-gray-600 truncate">{title}</h1>
+          <h1 className="text-xl font-bold text-gray-600">{title}</h1>
         </div>
-        <div className="flex items-center space-x-1 sm:space-x-4">
-          <span className="text-gray-600 text-sm hidden md:block">{formattedTime}</span>
+        <div className="flex items-center space-x-4">
+          <span className="text-gray-600">{formattedTime}</span>
+          <button
+            className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
+            onClick={handleRefresh}
+          >
+            <RefreshCcw className="h-4 w-4 mr-1" />
+            <span className="text-gray-600">Refresh</span>
+          </button>
           
-          {/* Always show AuthButtons on mobile */}
-          <div className="md:hidden">
-            <AuthButtons />
-          </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              className="touch-target p-2 text-gray-600 hover:bg-gray-200 rounded"
-              onClick={() => setShowSettings(!showSettings)}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
-          
-          {/* Desktop buttons */}
-          <div className="hidden md:flex items-center space-x-2">
-            <button
-              className="mobile-button bg-white bg-opacity-20 rounded flex items-center text-gray-600 hover:bg-gray-200"
-              onClick={handleRefresh}
-            >
-              <RefreshCcw className="h-4 w-4 mr-1" />
-              <span className="text-gray-600">Refresh</span>
-            </button>
-            
-            {isAuthenticated && (
-              <>
-                <button
-                  className="mobile-button bg-white bg-opacity-20 rounded flex items-center text-gray-600 hover:bg-gray-200"
-                  onClick={() => setShowDataInput(true)}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  <span className="text-gray-600">Enter Data</span>
-                </button>
-                
-                <button
-                  className="mobile-button bg-white bg-opacity-20 rounded flex items-center text-gray-600 hover:bg-gray-200"
-                  onClick={() => setShowSettings(!showSettings)}
-                >
-                  <Settings className="h-4 w-4 mr-1" />
-                  <span className="text-gray-600">Settings</span>
-                </button>
-              </>
-            )}
-            <AuthButtons />
-          </div>
+          {isAuthenticated && (
+            <>
+              <button
+                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
+                onClick={() => setShowDataInput(true)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                <span className="text-gray-600">Enter Data</span>
+              </button>
+              
+              <button
+                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                <span className="text-gray-600">Settings</span>
+              </button>
+            </>
+          )}
+          <AuthButtons />
         </div>
       </div>
 
-      {/* Mobile Settings Panel */}
+      {/* Settings Panel */}
       {showSettings && (
-        <div className="md:absolute md:right-4 md:top-16 fixed inset-0 md:inset-auto z-50 bg-white text-gray-800 md:rounded-lg md:shadow-lg p-4 md:w-80 md:max-h-96 overflow-y-auto">
+        <div className="absolute right-4 top-16 z-10 bg-white text-gray-800 rounded-lg shadow-lg p-4 w-80">
           <h3 className="text-lg font-semibold mb-3">Application Settings</h3>
 
           <div className="mb-4">

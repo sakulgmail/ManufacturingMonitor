@@ -15,45 +15,39 @@ export default function AuthButtons() {
 
   if (isAuthenticated) {
     return (
-      <div className="flex items-center space-x-1 sm:space-x-2">
-        <div className="text-xs sm:text-sm text-gray-600 mr-1 hidden sm:block">
+      <div className="flex items-center space-x-2">
+        <div className="text-sm text-gray-600 mr-1">
           <span className="font-medium">Welcome, {user?.username}</span>
         </div>
         <Button 
           variant="outline" 
-          size="sm"
-          className="touch-target flex items-center space-x-1 text-gray-600 text-xs sm:text-sm px-2 sm:px-3"
+          className="flex items-center space-x-1 text-gray-600"
           onClick={() => logout()}
         >
-          <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Logout</span>
-          <span className="sm:hidden">Out</span>
+          <LogOut className="h-4 w-4" />
+          <span>Logout</span>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center space-x-1">
+    <div className="flex items-center space-x-2">
       <Button 
         variant="outline" 
-        size="sm"
-        className="touch-target flex items-center space-x-1 text-gray-600 text-xs sm:text-sm px-2 sm:px-3"
+        className="flex items-center space-x-1 text-gray-600"
         onClick={() => setLocation("/login")}
       >
-        <LogIn className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="hidden sm:inline">Login</span>
-        <span className="sm:hidden">In</span>
+        <LogIn className="h-4 w-4" />
+        <span>Login</span>
       </Button>
       <Button 
         variant="outline" 
-        size="sm"
-        className="touch-target flex items-center space-x-1 text-gray-600 text-xs sm:text-sm px-2 sm:px-3"
+        className="flex items-center space-x-1 text-gray-600"
         onClick={() => setLocation("/signup")}
       >
-        <User className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="hidden sm:inline">Sign Up</span>
-        <span className="sm:hidden">Up</span>
+        <User className="h-4 w-4" />
+        <span>Sign Up</span>
       </Button>
     </div>
   );
