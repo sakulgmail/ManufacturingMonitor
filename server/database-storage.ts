@@ -100,6 +100,31 @@ export class DatabaseStorage implements IStorage {
     return newGauge;
   }
 
+  async updateGauge(id: number, gaugeData: Partial<InsertGauge>): Promise<Gauge> {
+    const [updatedGauge] = await db
+      .update(gauges)
+      .set(gaugeData)
+      .where(eq(gauges.id, id))
+      .returning();
+    
+    if (!updatedGauge) {
+      throw new Error("Gauge not found");
+    }
+    return updatedGauge;
+  }
+
+  async deleteGauge(id: number): Promise<void> {
+    // Delete all readings associated with this gauge first
+    await db.delete(readings).where(eq(readings.gaugeId, id));
+    
+    // Delete the gauge
+    const result = await db.delete(gauges).where(eq(gauges.id, id));
+    
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("Gauge not found");
+    }
+  }
+
   async updateGaugeReading(id: number, value: number, timestamp: string): Promise<Gauge> {
     const [updatedGauge] = await db
       .update(gauges)
