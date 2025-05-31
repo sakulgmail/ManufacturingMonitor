@@ -37,6 +37,34 @@ export class DatabaseStorage implements IStorage {
     return newStation;
   }
 
+  async updateStation(id: number, stationData: InsertStation): Promise<Station> {
+    const [updatedStation] = await db
+      .update(stations)
+      .set(stationData)
+      .where(eq(stations.id, id))
+      .returning();
+    
+    if (!updatedStation) {
+      throw new Error("Station not found");
+    }
+    return updatedStation;
+  }
+
+  async deleteStation(id: number): Promise<void> {
+    // Delete all readings associated with this station first
+    await db.delete(readings).where(eq(readings.stationId, id));
+    
+    // Delete all gauges associated with this station
+    await db.delete(gauges).where(eq(gauges.stationId, id));
+    
+    // Delete the station
+    const result = await db.delete(stations).where(eq(stations.id, id));
+    
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("Station not found");
+    }
+  }
+
   async getStationWithGauges(id: number): Promise<StationWithGauges | undefined> {
     const station = await this.getStation(id);
     if (!station) return undefined;

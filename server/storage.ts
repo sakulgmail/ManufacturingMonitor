@@ -21,6 +21,8 @@ export interface IStorage {
   getStation(id: number): Promise<Station | undefined>;
   getAllStations(): Promise<Station[]>;
   createStation(station: InsertStation): Promise<Station>;
+  updateStation(id: number, station: InsertStation): Promise<Station>;
+  deleteStation(id: number): Promise<void>;
   getStationWithGauges(id: number): Promise<StationWithGauges | undefined>;
   getAllStationsWithGauges(): Promise<StationWithGauges[]>;
   
@@ -28,6 +30,8 @@ export interface IStorage {
   getGauge(id: number): Promise<Gauge | undefined>;
   getGaugesByStation(stationId: number): Promise<Gauge[]>;
   createGauge(gauge: InsertGauge): Promise<Gauge>;
+  updateGauge(id: number, gauge: Partial<InsertGauge>): Promise<Gauge>;
+  deleteGauge(id: number): Promise<void>;
   updateGaugeReading(id: number, value: number, timestamp: string): Promise<Gauge>;
   
   // Staff
@@ -98,6 +102,43 @@ export class MemStorage implements IStorage {
     return newStation;
   }
 
+  async updateStation(id: number, stationData: InsertStation): Promise<Station> {
+    const existingStation = this.stations.get(id);
+    if (!existingStation) {
+      throw new Error("Station not found");
+    }
+    
+    const updatedStation: Station = {
+      ...existingStation,
+      name: stationData.name,
+      description: stationData.description || null
+    };
+    this.stations.set(id, updatedStation);
+    return updatedStation;
+  }
+
+  async deleteStation(id: number): Promise<void> {
+    const station = this.stations.get(id);
+    if (!station) {
+      throw new Error("Station not found");
+    }
+    
+    // Delete all gauges associated with this station
+    const stationGauges = Array.from(this.gauges.values()).filter(g => g.stationId === id);
+    for (const gauge of stationGauges) {
+      this.gauges.delete(gauge.id);
+    }
+    
+    // Delete all readings associated with this station
+    const stationReadings = Array.from(this.readingRecords.values()).filter(r => r.stationId === id);
+    for (const reading of stationReadings) {
+      this.readingRecords.delete(reading.id);
+    }
+    
+    // Delete the station
+    this.stations.delete(id);
+  }
+
   async getStationWithGauges(id: number): Promise<StationWithGauges | undefined> {
     const station = await this.getStation(id);
     if (!station) return undefined;
@@ -149,6 +190,36 @@ export class MemStorage implements IStorage {
     };
     this.gauges.set(id, newGauge);
     return newGauge;
+  }
+
+  async updateGauge(id: number, gaugeData: Partial<InsertGauge>): Promise<Gauge> {
+    const existingGauge = this.gauges.get(id);
+    if (!existingGauge) {
+      throw new Error("Gauge not found");
+    }
+    
+    const updatedGauge: Gauge = {
+      ...existingGauge,
+      ...gaugeData
+    };
+    this.gauges.set(id, updatedGauge);
+    return updatedGauge;
+  }
+
+  async deleteGauge(id: number): Promise<void> {
+    const gauge = this.gauges.get(id);
+    if (!gauge) {
+      throw new Error("Gauge not found");
+    }
+    
+    // Delete all readings associated with this gauge
+    const gaugeReadings = Array.from(this.readingRecords.values()).filter(r => r.gaugeId === id);
+    for (const reading of gaugeReadings) {
+      this.readingRecords.delete(reading.id);
+    }
+    
+    // Delete the gauge
+    this.gauges.delete(id);
   }
 
   async updateGaugeReading(id: number, value: number, timestamp: string): Promise<Gauge> {

@@ -310,16 +310,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stationId = parseInt(req.params.id);
       const stationData = insertStationSchema.parse(req.body);
       
-      const existingStation = await storage.getStation(stationId);
-      if (!existingStation) {
-        return res.status(404).json({ message: "Station not found" });
-      }
-      
-      // Note: This would need updateStation method in storage interface
-      res.status(200).json({ message: "Station update not yet implemented" });
+      const updatedStation = await storage.updateStation(stationId, stationData);
+      res.status(200).json(updatedStation);
     } catch (error) {
       console.error("Error updating station:", error);
-      res.status(500).json({ message: "Failed to update station" });
+      if (error instanceof Error && error.message === "Station not found") {
+        res.status(404).json({ message: "Station not found" });
+      } else {
+        res.status(500).json({ message: "Failed to update station" });
+      }
     }
   });
 
@@ -328,16 +327,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       
-      const existingStation = await storage.getStation(stationId);
-      if (!existingStation) {
-        return res.status(404).json({ message: "Station not found" });
-      }
-      
-      // Note: This would need deleteStation method in storage interface
-      res.status(200).json({ message: "Station deletion not yet implemented" });
+      await storage.deleteStation(stationId);
+      res.status(200).json({ message: "Station deleted successfully" });
     } catch (error) {
       console.error("Error deleting station:", error);
-      res.status(500).json({ message: "Failed to delete station" });
+      if (error instanceof Error && error.message === "Station not found") {
+        res.status(404).json({ message: "Station not found" });
+      } else {
+        res.status(500).json({ message: "Failed to delete station" });
+      }
     }
   });
 
@@ -363,16 +361,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const gaugeId = parseInt(req.params.id);
       const gaugeData = insertGaugeSchema.parse(req.body);
       
-      const existingGauge = await storage.getGauge(gaugeId);
-      if (!existingGauge) {
-        return res.status(404).json({ message: "Gauge not found" });
-      }
-      
-      // Note: This would need updateGauge method in storage interface
-      res.status(200).json({ message: "Gauge update not yet implemented" });
+      const updatedGauge = await storage.updateGauge(gaugeId, gaugeData);
+      res.status(200).json(updatedGauge);
     } catch (error) {
       console.error("Error updating gauge:", error);
-      res.status(500).json({ message: "Failed to update gauge" });
+      if (error instanceof Error && error.message === "Gauge not found") {
+        res.status(404).json({ message: "Gauge not found" });
+      } else {
+        res.status(500).json({ message: "Failed to update gauge" });
+      }
     }
   });
 
@@ -381,16 +378,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const gaugeId = parseInt(req.params.id);
       
-      const existingGauge = await storage.getGauge(gaugeId);
-      if (!existingGauge) {
-        return res.status(404).json({ message: "Gauge not found" });
-      }
-      
-      // Note: This would need deleteGauge method in storage interface
-      res.status(200).json({ message: "Gauge deletion not yet implemented" });
+      await storage.deleteGauge(gaugeId);
+      res.status(200).json({ message: "Gauge deleted successfully" });
     } catch (error) {
       console.error("Error deleting gauge:", error);
-      res.status(500).json({ message: "Failed to delete gauge" });
+      if (error instanceof Error && error.message === "Gauge not found") {
+        res.status(404).json({ message: "Gauge not found" });
+      } else {
+        res.status(500).json({ message: "Failed to delete gauge" });
+      }
     }
   });
 
