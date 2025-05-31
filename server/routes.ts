@@ -15,11 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
   }));
 
-  // Initialize test data only if no stations exist yet
-  const existingStations = await storage.getAllStations();
-  if (existingStations.length === 0) {
-    await storage.initializeTestData();
-  }
+  // Test data initialization is handled in server/index.ts
 
   // Authentication routes
   app.post('/api/auth/signup', async (req, res) => {
