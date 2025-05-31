@@ -4,9 +4,8 @@ import { queryClient } from "@/lib/queryClient";
 import { useClock } from "@/hooks/useClock";
 import DataInputModal from "./DataInputModal";
 import AuthButtons from "./AuthButtons";
-import { RefreshCcw, Settings, Plus, Menu, X } from "lucide-react";
+import { RefreshCcw, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 // Define types for icons
 type IconKey = "factory" | "gauge" | "monitor";
@@ -50,7 +49,6 @@ const icons: IconsObject = {
       <path d="M7.76 16.24l1.42-1.42"></path>
       <path d="M6 12h2"></path>
       <path d="M7.76 7.76l1.42 1.42"></path>
-      <path d="M12 12L8 8"></path>
     </svg>
   ),
   monitor: (
@@ -67,9 +65,6 @@ const icons: IconsObject = {
       <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
       <line x1="8" y1="21" x2="16" y2="21"></line>
       <line x1="12" y1="17" x2="12" y2="21"></line>
-      <path d="M3 8h18"></path>
-      <path d="M7 12h10"></path>
-      <path d="M7 16h10"></path>
     </svg>
   ),
 };
@@ -83,7 +78,6 @@ export default function Header() {
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [showDataInput, setShowDataInput] = useState(false);
   const [useCustomImage, setUseCustomImage] = useState(false);
 
@@ -129,27 +123,6 @@ export default function Header() {
     alert("Data refreshed successfully");
   }, []);
 
-  const saveSettings = (newTitle: string, newIcon: IconKey, newCustomImage?: string | null, newUseCustomImage?: boolean) => {
-    localStorage.setItem("appTitle", newTitle);
-    localStorage.setItem("appIcon", newIcon);
-    
-    if (newCustomImage !== undefined) {
-      if (newCustomImage) {
-        localStorage.setItem("customImage", newCustomImage);
-        setCustomImage(newCustomImage);
-      }
-    }
-    
-    if (newUseCustomImage !== undefined) {
-      localStorage.setItem("useCustomImage", newUseCustomImage ? "true" : "false");
-      setUseCustomImage(newUseCustomImage);
-    }
-    
-    setTitle(newTitle);
-    setCurrentIcon(newIcon);
-    setShowSettings(false);
-  };
-
   return (
     <header className="bg-[#e0e0e0] shadow-md sticky top-0 z-50 w-full" style={{ backgroundColor: '#e0e0e0' }}>
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -183,196 +156,18 @@ export default function Header() {
           </button>
           
           {isAuthenticated && (
-            <>
-              <button
-                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
-                onClick={() => setShowDataInput(true)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                <span className="text-gray-600">Enter Data</span>
-              </button>
-              
-              <button
-                className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <Settings className="h-4 w-4 mr-1" />
-                <span className="text-gray-600">Settings</span>
-              </button>
-            </>
+            <button
+              className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
+              onClick={() => setShowDataInput(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              <span className="text-gray-600">Enter Data</span>
+            </button>
           )}
           <AuthButtons />
         </div>
       </div>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="absolute right-4 top-16 z-10 bg-white text-gray-800 rounded-lg shadow-lg p-4 w-80">
-          <h3 className="text-lg font-semibold mb-3">Application Settings</h3>
-
-          <div className="mb-4">
-            <label
-              htmlFor="appTitleInput"
-              className="block text-sm font-medium mb-1"
-            >
-              Application Title
-            </label>
-            <input
-              type="text"
-              className="w-full border rounded p-2 text-gray-800"
-              defaultValue={title}
-              id="appTitleInput"
-            />
-          </div>
-
-          <div className="mb-4">
-            <div className="flex items-center mb-2">
-              <label className="text-sm font-medium">
-                <input
-                  type="radio"
-                  name="logoType"
-                  className="mr-2"
-                  checked={!useCustomImage}
-                  onChange={() => setUseCustomImage(false)}
-                  id="useIcon"
-                />
-                Use Icon
-              </label>
-              <label className="text-sm font-medium ml-4">
-                <input
-                  type="radio"
-                  name="logoType"
-                  className="mr-2"
-                  checked={useCustomImage}
-                  onChange={() => setUseCustomImage(true)}
-                  id="useCustomImage"
-                />
-                Use Custom Image
-              </label>
-            </div>
-            
-            {/* Icon Selection */}
-            {!useCustomImage && (
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Select Icon
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.entries(icons) as [IconKey, ReactElement][]).map(
-                    ([key, icon]) => (
-                      <div
-                        key={key}
-                        className={`border p-2 rounded flex justify-center items-center cursor-pointer ${currentIcon === key ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
-                        onClick={() => {
-                          const selection = document.getElementById(
-                            "iconSelection",
-                          ) as HTMLSelectElement;
-                          if (selection) {
-                            selection.value = key;
-                          }
-                        }}
-                      >
-                        {/* Clone element with Typescript safety */}
-                        {icon && {
-                          ...icon,
-                          props: {
-                            ...icon.props,
-                            className: "h-6 w-6 text-gray-700",
-                          },
-                        }}
-                      </div>
-                    ),
-                  )}
-                </div>
-                <select
-                  id="iconSelection"
-                  className="hidden"
-                  defaultValue={currentIcon}
-                >
-                  {(Object.keys(icons) as IconKey[]).map((key) => (
-                    <option key={key} value={key}>
-                      {key}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            
-            {/* Image Upload */}
-            {useCustomImage && (
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Upload Image
-                </label>
-                <div className="mb-2">
-                  <input
-                    type="file"
-                    id="imageUpload"
-                    accept=".jpg,.jpeg,.png"
-                    className="border p-2 rounded w-full"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const imageDataUrl = event.target?.result as string;
-                          setCustomImage(imageDataUrl);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                  />
-                </div>
-                {customImage && (
-                  <div className="mt-2 border p-2 rounded">
-                    <p className="text-sm mb-1">Preview:</p>
-                    <div className="flex items-center justify-center h-32 w-32">
-                      <img
-                        src={customImage}
-                        alt="Custom logo preview"
-                        className="max-h-32 max-w-32 object-contain rounded"
-                        style={{ maxHeight: "128px", maxWidth: "128px" }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <button
-              className="px-3 py-1.5 border border-gray-300 rounded"
-              onClick={() => setShowSettings(false)}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-3 py-1.5 bg-green-600 text-white rounded font-bold"
-              onClick={() => {
-                const titleInput = document.getElementById(
-                  "appTitleInput",
-                ) as HTMLInputElement;
-                const iconSelect = document.getElementById(
-                  "iconSelection",
-                ) as HTMLSelectElement;
-
-                if (titleInput) {
-                  const newTitle =
-                    titleInput.value || "Manufacturing Monitor System";
-                  const newIcon = iconSelect?.value as IconKey || "gauge";
-                  
-                  // Save with current image settings
-                  saveSettings(newTitle, newIcon, customImage, useCustomImage);
-                }
-              }}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-      
       {/* Data Input Modal */}
       <DataInputModal 
         isOpen={showDataInput} 
