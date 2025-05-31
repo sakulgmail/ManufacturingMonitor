@@ -288,6 +288,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new station
+  app.post('/api/stations/create', async (req, res) => {
+    try {
+      const stationData = insertStationSchema.parse(req.body);
+      const station = await storage.createStation(stationData);
+      res.status(201).json(station);
+    } catch (error) {
+      console.error("Error creating station:", error);
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid station data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create station" });
+      }
+    }
+  });
+
+  // Update a station
+  app.put('/api/stations/:id', async (req, res) => {
+    try {
+      const stationId = parseInt(req.params.id);
+      const stationData = insertStationSchema.parse(req.body);
+      
+      const existingStation = await storage.getStation(stationId);
+      if (!existingStation) {
+        return res.status(404).json({ message: "Station not found" });
+      }
+      
+      // Note: This would need updateStation method in storage interface
+      res.status(200).json({ message: "Station update not yet implemented" });
+    } catch (error) {
+      console.error("Error updating station:", error);
+      res.status(500).json({ message: "Failed to update station" });
+    }
+  });
+
+  // Delete a station
+  app.delete('/api/stations/:id', async (req, res) => {
+    try {
+      const stationId = parseInt(req.params.id);
+      
+      const existingStation = await storage.getStation(stationId);
+      if (!existingStation) {
+        return res.status(404).json({ message: "Station not found" });
+      }
+      
+      // Note: This would need deleteStation method in storage interface
+      res.status(200).json({ message: "Station deletion not yet implemented" });
+    } catch (error) {
+      console.error("Error deleting station:", error);
+      res.status(500).json({ message: "Failed to delete station" });
+    }
+  });
+
+  // Create a new gauge
+  app.post('/api/gauges/create', async (req, res) => {
+    try {
+      const gaugeData = insertGaugeSchema.parse(req.body);
+      const gauge = await storage.createGauge(gaugeData);
+      res.status(201).json(gauge);
+    } catch (error) {
+      console.error("Error creating gauge:", error);
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid gauge data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create gauge" });
+      }
+    }
+  });
+
+  // Update a gauge
+  app.put('/api/gauges/:id', async (req, res) => {
+    try {
+      const gaugeId = parseInt(req.params.id);
+      const gaugeData = insertGaugeSchema.parse(req.body);
+      
+      const existingGauge = await storage.getGauge(gaugeId);
+      if (!existingGauge) {
+        return res.status(404).json({ message: "Gauge not found" });
+      }
+      
+      // Note: This would need updateGauge method in storage interface
+      res.status(200).json({ message: "Gauge update not yet implemented" });
+    } catch (error) {
+      console.error("Error updating gauge:", error);
+      res.status(500).json({ message: "Failed to update gauge" });
+    }
+  });
+
+  // Delete a gauge
+  app.delete('/api/gauges/:id', async (req, res) => {
+    try {
+      const gaugeId = parseInt(req.params.id);
+      
+      const existingGauge = await storage.getGauge(gaugeId);
+      if (!existingGauge) {
+        return res.status(404).json({ message: "Gauge not found" });
+      }
+      
+      // Note: This would need deleteGauge method in storage interface
+      res.status(200).json({ message: "Gauge deletion not yet implemented" });
+    } catch (error) {
+      console.error("Error deleting gauge:", error);
+      res.status(500).json({ message: "Failed to delete gauge" });
+    }
+  });
+
   // Create a new reading 
   app.post('/api/readings', async (req, res) => {
     try {
