@@ -48,3 +48,18 @@ export interface InsertReading {
   staffId?: number | null;
   imageUrl?: string | null;
 }
+
+export interface InsertStation {
+  name: string;
+  description?: string | null;
+}
+
+export interface InsertGauge {
+  stationId: number;
+  name: string;
+  type: GaugeType;
+  unit: string;
+  minValue: number;
+  maxValue: number;
+  step?: number;
+}
