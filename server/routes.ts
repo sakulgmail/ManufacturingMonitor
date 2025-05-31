@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, Server } from "http";
 import { storage } from "./storage";
-import { insertReadingSchema, insertUserSchema } from "@shared/schema";
+import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGaugeSchema, insertStaffSchema } from "@shared/schema";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";

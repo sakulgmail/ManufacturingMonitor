@@ -42,9 +42,14 @@ export default function Settings() {
   const [showAddGauge, setShowAddGauge] = useState(false);
 
   // Fetch stations data
-  const { data: stations = [] } = useQuery<Station[]>({
+  const { data: stationsData = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
+
+  // Deduplicate stations by ID to prevent duplicates
+  const stations = stationsData.filter((station, index, self) => 
+    index === self.findIndex(s => s.id === station.id)
+  );
 
   // Create station mutation
   const createStationMutation = useMutation({
