@@ -12,12 +12,12 @@ export default function Dashboard() {
   
   const [selectedStationId, setSelectedStationId] = useState<number | undefined>(undefined);
 
-  // Remove duplicate stations by name (keeping only the first occurrence) and sort by name
+  // Remove duplicate stations by name (keeping only the first occurrence) and sort by name with natural sorting
   const uniqueStations = stations
     .filter((station, index, self) => 
       index === self.findIndex(s => s.name === station.name)
     )
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
   return (
     <>
