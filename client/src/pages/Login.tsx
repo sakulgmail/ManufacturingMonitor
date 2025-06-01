@@ -89,18 +89,8 @@ export default function Login() {
             >
               {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </Button>
-            <div className="text-center text-sm mt-4">
-              Don't have an account?{" "}
-              <a
-                href="/signup"
-                className="text-blue-600 hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setLocation("/signup");
-                }}
-              >
-                Sign up
-              </a>
+            <div className="text-center text-sm mt-4 text-gray-600">
+              Contact your administrator for account access
             </div>
           </form>
         </CardContent>

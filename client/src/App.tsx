@@ -8,7 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -19,7 +19,6 @@ function Router() {
       <Route path="/history" component={History} />
       <Route path="/settings" component={Settings} />
       <Route path="/login" component={Login} />
-      <Route path="/signup" component={Signup} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -17,36 +17,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Test data initialization is handled in server/index.ts
 
-  // Authentication routes
+  // Public signup disabled - users must be created by administrators
   app.post('/api/auth/signup', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Hash the password before storing
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      
-      const user = await storage.createUser({
-        ...userData,
-        password: hashedPassword
-      });
-      
-      // Don't send the password back to the client
-      const { password, ...userWithoutPassword } = user;
-      
-      res.status(201).json({
-        message: "User created successfully",
-        user: userWithoutPassword
-      });
-    } catch (error) {
-      console.error("Error creating user:", error);
-      if (error instanceof ZodError) {
-        res.status(400).json({ message: "Invalid user data", errors: error.errors });
-      } else if (error.message === 'Username already exists') {
-        res.status(409).json({ message: "Username already exists" });
-      } else {
-        res.status(500).json({ message: "Failed to create user" });
-      }
-    }
+    res.status(403).json({ message: "Public registration is disabled. Contact an administrator for account access." });
   });
   
   app.post('/api/auth/login', async (req, res) => {
