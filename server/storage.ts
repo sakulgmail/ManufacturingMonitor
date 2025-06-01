@@ -328,7 +328,7 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      user => user.username === username
+      user => user.username.toLowerCase() === username.toLowerCase()
     );
   }
 
@@ -337,10 +337,16 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
+    // Check if username already exists (case insensitive)
+    const existingUser = await this.getUserByUsername(userData.username);
+    if (existingUser) {
+      throw new Error('Username already exists');
+    }
+
     const id = this.userCurrentId++;
     const newUser: User = {
       id,
-      username: userData.username,
+      username: userData.username.toLowerCase(),
       password: userData.password,
       isAdmin: userData.isAdmin || false,
       createdAt: new Date()

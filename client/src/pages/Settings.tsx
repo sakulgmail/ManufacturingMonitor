@@ -63,6 +63,7 @@ export default function Settings() {
   const [showAddUser, setShowAddUser] = useState(false);
   const [resetPasswordUserId, setResetPasswordUserId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
 
   // Fetch stations data
   const { data: stationsData = [] } = useQuery<Station[]>({
@@ -1009,11 +1010,7 @@ export default function Settings() {
                             </button>
                             {userItem.id !== user?.id && (
                               <button
-                                onClick={() => {
-                                  if (confirm(`Are you sure you want to delete user "${userItem.username}"?`)) {
-                                    deleteUserMutation.mutate(userItem.id);
-                                  }
-                                }}
+                                onClick={() => setDeleteConfirmUser(userItem)}
                                 className="text-red-600 hover:text-red-800"
                                 title="Delete user"
                               >

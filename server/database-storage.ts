@@ -207,7 +207,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username.toLowerCase()));
     return user || undefined;
   }
 
@@ -216,7 +216,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    // Check if username already exists
+    // Check if username already exists (case insensitive)
     const existingUser = await this.getUserByUsername(userData.username);
     if (existingUser) {
       throw new Error('Username already exists');
@@ -225,7 +225,7 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values({
-        username: userData.username,
+        username: userData.username.toLowerCase(),
         password: userData.password, // Note: In a real app, we should hash this password
         isAdmin: userData.isAdmin || false
       })
