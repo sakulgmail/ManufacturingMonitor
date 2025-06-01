@@ -1073,6 +1073,36 @@ export default function Settings() {
                   <p>No users found. Add a user to get started.</p>
                 </div>
               )}
+
+              {/* Delete Confirmation Dialog */}
+              {deleteConfirmUser && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm User Deletion</h3>
+                    <p className="text-gray-600 mb-6">
+                      Are you sure you want to delete user "{deleteConfirmUser.username}"? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setDeleteConfirmUser(null)}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          deleteUserMutation.mutate(deleteConfirmUser.id);
+                          setDeleteConfirmUser(null);
+                        }}
+                        disabled={deleteUserMutation.isPending}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
