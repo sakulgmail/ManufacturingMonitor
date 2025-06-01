@@ -5,9 +5,10 @@ import { Station } from "@/lib/types";
 interface StatusOverviewProps {
   stations: Station[];
   isLoading?: boolean;
+  onStationSelect?: (stationId: number) => void;
 }
 
-export default function StatusOverview({ stations, isLoading = false }: StatusOverviewProps) {
+export default function StatusOverview({ stations, isLoading = false, onStationSelect }: StatusOverviewProps) {
 
   // Calculate station statuses
   const stationStatuses = useMemo(() => {
@@ -43,13 +44,14 @@ export default function StatusOverview({ stations, isLoading = false }: StatusOv
       <h2 className="text-xl font-semibold mb-4">Station Status Overview</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {stationStatuses.map((station) => (
-          <div 
+          <button 
             key={station.id}
+            onClick={() => onStationSelect?.(station.id)}
             className={`${
               station.hasAlerts 
-                ? "bg-red-50 border border-error-500" 
-                : "bg-green-50 border border-success-500"
-            } rounded p-3 flex flex-col items-center`}
+                ? "bg-red-50 border border-error-500 hover:bg-red-100" 
+                : "bg-green-50 border border-success-500 hover:bg-green-100"
+            } rounded p-3 flex flex-col items-center transition-colors duration-200 hover:shadow-md cursor-pointer`}
           >
             <div className={`${
               station.hasAlerts ? "text-error-700" : "text-success-700"
@@ -78,7 +80,7 @@ export default function StatusOverview({ stations, isLoading = false }: StatusOv
                 </>
               )}
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
