@@ -828,6 +828,257 @@ export default function Settings() {
             </div>
           )}
 
+          {/* Manage Users Tab */}
+          {activeTab === "users" && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
+                <button
+                  onClick={() => setShowAddUser(true)}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add User
+                </button>
+              </div>
+
+              {/* Add User Form */}
+              {showAddUser && (
+                <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Add New User</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter username"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter password"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Role
+                      </label>
+                      <div className="flex items-center space-x-4 pt-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            checked={!newUserIsAdmin}
+                            onChange={() => setNewUserIsAdmin(false)}
+                            className="mr-2"
+                          />
+                          User
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            checked={newUserIsAdmin}
+                            onChange={() => setNewUserIsAdmin(true)}
+                            className="mr-2"
+                          />
+                          Admin
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2 mt-4">
+                    <button
+                      onClick={() => {
+                        setShowAddUser(false);
+                        setNewUsername("");
+                        setNewUserPassword("");
+                        setNewUserIsAdmin(false);
+                      }}
+                      className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      <XCircle className="h-4 w-4 inline mr-2" />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (newUsername && newUserPassword) {
+                          createUserMutation.mutate({
+                            username: newUsername,
+                            password: newUserPassword,
+                            isAdmin: newUserIsAdmin
+                          });
+                        }
+                      }}
+                      disabled={!newUsername || !newUserPassword || createUserMutation.isPending}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                    >
+                      <Save className="h-4 w-4 inline mr-2" />
+                      Create User
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Users List */}
+              <div className="space-y-4">
+                {usersData.map((userItem) => (
+                  <div key={userItem.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center space-x-4">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-800">{userItem.username}</h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              userItem.isAdmin 
+                                ? 'bg-purple-100 text-purple-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {userItem.isAdmin ? 'Admin' : 'User'}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              Created: {new Date(userItem.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {editingUser?.id === userItem.id ? (
+                          <div className="flex items-center space-x-2">
+                            <label className="flex items-center text-sm">
+                              <input
+                                type="radio"
+                                checked={!editingUser.isAdmin}
+                                onChange={() => setEditingUser({ ...editingUser, isAdmin: false })}
+                                className="mr-1"
+                              />
+                              User
+                            </label>
+                            <label className="flex items-center text-sm">
+                              <input
+                                type="radio"
+                                checked={editingUser.isAdmin}
+                                onChange={() => setEditingUser({ ...editingUser, isAdmin: true })}
+                                className="mr-1"
+                              />
+                              Admin
+                            </label>
+                            <button
+                              onClick={() => {
+                                updateUserMutation.mutate({
+                                  id: editingUser.id,
+                                  userData: { isAdmin: editingUser.isAdmin }
+                                });
+                              }}
+                              className="text-green-600 hover:text-green-800"
+                            >
+                              <Save className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditingUser(null)}
+                              className="text-gray-600 hover:text-gray-800"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setEditingUser(userItem)}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Edit role"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setResetPasswordUserId(userItem.id)}
+                              className="text-orange-600 hover:text-orange-800"
+                              title="Reset password"
+                            >
+                              <Key className="h-4 w-4" />
+                            </button>
+                            {userItem.id !== user?.id && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete user "${userItem.username}"?`)) {
+                                    deleteUserMutation.mutate(userItem.id);
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-800"
+                                title="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Reset Password Form */}
+                    {resetPasswordUserId === userItem.id && (
+                      <div className="mt-4 p-3 border border-gray-200 rounded bg-gray-50">
+                        <h4 className="text-sm font-medium text-gray-800 mb-2">Reset Password for {userItem.username}</h4>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
+                          />
+                          <button
+                            onClick={() => {
+                              if (newPassword && newPassword.length >= 6) {
+                                resetPasswordMutation.mutate({
+                                  id: userItem.id,
+                                  password: newPassword
+                                });
+                              }
+                            }}
+                            disabled={!newPassword || newPassword.length < 6 || resetPasswordMutation.isPending}
+                            className="px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 text-sm"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            onClick={() => {
+                              setResetPasswordUserId(null);
+                              setNewPassword("");
+                            }}
+                            className="px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        {newPassword && newPassword.length < 6 && (
+                          <p className="text-red-500 text-xs mt-1">Password must be at least 6 characters long</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {usersData.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No users found. Add a user to get started.</p>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </>
