@@ -211,6 +211,10 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
   async createUser(userData: InsertUser): Promise<User> {
     // Check if username already exists
     const existingUser = await this.getUserByUsername(userData.username);
@@ -228,6 +232,40 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return user;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("User not found");
+    }
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+    return updatedUser;
   }
 
   private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {

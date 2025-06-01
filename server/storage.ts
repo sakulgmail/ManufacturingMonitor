@@ -49,7 +49,11 @@ export interface IStorage {
   // User Authentication
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<User>;
   
   // Initialize test data
   initializeTestData(): Promise<void>;
@@ -328,6 +332,10 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
   async createUser(userData: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
     const newUser: User = {
@@ -341,12 +349,57 @@ export class MemStorage implements IStorage {
     return newUser;
   }
 
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+    
+    const updatedUser: User = {
+      ...existingUser,
+      ...userData
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    this.users.delete(id);
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+    
+    const updatedUser: User = {
+      ...existingUser,
+      password: hashedPassword
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
   // Initialize test data for the application
   async initializeTestData(): Promise<void> {
     // Only initialize if we don't have any data yet
     if (this.stations.size > 0) {
       return;
     }
+
+    // Create default admin user
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash('Itp@2t@n@', 10);
+    await this.createUser({
+      username: 'admin',
+      password: hashedPassword,
+      isAdmin: true
+    });
 
     // Create staff members
     const staff1 = await this.createStaff({ name: 'John Doe' });

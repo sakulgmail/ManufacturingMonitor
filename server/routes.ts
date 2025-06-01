@@ -119,6 +119,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User management routes (Admin only)
+  app.get('/api/users', async (req, res) => {
+    try {
+      // Check if user is authenticated and is admin
+      if (!req.session || !req.session.userId || !req.session.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const users = await storage.getAllUsers();
+      // Don't send passwords in response
+      const safeUsers = users.map(({ password, ...user }) => user);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post('/api/users', async (req, res) => {
+    try {
+      // Check if user is authenticated and is admin
+      if (!req.session || !req.session.userId || !req.session.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userData = insertUserSchema.parse(req.body);
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const userWithHashedPassword = { ...userData, password: hashedPassword };
+      
+      const newUser = await storage.createUser(userWithHashedPassword);
+      // Don't send password in response
+      const { password, ...safeUser } = newUser;
+      res.status(201).json(safeUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      if (error instanceof Error && error.message === "Username already exists") {
+        res.status(400).json({ message: "Username already exists" });
+      } else {
+        res.status(500).json({ message: "Failed to create user" });
+      }
+    }
+  });
+
+  app.put('/api/users/:id', async (req, res) => {
+    try {
+      // Check if user is authenticated and is admin
+      if (!req.session || !req.session.userId || !req.session.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userId = parseInt(req.params.id);
+      const userData = req.body;
+      
+      const updatedUser = await storage.updateUser(userId, userData);
+      // Don't send password in response
+      const { password, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      if (error instanceof Error && error.message === "User not found") {
+        res.status(404).json({ message: "User not found" });
+      } else {
+        res.status(500).json({ message: "Failed to update user" });
+      }
+    }
+  });
+
+  app.delete('/api/users/:id', async (req, res) => {
+    try {
+      // Check if user is authenticated and is admin
+      if (!req.session || !req.session.userId || !req.session.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userId = parseInt(req.params.id);
+      
+      // Prevent admin from deleting themselves
+      if (userId === req.session.userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      await storage.deleteUser(userId);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      if (error instanceof Error && error.message === "User not found") {
+        res.status(404).json({ message: "User not found" });
+      } else {
+        res.status(500).json({ message: "Failed to delete user" });
+      }
+    }
+  });
+
+  app.put('/api/users/:id/password', async (req, res) => {
+    try {
+      // Check if user is authenticated and is admin
+      if (!req.session || !req.session.userId || !req.session.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userId = parseInt(req.params.id);
+      const { password } = req.body;
+      
+      if (!password || password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+      
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const updatedUser = await storage.updateUserPassword(userId, hashedPassword);
+      
+      // Don't send password in response
+      const { password: _, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      if (error instanceof Error && error.message === "User not found") {
+        res.status(404).json({ message: "User not found" });
+      } else {
+        res.status(500).json({ message: "Failed to update password" });
+      }
+    }
+  });
+
   // Get all stations with gauges
   app.get('/api/stations', async (req, res) => {
     try {
