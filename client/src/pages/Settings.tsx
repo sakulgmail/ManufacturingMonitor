@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle } from "lucide-react";
+import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -16,11 +17,24 @@ const icons = {
 
 export default function Settings() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"app" | "stations" | "gauges">("app");
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"app" | "stations" | "gauges" | "users">("app");
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [useCustomImage, setUseCustomImage] = useState(false);
+
+  // Redirect non-admin users away from Settings
+  if (user && !user.isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You need administrator privileges to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Station management state
   const [editingStation, setEditingStation] = useState<Station | null>(null);
@@ -41,9 +55,24 @@ export default function Settings() {
   });
   const [showAddGauge, setShowAddGauge] = useState(false);
 
+  // User management state
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [newUsername, setNewUsername] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [resetPasswordUserId, setResetPasswordUserId] = useState<number | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+
   // Fetch stations data
   const { data: stationsData = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
+  });
+
+  // Fetch users data (admin only)
+  const { data: usersData = [] } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+    enabled: user?.isAdmin === true,
   });
 
   // Deduplicate stations by ID to prevent duplicates
@@ -139,6 +168,73 @@ export default function Settings() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to delete gauge.", variant: "destructive" });
+    },
+  });
+
+  // User management mutations
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: { username: string; password: string; isAdmin: boolean }) => {
+      return apiRequest('POST', '/api/users', userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({ title: "Success", description: "User created successfully." });
+      setNewUsername("");
+      setNewUserPassword("");
+      setNewUserIsAdmin(false);
+      setShowAddUser(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error?.message || "Failed to create user.", 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, userData }: { id: number; userData: Partial<User> }) => {
+      return apiRequest('PUT', `/api/users/${id}`, userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({ title: "Success", description: "User updated successfully." });
+      setEditingUser(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update user.", variant: "destructive" });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/users/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({ title: "Success", description: "User deleted successfully." });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error?.message || "Failed to delete user.", 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ id, password }: { id: number; password: string }) => {
+      return apiRequest('PUT', `/api/users/${id}/password`, { password });
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Password reset successfully." });
+      setResetPasswordUserId(null);
+      setNewPassword("");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to reset password.", variant: "destructive" });
     },
   });
 
@@ -264,6 +360,17 @@ export default function Settings() {
                   }`}
                 >
                   Manage Gauges
+                </button>
+                <button
+                  onClick={() => setActiveTab("users")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "users"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <Users className="h-4 w-4 inline mr-2" />
+                  Manage Users
                 </button>
               </nav>
             </div>
