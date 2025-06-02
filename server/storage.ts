@@ -364,6 +364,43 @@ export class MemStorage implements IStorage {
     return updatedGauge;
   }
 
+  // Gauge Type methods
+  async getGaugeType(id: number): Promise<GaugeType | undefined> {
+    return this.gaugeTypes.get(id);
+  }
+
+  async getAllGaugeTypes(): Promise<GaugeType[]> {
+    return Array.from(this.gaugeTypes.values());
+  }
+
+  async createGaugeType(gaugeType: InsertGaugeType): Promise<GaugeType> {
+    const id = this.gaugeTypeCurrentId++;
+    const newGaugeType: GaugeType = { 
+      id, 
+      ...gaugeType
+    };
+    this.gaugeTypes.set(id, newGaugeType);
+    return newGaugeType;
+  }
+
+  async updateGaugeType(id: number, gaugeTypeData: Partial<InsertGaugeType>): Promise<GaugeType> {
+    const existingGaugeType = this.gaugeTypes.get(id);
+    if (!existingGaugeType) {
+      throw new Error(`Gauge type with id ${id} not found`);
+    }
+    
+    const updatedGaugeType: GaugeType = {
+      ...existingGaugeType,
+      ...gaugeTypeData
+    };
+    this.gaugeTypes.set(id, updatedGaugeType);
+    return updatedGaugeType;
+  }
+
+  async deleteGaugeType(id: number): Promise<void> {
+    this.gaugeTypes.delete(id);
+  }
+
   // Staff methods
   async getStaff(id: number): Promise<Staff | undefined> {
     return this.staffMembers.get(id);

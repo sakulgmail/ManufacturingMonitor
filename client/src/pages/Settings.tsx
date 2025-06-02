@@ -1665,6 +1665,398 @@ export default function Settings() {
             </div>
           )}
 
+          {/* Gauge Types Management Tab */}
+          {activeTab === "gauge-types" && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">Manage Gauge Types</h2>
+                <button
+                  onClick={() => setShowAddGaugeType(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Gauge Type
+                </button>
+              </div>
+
+              {/* Add Gauge Type Form */}
+              {showAddGaugeType && (
+                <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Add New Gauge Type</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gauge Type Name
+                      </label>
+                      <input
+                        type="text"
+                        value={newGaugeType.name}
+                        onChange={(e) => setNewGaugeType(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter gauge type name"
+                      />
+                    </div>
+
+                    {/* Field Configuration */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Associated Fields
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasUnit}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasUnit: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Unit
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasMinValue}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasMinValue: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Min Value
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasMaxValue}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasMaxValue: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Max Value
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasStep}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasStep: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Step
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasCondition}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasCondition: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Condition
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasInstruction}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasInstruction: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Instruction
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newGaugeType.hasComment}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, hasComment: e.target.checked }))}
+                            className="mr-2"
+                          />
+                          Comment
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Default Values */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {newGaugeType.hasUnit && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Default Unit
+                          </label>
+                          <input
+                            type="text"
+                            value={newGaugeType.defaultUnit || ""}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, defaultUnit: e.target.value }))}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            placeholder="e.g., °C, rpm, bar"
+                          />
+                        </div>
+                      )}
+                      {newGaugeType.hasMinValue && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Default Min Value
+                          </label>
+                          <input
+                            type="number"
+                            value={newGaugeType.defaultMinValue || ""}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, defaultMinValue: parseFloat(e.target.value) || 0 }))}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+                      )}
+                      {newGaugeType.hasMaxValue && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Default Max Value
+                          </label>
+                          <input
+                            type="number"
+                            value={newGaugeType.defaultMaxValue || ""}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, defaultMaxValue: parseFloat(e.target.value) || 100 }))}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+                      )}
+                      {newGaugeType.hasStep && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Default Step
+                          </label>
+                          <input
+                            type="number"
+                            value={newGaugeType.defaultStep || ""}
+                            onChange={(e) => setNewGaugeType(prev => ({ ...prev, defaultStep: parseFloat(e.target.value) || 1 }))}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {newGaugeType.hasInstruction && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Default Instruction
+                        </label>
+                        <textarea
+                          value={newGaugeType.instruction || ""}
+                          onChange={(e) => setNewGaugeType(prev => ({ ...prev, instruction: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          rows={3}
+                          placeholder="Instructions for technicians on how to check this gauge type"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => {
+                          setShowAddGaugeType(false);
+                          setNewGaugeType({
+                            name: "",
+                            hasUnit: true,
+                            hasMinValue: true,
+                            hasMaxValue: true,
+                            hasStep: false,
+                            hasCondition: false,
+                            hasInstruction: false,
+                            hasComment: false,
+                            defaultUnit: "",
+                            defaultMinValue: 0,
+                            defaultMaxValue: 100,
+                            defaultStep: 1,
+                            instruction: ""
+                          });
+                        }}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (newGaugeType.name.trim()) {
+                            createGaugeTypeMutation.mutate(newGaugeType);
+                          }
+                        }}
+                        disabled={!newGaugeType.name.trim() || createGaugeTypeMutation.isPending}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {createGaugeTypeMutation.isPending ? "Creating..." : "Create Gauge Type"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gauge Types List */}
+              <div className="space-y-4">
+                {gaugeTypesData.map((gaugeType) => (
+                  <div key={gaugeType.id} className="p-4 border border-gray-200 rounded-lg">
+                    {editingGaugeType?.id === gaugeType.id ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Gauge Type Name
+                          </label>
+                          <input
+                            type="text"
+                            value={editingGaugeType.name}
+                            onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Associated Fields
+                          </label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasUnit}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasUnit: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Unit
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasMinValue}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasMinValue: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Min Value
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasMaxValue}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasMaxValue: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Max Value
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasStep}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasStep: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Step
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasCondition}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasCondition: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Condition
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasInstruction}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasInstruction: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Instruction
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={editingGaugeType.hasComment}
+                                onChange={(e) => setEditingGaugeType(prev => prev ? ({ ...prev, hasComment: e.target.checked }) : null)}
+                                className="mr-2"
+                              />
+                              Comment
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            onClick={() => setEditingGaugeType(null)}
+                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                          >
+                            <XCircle className="h-4 w-4 mr-1 inline" />
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (editingGaugeType.name.trim()) {
+                                updateGaugeTypeMutation.mutate({
+                                  id: editingGaugeType.id,
+                                  ...editingGaugeType
+                                });
+                              }
+                            }}
+                            disabled={!editingGaugeType.name.trim() || updateGaugeTypeMutation.isPending}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                          >
+                            <Save className="h-4 w-4 mr-1 inline" />
+                            {updateGaugeTypeMutation.isPending ? "Saving..." : "Save Changes"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-medium text-gray-800 mb-2">{gaugeType.name}</h3>
+                          <div className="text-sm text-gray-600 mb-2">
+                            <strong>Associated Fields:</strong>{" "}
+                            {[
+                              gaugeType.hasUnit && "Unit",
+                              gaugeType.hasMinValue && "Min Value",
+                              gaugeType.hasMaxValue && "Max Value",
+                              gaugeType.hasStep && "Step",
+                              gaugeType.hasCondition && "Condition",
+                              gaugeType.hasInstruction && "Instruction",
+                              gaugeType.hasComment && "Comment"
+                            ].filter(Boolean).join(", ")}
+                          </div>
+                          {gaugeType.hasUnit && gaugeType.defaultUnit && (
+                            <div className="text-sm text-gray-600">
+                              <strong>Default Unit:</strong> {gaugeType.defaultUnit}
+                            </div>
+                          )}
+                          {gaugeType.hasInstruction && gaugeType.instruction && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              <strong>Default Instruction:</strong> {gaugeType.instruction}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex space-x-2 ml-4">
+                          <button
+                            onClick={() => setEditingGaugeType(gaugeType)}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="Edit gauge type"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete the gauge type "${gaugeType.name}"?`)) {
+                                deleteGaugeTypeMutation.mutate(gaugeType.id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800 p-1"
+                            title="Delete gauge type"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {gaugeTypesData.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Gauge className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No gauge types found. Add a gauge type to get started.</p>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </>
