@@ -81,6 +81,7 @@ export class MemStorage implements IStorage {
   private machines: Map<number, Machine>;
   private stations: Map<number, Station>;
   private gauges: Map<number, Gauge>;
+  private gaugeTypes: Map<number, GaugeType>;
   private staffMembers: Map<number, Staff>;
   private readingRecords: Map<number, Reading>;
   private users: Map<number, User>;
@@ -88,6 +89,7 @@ export class MemStorage implements IStorage {
   private machineCurrentId: number;
   private stationCurrentId: number;
   private gaugeCurrentId: number;
+  private gaugeTypeCurrentId: number;
   private staffCurrentId: number;
   private readingCurrentId: number;
   private userCurrentId: number;
@@ -96,6 +98,7 @@ export class MemStorage implements IStorage {
     this.machines = new Map();
     this.stations = new Map();
     this.gauges = new Map();
+    this.gaugeTypes = new Map();
     this.staffMembers = new Map();
     this.readingRecords = new Map();
     this.users = new Map();
@@ -103,6 +106,7 @@ export class MemStorage implements IStorage {
     this.machineCurrentId = 1;
     this.stationCurrentId = 1;
     this.gaugeCurrentId = 1;
+    this.gaugeTypeCurrentId = 1;
     this.staffCurrentId = 1;
     this.readingCurrentId = 1;
     this.userCurrentId = 1;
@@ -276,13 +280,24 @@ export class MemStorage implements IStorage {
   }
 
   // Gauge methods
-  async getGauge(id: number): Promise<Gauge | undefined> {
-    return this.gauges.get(id);
+  async getGauge(id: number): Promise<GaugeWithType | undefined> {
+    const gauge = this.gauges.get(id);
+    if (!gauge) return undefined;
+    
+    const gaugeType = this.gaugeTypes.get(gauge.gaugeTypeId);
+    if (!gaugeType) return undefined;
+    
+    return { ...gauge, gaugeType };
   }
 
-  async getGaugesByStation(stationId: number): Promise<Gauge[]> {
-    return Array.from(this.gauges.values())
+  async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
+    const gauges = Array.from(this.gauges.values())
       .filter(gauge => gauge.stationId === stationId);
+    
+    return gauges.map(gauge => {
+      const gaugeType = this.gaugeTypes.get(gauge.gaugeTypeId);
+      return { ...gauge, gaugeType: gaugeType! };
+    }).filter(gauge => gauge.gaugeType);
   }
 
   async createGauge(gauge: InsertGauge): Promise<Gauge> {

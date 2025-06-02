@@ -329,6 +329,63 @@ export default function Settings() {
     },
   });
 
+  // Gauge Types mutations
+  const createGaugeTypeMutation = useMutation({
+    mutationFn: async (gaugeTypeData: InsertGaugeType) => {
+      return apiRequest('POST', '/api/gauge-types/create', gaugeTypeData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      toast({ title: "Success", description: "Gauge type created successfully." });
+      setNewGaugeType({
+        name: "",
+        hasUnit: true,
+        hasMinValue: true,
+        hasMaxValue: true,
+        hasStep: false,
+        hasCondition: false,
+        hasInstruction: false,
+        hasComment: false,
+        defaultUnit: "",
+        defaultMinValue: 0,
+        defaultMaxValue: 100,
+        defaultStep: 1,
+        instruction: ""
+      });
+      setShowAddGaugeType(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create gauge type.", variant: "destructive" });
+    }
+  });
+
+  const updateGaugeTypeMutation = useMutation({
+    mutationFn: async ({ id, ...gaugeTypeData }: { id: number } & Partial<InsertGaugeType>) => {
+      return apiRequest('PUT', `/api/gauge-types/${id}`, gaugeTypeData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      toast({ title: "Success", description: "Gauge type updated successfully." });
+      setEditingGaugeType(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update gauge type.", variant: "destructive" });
+    }
+  });
+
+  const deleteGaugeTypeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/gauge-types/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      toast({ title: "Success", description: "Gauge type deleted successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete gauge type.", variant: "destructive" });
+    }
+  });
+
   // Load settings from local storage on component mount
   useEffect(() => {
     const storedTitle = localStorage.getItem("appTitle");
