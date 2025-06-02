@@ -1,25 +1,29 @@
 import { 
   machines,
   stations, 
+  gaugeTypes,
   gauges, 
   staff, 
   readings,
   users,
   type Machine,
   type Station, 
+  type GaugeType,
   type Gauge, 
   type Staff, 
   type Reading,
   type User,
   type InsertMachine,
   type InsertStation, 
+  type InsertGaugeType,
   type InsertGauge, 
   type InsertStaff, 
   type InsertReading,
   type InsertUser,
   type ReadingWithDetails, 
   type StationWithGauges,
-  type MachineWithStations
+  type MachineWithStations,
+  type GaugeWithType
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
@@ -164,14 +168,86 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  // Gauges
-  async getGauge(id: number): Promise<Gauge | undefined> {
-    const [gauge] = await db.select().from(gauges).where(eq(gauges.id, id));
-    return gauge || undefined;
+  // Gauge Types
+  async getGaugeType(id: number): Promise<GaugeType | undefined> {
+    const result = await db.select().from(gaugeTypes).where(eq(gaugeTypes.id, id));
+    return result[0];
   }
 
-  async getGaugesByStation(stationId: number): Promise<Gauge[]> {
-    return db.select().from(gauges).where(eq(gauges.stationId, stationId));
+  async getAllGaugeTypes(): Promise<GaugeType[]> {
+    return await db.select().from(gaugeTypes);
+  }
+
+  async createGaugeType(gaugeType: InsertGaugeType): Promise<GaugeType> {
+    const result = await db.insert(gaugeTypes).values(gaugeType).returning();
+    if (!result[0]) {
+      throw new Error("Failed to create gauge type");
+    }
+    return result[0];
+  }
+
+  async updateGaugeType(id: number, gaugeTypeData: Partial<InsertGaugeType>): Promise<GaugeType> {
+    const result = await db.update(gaugeTypes).set(gaugeTypeData).where(eq(gaugeTypes.id, id)).returning();
+    if (!result[0]) {
+      throw new Error("Gauge type not found");
+    }
+    return result[0];
+  }
+
+  async deleteGaugeType(id: number): Promise<void> {
+    const result = await db.delete(gaugeTypes).where(eq(gaugeTypes.id, id));
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("Gauge type not found");
+    }
+  }
+
+  // Gauges
+  async getGauge(id: number): Promise<GaugeWithType | undefined> {
+    const result = await db
+      .select({
+        id: gauges.id,
+        stationId: gauges.stationId,
+        gaugeTypeId: gauges.gaugeTypeId,
+        name: gauges.name,
+        unit: gauges.unit,
+        minValue: gauges.minValue,
+        maxValue: gauges.maxValue,
+        currentReading: gauges.currentReading,
+        lastChecked: gauges.lastChecked,
+        step: gauges.step,
+        condition: gauges.condition,
+        instruction: gauges.instruction,
+        comment: gauges.comment,
+        gaugeType: gaugeTypes
+      })
+      .from(gauges)
+      .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id))
+      .where(eq(gauges.id, id));
+    
+    return result[0] || undefined;
+  }
+
+  async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
+    return db
+      .select({
+        id: gauges.id,
+        stationId: gauges.stationId,
+        gaugeTypeId: gauges.gaugeTypeId,
+        name: gauges.name,
+        unit: gauges.unit,
+        minValue: gauges.minValue,
+        maxValue: gauges.maxValue,
+        currentReading: gauges.currentReading,
+        lastChecked: gauges.lastChecked,
+        step: gauges.step,
+        condition: gauges.condition,
+        instruction: gauges.instruction,
+        comment: gauges.comment,
+        gaugeType: gaugeTypes
+      })
+      .from(gauges)
+      .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id))
+      .where(eq(gauges.stationId, stationId));
   }
 
   async createGauge(gauge: InsertGauge): Promise<Gauge> {
