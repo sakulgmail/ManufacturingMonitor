@@ -371,53 +371,70 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeTestData(): Promise<void> {
-    // Create stations
+    // Create machines first
+    const machine1 = await this.createMachine({
+      name: "Default Machine",
+      machineNo: "MACH001", 
+      status: "RUNNING"
+    });
+
+    // Create stations with machine references
     const station1 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 1: Assembly Line",
       description: "Main assembly line for product A"
     });
     
     const station2 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 2: Packaging",
       description: "Final packaging for finished products"
     });
     
     const station3 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 3: Quality Control",
       description: "Testing and quality verification"
     });
     
     const station4 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 4: Warehouse",
       description: "Storage and inventory management"
     });
     
     const station5 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 5: Maintenance",
       description: "Equipment maintenance and repairs"
     });
     
     const station6 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 6: Receiving",
       description: "Materials receiving and intake"
     });
     
     const station7 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 7: Shipping",
       description: "Product shipping and logistics"
     });
     
     const station8 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 8: Molding",
       description: "Plastic molding and forming"
     });
     
     const station9 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 9: Painting",
       description: "Surface finishing and painting"
     });
     
     const station10 = await this.createStation({
+      machineId: machine1.id,
       name: "Station 10: R&D Lab",
       description: "Research and development testing"
     });
