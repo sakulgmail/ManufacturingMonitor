@@ -1,10 +1,11 @@
 import { 
+  Machine, InsertMachine,
   Station, InsertStation, 
   Gauge, InsertGauge, 
   Staff, InsertStaff, 
   Reading, InsertReading,
   User, InsertUser,
-  stations, gauges, staff, readings, users
+  machines, stations, gauges, staff, readings, users
 } from "@shared/schema";
 
 // Helper function to ensure date values are stored as strings

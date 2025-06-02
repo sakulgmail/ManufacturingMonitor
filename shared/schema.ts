@@ -4,10 +4,20 @@ import { z } from "zod";
 
 // Define custom types for our application
 export type GaugeType = 'pressure' | 'temperature' | 'runtime' | 'electrical_power' | 'electrical_current';
+export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
 
-// Define the stations table
+// Define the machines table
+export const machines = pgTable("machines", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  machineNo: text("machine_no").notNull(),
+  status: text("status").notNull(), // RUNNING, STOP, During Maintenance, Out of Order
+});
+
+// Define the stations table with relationship to machines
 export const stations = pgTable("stations", {
   id: serial("id").primaryKey(),
+  machineId: integer("machine_id").notNull().references(() => machines.id),
   name: text("name").notNull(),
   description: text("description"),
 });
@@ -44,18 +54,21 @@ export const readings = pgTable("readings", {
 });
 
 // Insert schemas for validation
+export const insertMachineSchema = createInsertSchema(machines);
 export const insertStationSchema = createInsertSchema(stations);
 export const insertGaugeSchema = createInsertSchema(gauges);
 export const insertStaffSchema = createInsertSchema(staff);
 export const insertReadingSchema = createInsertSchema(readings);
 
 // Types for insertion
+export type InsertMachine = z.infer<typeof insertMachineSchema>;
 export type InsertStation = z.infer<typeof insertStationSchema>;
 export type InsertGauge = z.infer<typeof insertGaugeSchema>;
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type InsertReading = z.infer<typeof insertReadingSchema>;
 
 // Types for selection
+export type Machine = typeof machines.$inferSelect;
 export type Station = typeof stations.$inferSelect;
 export type Gauge = typeof gauges.$inferSelect;
 export type Staff = typeof staff.$inferSelect;
@@ -74,6 +87,11 @@ export interface ReadingWithDetails extends Reading {
 // Extended Station type with gauges for the frontend
 export interface StationWithGauges extends Station {
   gauges: Gauge[];
+}
+
+// Extended Machine type with stations for the frontend
+export interface MachineWithStations extends Machine {
+  stations: StationWithGauges[];
 }
 
 // Define the users table for authentication

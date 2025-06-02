@@ -1,5 +1,6 @@
 // Types for our application
 export type GaugeType = 'pressure' | 'temperature' | 'runtime' | 'electrical_power' | 'electrical_current';
+export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
 
 export interface Gauge {
   id: number;
@@ -13,8 +14,16 @@ export interface Gauge {
   step?: number;
 }
 
+export interface Machine {
+  id: number;
+  name: string;
+  machineNo: string;
+  status: MachineStatus;
+}
+
 export interface Station {
   id: number;
+  machineId: number;
   name: string;
   description?: string | null;
   gauges: Gauge[];
@@ -49,7 +58,14 @@ export interface InsertReading {
   imageUrl?: string | null;
 }
 
+export interface InsertMachine {
+  name: string;
+  machineNo: string;
+  status: MachineStatus;
+}
+
 export interface InsertStation {
+  machineId: number;
   name: string;
   description?: string | null;
 }
