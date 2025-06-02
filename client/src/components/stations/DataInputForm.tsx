@@ -244,31 +244,88 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           </div>
         )}
         
-        {/* Reading Value (only shown if gauge is selected) */}
-        {selectedGaugeId && selectedGauge && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Reading Value ({selectedGauge.unit})
-            </label>
-            <div className="flex items-center">
-              <input
-                type="number"
-                className="w-full p-2 border border-gray-300 rounded-md"
-                value={readingValue}
-                onChange={handleReadingChange}
-                step={selectedGauge.step || 1}
-                required
-              />
-              <span className="ml-2 text-gray-500">{selectedGauge.unit}</span>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Expected range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
-              {readingValue < selectedGauge.minValue || readingValue > selectedGauge.maxValue ? (
-                <span className="text-red-600 ml-2 font-bold">
-                  (ALERT: Current value is outside expected range)
-                </span>
-              ) : null}
-            </div>
+        {/* Dynamic fields based on selected gauge type */}
+        {selectedGaugeId && selectedGauge && selectedGauge.gaugeType && (
+          <div className="mb-4 space-y-4">
+            {/* Show numeric input for gauges with unit/min/max values */}
+            {(selectedGauge.gaugeType.hasUnit || selectedGauge.gaugeType.hasMinValue || selectedGauge.gaugeType.hasMaxValue) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reading Value {selectedGauge.unit && `(${selectedGauge.unit})`}
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={readingValue}
+                    onChange={handleReadingChange}
+                    step={selectedGauge.step || 1}
+                    required
+                  />
+                  {selectedGauge.unit && <span className="ml-2 text-gray-500">{selectedGauge.unit}</span>}
+                </div>
+                {selectedGauge.gaugeType.hasMinValue && selectedGauge.gaugeType.hasMaxValue && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Expected range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
+                    {readingValue && (parseFloat(readingValue.toString()) < selectedGauge.minValue || parseFloat(readingValue.toString()) > selectedGauge.maxValue) ? (
+                      <span className="text-red-600 ml-2 font-bold">
+                        (ALERT: Current value is outside expected range)
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Show condition dropdown for gauges with condition field */}
+            {selectedGauge.gaugeType.hasCondition && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Condition
+                </label>
+                <select
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={selectedGauge.condition || ""}
+                  onChange={(e) => {
+                    // Update the gauge condition in the UI
+                    const updatedGauge = { ...selectedGauge, condition: e.target.value };
+                    // You might want to update this in state or handle it differently
+                  }}
+                  required
+                >
+                  <option value="">Select condition...</option>
+                  <option value="Good condition">Good condition</option>
+                  <option value="Problem">Problem</option>
+                </select>
+              </div>
+            )}
+            
+            {/* Show instruction display for gauges with instruction field */}
+            {selectedGauge.gaugeType.hasInstruction && selectedGauge.instruction && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Instructions
+                </label>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+                  {selectedGauge.instruction}
+                </div>
+              </div>
+            )}
+            
+            {/* Show comment field for gauges with comment field */}
+            {selectedGauge.gaugeType.hasComment && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Comments
+                </label>
+                <textarea
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  rows={3}
+                  placeholder="Add any additional comments..."
+                  defaultValue={selectedGauge.comment || ""}
+                />
+              </div>
+            )}
           </div>
         )}
         
