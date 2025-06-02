@@ -1,0 +1,60 @@
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:48:18 PM [express] GET /api/auth/me 401 in 3ms :: {"message":"Not authenticated"}
+Error fetching stations: error: relation "gauge_types" does not exist
+    at D:\ManufacturingMonitor\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (D:\ManufacturingMonitor\node_modules\src\node-postgres\session.ts:104:19)
+    at async DatabaseStorage.getGaugesByStation (D:\ManufacturingMonitor\server\database-storage.ts:222:20)
+    at async DatabaseStorage.getAllStationsWithGauges (D:\ManufacturingMonitor\server\database-storage.ts:164:29)
+    at async <anonymous> (D:\ManufacturingMonitor\server\routes.ts:306:24) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '717',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+10:48:18 PM [express] GET /api/stations 500 in 102ms :: {"message":"Failed to fetch stations"}
+Error fetching machines: error: column "gauge_type_id" does not exist
+    at D:\ManufacturingMonitor\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (D:\ManufacturingMonitor\node_modules\src\node-postgres\session.ts:104:19)
+    at async <anonymous> (D:\ManufacturingMonitor\server\database-storage.ts:79:31)
+    at async Promise.all (index 0)
+    at async DatabaseStorage.getMachineWithStations (D:\ManufacturingMonitor\server\database-storage.ts:77:53)
+    at async <anonymous> (D:\ManufacturingMonitor\server\database-storage.ts:102:37)
+    at async Promise.all (index 0)
+    at async DatabaseStorage.getAllMachinesWithStations (D:\ManufacturingMonitor\server\database-storage.ts:100:12)
+    at async <anonymous> (D:\ManufacturingMonitor\server\routes.ts:222:24) {
+  length: 113,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '28',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3721',
+  routine: 'errorMissingColumn'
+}
+10:48:18 PM [express] GET /api/machines 500 in 110ms :: {"message":"Failed to fetch machines"}
