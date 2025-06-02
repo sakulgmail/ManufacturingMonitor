@@ -1,17 +1,41 @@
 // Types for our application
-export type GaugeType = 'pressure' | 'temperature' | 'runtime' | 'electrical_power' | 'electrical_current';
 export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
+export type GaugeCondition = 'Good condition' | 'Problem';
+
+export interface GaugeType {
+  id: number;
+  name: string;
+  hasUnit: boolean;
+  hasMinValue: boolean;
+  hasMaxValue: boolean;
+  hasStep: boolean;
+  hasCondition: boolean;
+  hasInstruction: boolean;
+  hasComment: boolean;
+  defaultUnit?: string | null;
+  defaultMinValue?: number | null;
+  defaultMaxValue?: number | null;
+  defaultStep?: number | null;
+  instruction?: string | null;
+}
 
 export interface Gauge {
   id: number;
   name: string;
-  type: GaugeType;
-  unit: string;
-  minValue: number;
-  maxValue: number;
+  gaugeTypeId: number;
+  unit?: string | null;
+  minValue?: number | null;
+  maxValue?: number | null;
   currentReading: number;
   lastChecked: string;
-  step?: number;
+  step?: number | null;
+  condition?: string | null;
+  instruction?: string | null;
+  comment?: string | null;
+}
+
+export interface GaugeWithType extends Gauge {
+  gaugeType: GaugeType;
 }
 
 export interface Machine {
@@ -30,7 +54,7 @@ export interface Station {
   machineId: number;
   name: string;
   description?: string | null;
-  gauges: Gauge[];
+  gauges: GaugeWithType[];
 }
 
 export interface Reading {

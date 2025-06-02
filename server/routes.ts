@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, Server } from "http";
 import { storage } from "./storage";
-import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGaugeSchema, insertStaffSchema, insertMachineSchema } from "@shared/schema";
+import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGaugeSchema, insertStaffSchema, insertMachineSchema, insertGaugeTypeSchema } from "@shared/schema";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
@@ -607,6 +607,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching all readings:", error);
       res.status(500).json({ message: "Failed to fetch readings" });
+    }
+  });
+
+  // Gauge Types API routes
+  app.get('/api/gauge-types', async (req, res) => {
+    try {
+      const gaugeTypes = await storage.getAllGaugeTypes();
+      res.json(gaugeTypes);
+    } catch (error) {
+      console.error("Error fetching gauge types:", error);
+      res.status(500).json({ message: "Failed to fetch gauge types" });
+    }
+  });
+
+  app.post('/api/gauge-types', async (req, res) => {
+    if (!req.session.userId || !req.session.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const validatedData = insertGaugeTypeSchema.parse(req.body);
+      const newGaugeType = await storage.createGaugeType(validatedData);
+      res.json(newGaugeType);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid gauge type data", errors: error.errors });
+      }
+      console.error("Error creating gauge type:", error);
+      res.status(500).json({ message: "Failed to create gauge type" });
+    }
+  });
+
+  app.put('/api/gauge-types/:id', async (req, res) => {
+    if (!req.session.userId || !req.session.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const gaugeTypeId = parseInt(req.params.id);
+      const validatedData = insertGaugeTypeSchema.partial().parse(req.body);
+      const updatedGaugeType = await storage.updateGaugeType(gaugeTypeId, validatedData);
+      res.json(updatedGaugeType);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: "Invalid gauge type data", errors: error.errors });
+      }
+      console.error("Error updating gauge type:", error);
+      res.status(500).json({ message: "Failed to update gauge type" });
+    }
+  });
+
+  app.delete('/api/gauge-types/:id', async (req, res) => {
+    if (!req.session.userId || !req.session.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const gaugeTypeId = parseInt(req.params.id);
+      await storage.deleteGaugeType(gaugeTypeId);
+      res.json({ message: "Gauge type deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting gauge type:", error);
+      res.status(500).json({ message: "Failed to delete gauge type" });
     }
   });
 

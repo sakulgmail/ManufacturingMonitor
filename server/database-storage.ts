@@ -204,50 +204,31 @@ export class DatabaseStorage implements IStorage {
   // Gauges
   async getGauge(id: number): Promise<GaugeWithType | undefined> {
     const result = await db
-      .select({
-        id: gauges.id,
-        stationId: gauges.stationId,
-        gaugeTypeId: gauges.gaugeTypeId,
-        name: gauges.name,
-        unit: gauges.unit,
-        minValue: gauges.minValue,
-        maxValue: gauges.maxValue,
-        currentReading: gauges.currentReading,
-        lastChecked: gauges.lastChecked,
-        step: gauges.step,
-        condition: gauges.condition,
-        instruction: gauges.instruction,
-        comment: gauges.comment,
-        gaugeType: gaugeTypes
-      })
+      .select()
       .from(gauges)
       .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id))
       .where(eq(gauges.id, id));
     
-    return result[0] || undefined;
+    const row = result[0];
+    if (!row) return undefined;
+    
+    return {
+      ...row.gauges,
+      gaugeType: row.gauge_types!
+    };
   }
 
   async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
-    return db
-      .select({
-        id: gauges.id,
-        stationId: gauges.stationId,
-        gaugeTypeId: gauges.gaugeTypeId,
-        name: gauges.name,
-        unit: gauges.unit,
-        minValue: gauges.minValue,
-        maxValue: gauges.maxValue,
-        currentReading: gauges.currentReading,
-        lastChecked: gauges.lastChecked,
-        step: gauges.step,
-        condition: gauges.condition,
-        instruction: gauges.instruction,
-        comment: gauges.comment,
-        gaugeType: gaugeTypes
-      })
+    const result = await db
+      .select()
       .from(gauges)
       .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id))
       .where(eq(gauges.stationId, stationId));
+    
+    return result.map(row => ({
+      ...row.gauges,
+      gaugeType: row.gauge_types!
+    }));
   }
 
   async createGauge(gauge: InsertGauge): Promise<Gauge> {
@@ -522,11 +503,19 @@ export class DatabaseStorage implements IStorage {
     const staff4 = await this.createStaff({ name: "Emily Wilson" });
     const staff5 = await this.createStaff({ name: "David Garcia" });
 
+    // Get gauge types to use for test data
+    const allGaugeTypes = await this.getAllGaugeTypes();
+    const pressureType = allGaugeTypes.find(gt => gt.name === 'Pressure');
+    const temperatureType = allGaugeTypes.find(gt => gt.name === 'Temperature');
+    const runtimeType = allGaugeTypes.find(gt => gt.name === 'Runtime');
+    const powerType = allGaugeTypes.find(gt => gt.name === 'Electrical Power');
+    const currentType = allGaugeTypes.find(gt => gt.name === 'Electrical Current');
+
     // Create gauges for each station (5 gauges per station)
     // For Station 1
     const gauge1_1 = await this.createGauge({
       name: "Main Line Pressure",
-      type: "pressure",
+      gaugeTypeId: pressureType!.id,
       unit: "PSI",
       minValue: 50,
       maxValue: 100,
@@ -538,7 +527,7 @@ export class DatabaseStorage implements IStorage {
     
     const gauge1_2 = await this.createGauge({
       name: "Assembly Temperature",
-      type: "temperature",
+      gaugeTypeId: temperatureType!.id,
       unit: "°C",
       minValue: 15,
       maxValue: 30,
@@ -550,7 +539,7 @@ export class DatabaseStorage implements IStorage {
     
     const gauge1_3 = await this.createGauge({
       name: "Line Runtime",
-      type: "runtime",
+      gaugeTypeId: runtimeType!.id,
       unit: "hours",
       minValue: 0,
       maxValue: 8000,
@@ -562,7 +551,7 @@ export class DatabaseStorage implements IStorage {
     
     const gauge1_4 = await this.createGauge({
       name: "Power Consumption",
-      type: "electrical_power",
+      gaugeTypeId: powerType!.id,
       unit: "kW",
       minValue: 5,
       maxValue: 30,
@@ -574,7 +563,7 @@ export class DatabaseStorage implements IStorage {
     
     const gauge1_5 = await this.createGauge({
       name: "Motor Current",
-      type: "electrical_current",
+      gaugeTypeId: currentType!.id,
       unit: "A",
       minValue: 1,
       maxValue: 15,
@@ -587,7 +576,7 @@ export class DatabaseStorage implements IStorage {
     // For Station 2 (similar pattern for other stations)
     const gauge2_1 = await this.createGauge({
       name: "Sealing Pressure",
-      type: "pressure",
+      gaugeTypeId: pressureType!.id,
       unit: "PSI",
       minValue: 30,
       maxValue: 80,
