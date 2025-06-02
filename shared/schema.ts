@@ -3,8 +3,8 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Define custom types for our application
-export type GaugeType = 'pressure' | 'temperature' | 'runtime' | 'electrical_power' | 'electrical_current';
 export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
+export type GaugeCondition = 'Good condition' | 'Problem';
 
 // Define the machines table
 export const machines = pgTable("machines", {
@@ -22,18 +22,39 @@ export const stations = pgTable("stations", {
   description: text("description"),
 });
 
-// Define the gauges table with relationship to stations
+// Define gauge types table for dynamic type management
+export const gaugeTypes = pgTable("gauge_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  hasUnit: boolean("has_unit").notNull().default(true),
+  hasMinValue: boolean("has_min_value").notNull().default(true),
+  hasMaxValue: boolean("has_max_value").notNull().default(true),
+  hasStep: boolean("has_step").notNull().default(false),
+  hasCondition: boolean("has_condition").notNull().default(false),
+  hasInstruction: boolean("has_instruction").notNull().default(false),
+  hasComment: boolean("has_comment").notNull().default(false),
+  defaultUnit: text("default_unit"),
+  defaultMinValue: real("default_min_value"),
+  defaultMaxValue: real("default_max_value"),
+  defaultStep: real("default_step"),
+  instruction: text("instruction"),
+});
+
+// Define the gauges table with relationship to stations and gauge types
 export const gauges = pgTable("gauges", {
   id: serial("id").primaryKey(),
   stationId: integer("station_id").notNull().references(() => stations.id),
+  gaugeTypeId: integer("gauge_type_id").notNull().references(() => gaugeTypes.id),
   name: text("name").notNull(),
-  type: text("type").notNull(), // pressure, temperature, runtime, electrical_power, electrical_current
-  unit: text("unit").notNull(),
-  minValue: real("min_value").notNull(),
-  maxValue: real("max_value").notNull(),
+  unit: text("unit"),
+  minValue: real("min_value"),
+  maxValue: real("max_value"),
   currentReading: real("current_reading").notNull().default(0),
   lastChecked: text("last_checked").notNull().default(''),
   step: real("step"),
+  condition: text("condition"), // 'Good condition' or 'Problem'
+  instruction: text("instruction"),
+  comment: text("comment"),
 });
 
 // Define the staff members table
@@ -56,6 +77,7 @@ export const readings = pgTable("readings", {
 // Insert schemas for validation
 export const insertMachineSchema = createInsertSchema(machines);
 export const insertStationSchema = createInsertSchema(stations);
+export const insertGaugeTypeSchema = createInsertSchema(gaugeTypes);
 export const insertGaugeSchema = createInsertSchema(gauges);
 export const insertStaffSchema = createInsertSchema(staff);
 export const insertReadingSchema = createInsertSchema(readings);
@@ -63,6 +85,7 @@ export const insertReadingSchema = createInsertSchema(readings);
 // Types for insertion
 export type InsertMachine = z.infer<typeof insertMachineSchema>;
 export type InsertStation = z.infer<typeof insertStationSchema>;
+export type InsertGaugeType = z.infer<typeof insertGaugeTypeSchema>;
 export type InsertGauge = z.infer<typeof insertGaugeSchema>;
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type InsertReading = z.infer<typeof insertReadingSchema>;
@@ -70,6 +93,7 @@ export type InsertReading = z.infer<typeof insertReadingSchema>;
 // Types for selection
 export type Machine = typeof machines.$inferSelect;
 export type Station = typeof stations.$inferSelect;
+export type GaugeType = typeof gaugeTypes.$inferSelect;
 export type Gauge = typeof gauges.$inferSelect;
 export type Staff = typeof staff.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
@@ -84,9 +108,14 @@ export interface ReadingWithDetails extends Reading {
   staffName: string;
 }
 
+// Extended Gauge type with gauge type details for the frontend
+export interface GaugeWithType extends Gauge {
+  gaugeType: GaugeType;
+}
+
 // Extended Station type with gauges for the frontend
 export interface StationWithGauges extends Station {
-  gauges: Gauge[];
+  gauges: GaugeWithType[];
 }
 
 // Extended Machine type with stations for the frontend

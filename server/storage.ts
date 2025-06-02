@@ -1,11 +1,12 @@
 import { 
   Machine, InsertMachine,
   Station, InsertStation, 
+  GaugeType, InsertGaugeType,
   Gauge, InsertGauge, 
   Staff, InsertStaff, 
   Reading, InsertReading,
   User, InsertUser,
-  machines, stations, gauges, staff, readings, users
+  machines, stations, gaugeTypes, gauges, staff, readings, users
 } from "@shared/schema";
 
 // Helper function to ensure date values are stored as strings
@@ -15,7 +16,7 @@ const dateToString = (date: Date | string): string => {
 };
 
 // Import interface definitions from schema
-import { ReadingWithDetails, StationWithGauges, MachineWithStations } from "@shared/schema";
+import { ReadingWithDetails, StationWithGauges, MachineWithStations, GaugeWithType } from "@shared/schema";
 
 export interface IStorage {
   // Machines
@@ -36,9 +37,16 @@ export interface IStorage {
   getStationWithGauges(id: number): Promise<StationWithGauges | undefined>;
   getAllStationsWithGauges(): Promise<StationWithGauges[]>;
   
+  // Gauge Types
+  getGaugeType(id: number): Promise<GaugeType | undefined>;
+  getAllGaugeTypes(): Promise<GaugeType[]>;
+  createGaugeType(gaugeType: InsertGaugeType): Promise<GaugeType>;
+  updateGaugeType(id: number, gaugeType: Partial<InsertGaugeType>): Promise<GaugeType>;
+  deleteGaugeType(id: number): Promise<void>;
+  
   // Gauges
-  getGauge(id: number): Promise<Gauge | undefined>;
-  getGaugesByStation(stationId: number): Promise<Gauge[]>;
+  getGauge(id: number): Promise<GaugeWithType | undefined>;
+  getGaugesByStation(stationId: number): Promise<GaugeWithType[]>;
   createGauge(gauge: InsertGauge): Promise<Gauge>;
   updateGauge(id: number, gauge: Partial<InsertGauge>): Promise<Gauge>;
   deleteGauge(id: number): Promise<void>;
