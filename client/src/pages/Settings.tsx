@@ -1146,15 +1146,16 @@ export default function Settings() {
                         Type
                       </label>
                       <select
-                        value={newGauge.type}
-                        onChange={(e) => setNewGauge({ ...newGauge, type: e.target.value as GaugeTypeEnum })}
+                        value={newGauge.gaugeTypeId}
+                        onChange={(e) => setNewGauge({ ...newGauge, gaugeTypeId: Number(e.target.value) })}
                         className="w-full border border-gray-300 rounded-md px-3 py-2"
                       >
-                        <option value="pressure">Pressure</option>
-                        <option value="temperature">Temperature</option>
-                        <option value="runtime">Runtime</option>
-                        <option value="electrical_power">Electrical Power</option>
-                        <option value="electrical_current">Electrical Current</option>
+                        <option value="">Select gauge type...</option>
+                        {gaugeTypesData.map((gaugeType) => (
+                          <option key={gaugeType.id} value={gaugeType.id}>
+                            {gaugeType.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -1255,15 +1256,16 @@ export default function Settings() {
                                       Type
                                     </label>
                                     <select
-                                      value={editingGauge.type}
-                                      onChange={(e) => setEditingGauge({ ...editingGauge, type: e.target.value as GaugeTypeEnum })}
+                                      value={editingGauge.gaugeTypeId}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, gaugeTypeId: Number(e.target.value) })}
                                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                                     >
-                                      <option value="pressure">Pressure</option>
-                                      <option value="temperature">Temperature</option>
-                                      <option value="runtime">Runtime</option>
-                                      <option value="electrical_power">Electrical Power</option>
-                                      <option value="electrical_current">Electrical Current</option>
+                                      <option value="">Select gauge type...</option>
+                                      {gaugeTypesData.map((gaugeType) => (
+                                        <option key={gaugeType.id} value={gaugeType.id}>
+                                          {gaugeType.name}
+                                        </option>
+                                      ))}
                                     </select>
                                   </div>
                                   <div>
