@@ -5,7 +5,7 @@ import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Station, Gauge as GaugeType, InsertStation, InsertGauge, GaugeType as GaugeTypeEnum } from "@/lib/types";
+import { Machine, Station, Gauge as GaugeType, InsertMachine, InsertStation, InsertGauge, GaugeType as GaugeTypeEnum, MachineStatus } from "@/lib/types";
 
 type IconKey = "factory" | "gauge" | "monitor";
 
@@ -36,10 +36,18 @@ export default function Settings() {
     );
   }
 
+  // Machine management state
+  const [editingMachine, setEditingMachine] = useState<Machine | null>(null);
+  const [newMachineName, setNewMachineName] = useState("");
+  const [newMachineNo, setNewMachineNo] = useState("");
+  const [newMachineStatus, setNewMachineStatus] = useState<MachineStatus>("RUNNING");
+  const [showAddMachine, setShowAddMachine] = useState(false);
+
   // Station management state
   const [editingStation, setEditingStation] = useState<Station | null>(null);
   const [newStationName, setNewStationName] = useState("");
   const [newStationDescription, setNewStationDescription] = useState("");
+  const [newStationMachineId, setNewStationMachineId] = useState<number | null>(null);
   const [showAddStation, setShowAddStation] = useState(false);
 
   // Gauge management state
@@ -65,6 +73,11 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
 
+  // Fetch machines data
+  const { data: machinesData = [] } = useQuery<Machine[]>({
+    queryKey: ['/api/machines'],
+  });
+
   // Fetch stations data
   const { data: stationsData = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
@@ -76,10 +89,62 @@ export default function Settings() {
     enabled: user?.isAdmin === true,
   });
 
-  // Deduplicate stations by ID to prevent duplicates
+  // Deduplicate data by ID to prevent duplicates
+  const machines = machinesData.filter((machine, index, self) => 
+    index === self.findIndex(m => m.id === machine.id)
+  );
+  
   const stations = stationsData.filter((station, index, self) => 
     index === self.findIndex(s => s.id === station.id)
   );
+
+  // Create machine mutation
+  const createMachineMutation = useMutation({
+    mutationFn: async (machineData: InsertMachine) => {
+      return apiRequest('POST', '/api/machines/create', machineData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      toast({ title: "Success", description: "Machine created successfully." });
+      setNewMachineName("");
+      setNewMachineNo("");
+      setNewMachineStatus("RUNNING");
+      setShowAddMachine(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create machine.", variant: "destructive" });
+    }
+  });
+
+  // Update machine mutation
+  const updateMachineMutation = useMutation({
+    mutationFn: async ({ id, ...machineData }: { id: number } & InsertMachine) => {
+      return apiRequest('PUT', `/api/machines/${id}`, machineData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      toast({ title: "Success", description: "Machine updated successfully." });
+      setEditingMachine(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update machine.", variant: "destructive" });
+    }
+  });
+
+  // Delete machine mutation
+  const deleteMachineMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/machines/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      toast({ title: "Success", description: "Machine deleted successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete machine.", variant: "destructive" });
+    }
+  });
 
   // Create station mutation
   const createStationMutation = useMutation({
@@ -343,6 +408,17 @@ export default function Settings() {
                   Application Settings
                 </button>
                 <button
+                  onClick={() => setActiveTab("machines")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "machines"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <Factory className="h-4 w-4 inline mr-2" />
+                  Manage Machines
+                </button>
+                <button
                   onClick={() => setActiveTab("stations")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "stations"
@@ -499,6 +575,223 @@ export default function Settings() {
                 Save Settings
               </button>
             </div>
+            </div>
+          )}
+
+          {/* Machines Management Tab */}
+          {activeTab === "machines" && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Manage Machines</h2>
+                <button
+                  onClick={() => setShowAddMachine(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Machine
+                </button>
+              </div>
+
+              {/* Add Machine Form */}
+              {showAddMachine && (
+                <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                  <h3 className="text-md font-medium mb-4">Add New Machine</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Machine Name
+                      </label>
+                      <input
+                        type="text"
+                        value={newMachineName}
+                        onChange={(e) => setNewMachineName(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter machine name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Machine Number
+                      </label>
+                      <input
+                        type="text"
+                        value={newMachineNo}
+                        onChange={(e) => setNewMachineNo(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter machine number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Status
+                      </label>
+                      <select
+                        value={newMachineStatus}
+                        onChange={(e) => setNewMachineStatus(e.target.value as MachineStatus)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="RUNNING">Running</option>
+                        <option value="STOP">Stop</option>
+                        <option value="During Maintenance">During Maintenance</option>
+                        <option value="Out of Order">Out of Order</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      onClick={() => {
+                        if (newMachineName.trim() && newMachineNo.trim()) {
+                          createMachineMutation.mutate({
+                            name: newMachineName.trim(),
+                            machineNo: newMachineNo.trim(),
+                            status: newMachineStatus
+                          });
+                        }
+                      }}
+                      disabled={!newMachineName.trim() || !newMachineNo.trim() || createMachineMutation.isPending}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {createMachineMutation.isPending ? "Creating..." : "Create Machine"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddMachine(false);
+                        setNewMachineName("");
+                        setNewMachineNo("");
+                        setNewMachineStatus("RUNNING");
+                      }}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 flex items-center"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Machines List */}
+              <div className="space-y-3">
+                {machines.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No machines found. Add your first machine above.</p>
+                ) : (
+                  machines.map((machine) => (
+                    <div key={machine.id} className="border border-gray-200 rounded-md p-4">
+                      {editingMachine?.id === machine.id ? (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Machine Name
+                              </label>
+                              <input
+                                type="text"
+                                value={editingMachine.name}
+                                onChange={(e) => setEditingMachine({ ...editingMachine, name: e.target.value })}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Machine Number
+                              </label>
+                              <input
+                                type="text"
+                                value={editingMachine.machineNo}
+                                onChange={(e) => setEditingMachine({ ...editingMachine, machineNo: e.target.value })}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Status
+                              </label>
+                              <select
+                                value={editingMachine.status}
+                                onChange={(e) => setEditingMachine({ ...editingMachine, status: e.target.value as MachineStatus })}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              >
+                                <option value="RUNNING">Running</option>
+                                <option value="STOP">Stop</option>
+                                <option value="During Maintenance">During Maintenance</option>
+                                <option value="Out of Order">Out of Order</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => {
+                                if (editingMachine.name.trim() && editingMachine.machineNo.trim()) {
+                                  updateMachineMutation.mutate({
+                                    id: editingMachine.id,
+                                    name: editingMachine.name.trim(),
+                                    machineNo: editingMachine.machineNo.trim(),
+                                    status: editingMachine.status
+                                  });
+                                }
+                              }}
+                              disabled={!editingMachine.name.trim() || !editingMachine.machineNo.trim() || updateMachineMutation.isPending}
+                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 flex items-center"
+                            >
+                              <Save className="h-3 w-3 mr-1" />
+                              {updateMachineMutation.isPending ? "Saving..." : "Save"}
+                            </button>
+                            <button
+                              onClick={() => setEditingMachine(null)}
+                              className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 flex items-center"
+                            >
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-4">
+                              <div>
+                                <h3 className="font-medium text-gray-900">{machine.name}</h3>
+                                <p className="text-sm text-gray-600">Machine No: {machine.machineNo}</p>
+                              </div>
+                              <div className="flex items-center">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  machine.status === 'RUNNING' ? 'bg-green-100 text-green-800' :
+                                  machine.status === 'STOP' ? 'bg-red-100 text-red-800' :
+                                  machine.status === 'During Maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {machine.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => setEditingMachine(machine)}
+                              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                            >
+                              <Edit2 className="h-3 w-3 mr-1" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${machine.name}"? This will also delete all associated stations and gauges.`)) {
+                                  deleteMachineMutation.mutate(machine.id);
+                                }
+                              }}
+                              disabled={deleteMachineMutation.isPending}
+                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50 flex items-center"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              {deleteMachineMutation.isPending ? "Deleting..." : "Delete"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
