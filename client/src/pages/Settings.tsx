@@ -18,7 +18,7 @@ const icons = {
 export default function Settings() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"app" | "stations" | "gauges" | "users">("app");
+  const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "users">("app");
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);

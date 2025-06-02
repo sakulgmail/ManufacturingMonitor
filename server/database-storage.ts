@@ -1,27 +1,106 @@
 import { 
+  machines,
   stations, 
   gauges, 
   staff, 
   readings,
   users,
+  type Machine,
   type Station, 
   type Gauge, 
   type Staff, 
   type Reading,
   type User,
+  type InsertMachine,
   type InsertStation, 
   type InsertGauge, 
   type InsertStaff, 
   type InsertReading,
   type InsertUser,
   type ReadingWithDetails, 
-  type StationWithGauges 
+  type StationWithGauges,
+  type MachineWithStations
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
+  // Machines
+  async getMachine(id: number): Promise<Machine | undefined> {
+    const [machine] = await db.select().from(machines).where(eq(machines.id, id));
+    return machine || undefined;
+  }
+
+  async getAllMachines(): Promise<Machine[]> {
+    return await db.select().from(machines);
+  }
+
+  async createMachine(machine: InsertMachine): Promise<Machine> {
+    const [newMachine] = await db.insert(machines).values(machine).returning();
+    return newMachine;
+  }
+
+  async updateMachine(id: number, machineData: InsertMachine): Promise<Machine> {
+    const [updatedMachine] = await db
+      .update(machines)
+      .set(machineData)
+      .where(eq(machines.id, id))
+      .returning();
+    
+    if (!updatedMachine) {
+      throw new Error(`Machine with id ${id} not found`);
+    }
+    
+    return updatedMachine;
+  }
+
+  async deleteMachine(id: number): Promise<void> {
+    await db.delete(machines).where(eq(machines.id, id));
+  }
+
+  async getMachineWithStations(id: number): Promise<MachineWithStations | undefined> {
+    const machine = await this.getMachine(id);
+    if (!machine) {
+      return undefined;
+    }
+
+    const machineStations = await db
+      .select()
+      .from(stations)
+      .where(eq(stations.machineId, id));
+
+    const stationsWithGauges: StationWithGauges[] = await Promise.all(
+      machineStations.map(async (station) => {
+        const stationGauges = await db
+          .select()
+          .from(gauges)
+          .where(eq(gauges.stationId, station.id));
+        
+        return {
+          ...station,
+          gauges: stationGauges
+        };
+      })
+    );
+
+    return {
+      ...machine,
+      stations: stationsWithGauges
+    };
+  }
+
+  async getAllMachinesWithStations(): Promise<MachineWithStations[]> {
+    const allMachines = await this.getAllMachines();
+    
+    return await Promise.all(
+      allMachines.map(async (machine) => {
+        const machineWithStations = await this.getMachineWithStations(machine.id);
+        return machineWithStations!;
+      })
+    );
+  }
+
   // Stations
   async getStation(id: number): Promise<Station | undefined> {
     const [station] = await db.select().from(stations).where(eq(stations.id, id));

@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, Server } from "http";
 import { storage } from "./storage";
-import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGaugeSchema, insertStaffSchema } from "@shared/schema";
+import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGaugeSchema, insertStaffSchema, insertMachineSchema } from "@shared/schema";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
@@ -213,6 +213,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to update password" });
       }
+    }
+  });
+
+  // Machine routes
+  app.get('/api/machines', async (req, res) => {
+    try {
+      const machines = await storage.getAllMachinesWithStations();
+      res.json(machines);
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+      res.status(500).json({ message: "Failed to fetch machines" });
+    }
+  });
+
+  app.get('/api/machines/:id', async (req, res) => {
+    try {
+      const machineId = parseInt(req.params.id);
+      const machine = await storage.getMachineWithStations(machineId);
+      
+      if (!machine) {
+        return res.status(404).json({ message: "Machine not found" });
+      }
+      
+      res.json(machine);
+    } catch (error) {
+      console.error("Error fetching machine:", error);
+      res.status(500).json({ message: "Failed to fetch machine" });
+    }
+  });
+
+  app.post('/api/machines/create', async (req, res) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const machineData = insertMachineSchema.parse(req.body);
+      const machine = await storage.createMachine(machineData);
+      res.status(201).json(machine);
+    } catch (error) {
+      console.error("Error creating machine:", error);
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid machine data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create machine" });
+      }
+    }
+  });
+
+  app.put('/api/machines/:id', async (req, res) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const machineId = parseInt(req.params.id);
+      const machineData = insertMachineSchema.parse(req.body);
+      
+      const machine = await storage.updateMachine(machineId, machineData);
+      res.json(machine);
+    } catch (error) {
+      console.error("Error updating machine:", error);
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid machine data", errors: error.errors });
+      } else if (error instanceof Error && error.message.includes("not found")) {
+        res.status(404).json({ message: "Machine not found" });
+      } else {
+        res.status(500).json({ message: "Failed to update machine" });
+      }
+    }
+  });
+
+  app.delete('/api/machines/:id', async (req, res) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const machineId = parseInt(req.params.id);
+      await storage.deleteMachine(machineId);
+      res.json({ message: "Machine deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting machine:", error);
+      res.status(500).json({ message: "Failed to delete machine" });
     }
   });
 

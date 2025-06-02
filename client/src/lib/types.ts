@@ -21,6 +21,10 @@ export interface Machine {
   status: MachineStatus;
 }
 
+export interface MachineWithStations extends Machine {
+  stations: Station[];
+}
+
 export interface Station {
   id: number;
   machineId: number;
