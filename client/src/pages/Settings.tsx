@@ -816,6 +816,23 @@ export default function Settings() {
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Machine
+                      </label>
+                      <select
+                        value={newStationMachineId || ""}
+                        onChange={(e) => setNewStationMachineId(e.target.value ? Number(e.target.value) : null)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="">Select a machine</option>
+                        {machines.map((machine) => (
+                          <option key={machine.id} value={machine.id}>
+                            {machine.name} (#{machine.machineNo})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Station Name
                       </label>
                       <input
@@ -840,18 +857,27 @@ export default function Settings() {
                     </div>
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => createStationMutation.mutate({ name: newStationName, description: newStationDescription || null })}
-                        disabled={!newStationName || createStationMutation.isPending}
+                        onClick={() => {
+                          if (newStationMachineId && newStationName.trim()) {
+                            createStationMutation.mutate({ 
+                              machineId: newStationMachineId,
+                              name: newStationName.trim(), 
+                              description: newStationDescription.trim() || null 
+                            });
+                          }
+                        }}
+                        disabled={!newStationName.trim() || !newStationMachineId || createStationMutation.isPending}
                         className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
                       >
                         <Save className="h-4 w-4 mr-2 inline" />
-                        Save
+                        {createStationMutation.isPending ? "Creating..." : "Create Station"}
                       </button>
                       <button
                         onClick={() => {
                           setShowAddStation(false);
                           setNewStationName("");
                           setNewStationDescription("");
+                          setNewStationMachineId(null);
                         }}
                         className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
                       >
@@ -869,6 +895,22 @@ export default function Settings() {
                   <div key={station.id} className="border border-gray-200 rounded-md p-4">
                     {editingStation?.id === station.id ? (
                       <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Machine
+                          </label>
+                          <select
+                            value={editingStation.machineId}
+                            onChange={(e) => setEditingStation({ ...editingStation, machineId: Number(e.target.value) })}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          >
+                            {machines.map((machine) => (
+                              <option key={machine.id} value={machine.id}>
+                                {machine.name} (#{machine.machineNo})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Station Name
@@ -893,11 +935,17 @@ export default function Settings() {
                         </div>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => updateStationMutation.mutate({ id: editingStation.id, name: editingStation.name, description: editingStation.description })}
-                            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                            onClick={() => updateStationMutation.mutate({ 
+                              id: editingStation.id, 
+                              machineId: editingStation.machineId,
+                              name: editingStation.name, 
+                              description: editingStation.description 
+                            })}
+                            disabled={updateStationMutation.isPending}
+                            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
                           >
                             <Save className="h-4 w-4 mr-2 inline" />
-                            Save
+                            {updateStationMutation.isPending ? "Saving..." : "Save"}
                           </button>
                           <button
                             onClick={() => setEditingStation(null)}
@@ -912,6 +960,10 @@ export default function Settings() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-lg font-medium text-gray-800">{station.name}</h3>
+                          <p className="text-sm text-blue-600 mt-1">
+                            Machine: {machines.find(m => m.id === station.machineId)?.name || 'Unknown'} 
+                            (#{machines.find(m => m.id === station.machineId)?.machineNo || 'N/A'})
+                          </p>
                           {station.description && (
                             <p className="text-gray-600 mt-1">{station.description}</p>
                           )}
@@ -974,11 +1026,14 @@ export default function Settings() {
                         className="w-full border border-gray-300 rounded-md px-3 py-2"
                       >
                         <option value="">Select a station</option>
-                        {stations.map((station) => (
-                          <option key={station.id} value={station.id}>
-                            {station.name}
-                          </option>
-                        ))}
+                        {stations.map((station) => {
+                          const machine = machines.find(m => m.id === station.machineId);
+                          return (
+                            <option key={station.id} value={station.id}>
+                              {machine?.name || 'Unknown Machine'} → {station.name}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                     <div>
@@ -1074,9 +1129,16 @@ export default function Settings() {
 
               {/* Gauges by Station */}
               <div className="space-y-6">
-                {stations.map((station) => (
-                  <div key={station.id} className="border border-gray-200 rounded-md p-4">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">{station.name}</h3>
+                {stations.map((station) => {
+                  const machine = machines.find(m => m.id === station.machineId);
+                  return (
+                    <div key={station.id} className="border border-gray-200 rounded-md p-4">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-medium text-gray-800">{station.name}</h3>
+                        <p className="text-sm text-blue-600">
+                          Machine: {machine?.name || 'Unknown'} (#{machine?.machineNo || 'N/A'})
+                        </p>
+                      </div>
                     {station.gauges && station.gauges.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {station.gauges.map((gauge) => (
@@ -1116,8 +1178,9 @@ export default function Settings() {
                     ) : (
                       <p className="text-gray-500 text-sm">No gauges configured for this station.</p>
                     )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
