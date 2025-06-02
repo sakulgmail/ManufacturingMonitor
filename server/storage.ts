@@ -15,9 +15,18 @@ const dateToString = (date: Date | string): string => {
 };
 
 // Import interface definitions from schema
-import { ReadingWithDetails, StationWithGauges } from "@shared/schema";
+import { ReadingWithDetails, StationWithGauges, MachineWithStations } from "@shared/schema";
 
 export interface IStorage {
+  // Machines
+  getMachine(id: number): Promise<Machine | undefined>;
+  getAllMachines(): Promise<Machine[]>;
+  createMachine(machine: InsertMachine): Promise<Machine>;
+  updateMachine(id: number, machine: InsertMachine): Promise<Machine>;
+  deleteMachine(id: number): Promise<void>;
+  getMachineWithStations(id: number): Promise<MachineWithStations | undefined>;
+  getAllMachinesWithStations(): Promise<MachineWithStations[]>;
+  
   // Stations
   getStation(id: number): Promise<Station | undefined>;
   getAllStations(): Promise<Station[]>;
@@ -61,12 +70,14 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private machines: Map<number, Machine>;
   private stations: Map<number, Station>;
   private gauges: Map<number, Gauge>;
   private staffMembers: Map<number, Staff>;
   private readingRecords: Map<number, Reading>;
   private users: Map<number, User>;
   
+  private machineCurrentId: number;
   private stationCurrentId: number;
   private gaugeCurrentId: number;
   private staffCurrentId: number;
@@ -74,17 +85,102 @@ export class MemStorage implements IStorage {
   private userCurrentId: number;
 
   constructor() {
+    this.machines = new Map();
     this.stations = new Map();
     this.gauges = new Map();
     this.staffMembers = new Map();
     this.readingRecords = new Map();
     this.users = new Map();
     
+    this.machineCurrentId = 1;
     this.stationCurrentId = 1;
     this.gaugeCurrentId = 1;
     this.staffCurrentId = 1;
     this.readingCurrentId = 1;
     this.userCurrentId = 1;
+  }
+
+  // Machine methods
+  async getMachine(id: number): Promise<Machine | undefined> {
+    return this.machines.get(id);
+  }
+
+  async getAllMachines(): Promise<Machine[]> {
+    return Array.from(this.machines.values());
+  }
+
+  async createMachine(machine: InsertMachine): Promise<Machine> {
+    const id = this.machineCurrentId++;
+    const newMachine: Machine = { 
+      id, 
+      name: machine.name,
+      machineNo: machine.machineNo,
+      status: machine.status
+    };
+    this.machines.set(id, newMachine);
+    return newMachine;
+  }
+
+  async updateMachine(id: number, machineData: InsertMachine): Promise<Machine> {
+    const existingMachine = this.machines.get(id);
+    if (!existingMachine) {
+      throw new Error(`Machine with id ${id} not found`);
+    }
+    
+    const updatedMachine: Machine = {
+      ...existingMachine,
+      name: machineData.name,
+      machineNo: machineData.machineNo,
+      status: machineData.status
+    };
+    this.machines.set(id, updatedMachine);
+    return updatedMachine;
+  }
+
+  async deleteMachine(id: number): Promise<void> {
+    this.machines.delete(id);
+  }
+
+  async getMachineWithStations(id: number): Promise<MachineWithStations | undefined> {
+    const machine = this.machines.get(id);
+    if (!machine) {
+      return undefined;
+    }
+
+    const machineStations = Array.from(this.stations.values())
+      .filter(station => station.machineId === id);
+    
+    const stationsWithGauges: StationWithGauges[] = machineStations.map(station => ({
+      ...station,
+      gauges: Array.from(this.gauges.values()).filter(gauge => gauge.stationId === station.id)
+    }));
+
+    return {
+      ...machine,
+      stations: stationsWithGauges
+    };
+  }
+
+  async getAllMachinesWithStations(): Promise<MachineWithStations[]> {
+    const machines = Array.from(this.machines.values());
+    const machinesWithStations: MachineWithStations[] = [];
+
+    for (const machine of machines) {
+      const machineStations = Array.from(this.stations.values())
+        .filter(station => station.machineId === machine.id);
+      
+      const stationsWithGauges: StationWithGauges[] = machineStations.map(station => ({
+        ...station,
+        gauges: Array.from(this.gauges.values()).filter(gauge => gauge.stationId === station.id)
+      }));
+
+      machinesWithStations.push({
+        ...machine,
+        stations: stationsWithGauges
+      });
+    }
+
+    return machinesWithStations;
   }
 
   // Station methods
@@ -100,6 +196,7 @@ export class MemStorage implements IStorage {
     const id = this.stationCurrentId++;
     const newStation: Station = { 
       id, 
+      machineId: station.machineId,
       name: station.name,
       description: station.description || null
     };
@@ -115,6 +212,7 @@ export class MemStorage implements IStorage {
     
     const updatedStation: Station = {
       ...existingStation,
+      machineId: stationData.machineId,
       name: stationData.name,
       description: stationData.description || null
     };
@@ -408,21 +506,42 @@ export class MemStorage implements IStorage {
       isAdmin: true
     });
 
+    // Create machines first
+    const machine1 = await this.createMachine({
+      name: 'Production Line A',
+      machineNo: 'M001',
+      status: 'RUNNING'
+    });
+    
+    const machine2 = await this.createMachine({
+      name: 'Production Line B',
+      machineNo: 'M002',
+      status: 'RUNNING'
+    });
+
     // Create staff members
     const staff1 = await this.createStaff({ name: 'John Doe' });
     const staff2 = await this.createStaff({ name: 'Jane Smith' });
 
-    // Create 10 stations
-    const stationNames = [
-      "Assembly Line", "Heating Unit", "Cooling System", "Packaging Line",
-      "Mixing Vat", "Welding Station", "Paint Booth", "Quality Control",
-      "Material Handling", "Shipping"
+    // Create stations with machine assignments
+    const stationConfigs = [
+      { name: "Assembly Line", machineId: machine1.id },
+      { name: "Heating Unit", machineId: machine1.id },
+      { name: "Cooling System", machineId: machine1.id },
+      { name: "Packaging Line", machineId: machine1.id },
+      { name: "Mixing Vat", machineId: machine1.id },
+      { name: "Welding Station", machineId: machine2.id },
+      { name: "Paint Booth", machineId: machine2.id },
+      { name: "Quality Control", machineId: machine2.id },
+      { name: "Material Handling", machineId: machine2.id },
+      { name: "Shipping", machineId: machine2.id }
     ];
 
-    const stationPromises = stationNames.map((name, index) => {
+    const stationPromises = stationConfigs.map((config, index) => {
       return this.createStation({
-        name: `Station ${index + 1}: ${name}`,
-        description: `Production station for ${name.toLowerCase()}`
+        name: `Station ${index + 1}: ${config.name}`,
+        description: `Production station for ${config.name.toLowerCase()}`,
+        machineId: config.machineId
       });
     });
 
