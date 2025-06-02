@@ -1143,35 +1143,145 @@ export default function Settings() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {station.gauges.map((gauge) => (
                           <div key={gauge.id} className="border border-gray-100 rounded-md p-3 bg-gray-50">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium text-gray-800">{gauge.name}</h4>
-                                <p className="text-sm text-gray-600">
-                                  Type: {gauge.type} | Unit: {gauge.unit}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Range: {gauge.minValue} - {gauge.maxValue}
-                                </p>
+                            {editingGauge?.id === gauge.id ? (
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Gauge Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editingGauge.name}
+                                    onChange={(e) => setEditingGauge({ ...editingGauge, name: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Type
+                                    </label>
+                                    <select
+                                      value={editingGauge.type}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, type: e.target.value as GaugeTypeEnum })}
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                    >
+                                      <option value="pressure">Pressure</option>
+                                      <option value="temperature">Temperature</option>
+                                      <option value="runtime">Runtime</option>
+                                      <option value="electrical_power">Electrical Power</option>
+                                      <option value="electrical_current">Electrical Current</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Unit
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={editingGauge.unit}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, unit: e.target.value })}
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Min Value
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={editingGauge.minValue}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, minValue: Number(e.target.value) })}
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Max Value
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={editingGauge.maxValue}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, maxValue: Number(e.target.value) })}
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Step
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={editingGauge.step || 1}
+                                      onChange={(e) => setEditingGauge({ ...editingGauge, step: Number(e.target.value) })}
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      if (editingGauge.name.trim()) {
+                                        updateGaugeMutation.mutate({
+                                          id: editingGauge.id,
+                                          stationId: editingGauge.stationId,
+                                          name: editingGauge.name.trim(),
+                                          type: editingGauge.type,
+                                          unit: editingGauge.unit,
+                                          minValue: editingGauge.minValue,
+                                          maxValue: editingGauge.maxValue,
+                                          step: editingGauge.step
+                                        });
+                                      }
+                                    }}
+                                    disabled={!editingGauge.name.trim() || updateGaugeMutation.isPending}
+                                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 flex items-center"
+                                  >
+                                    <Save className="h-3 w-3 mr-1" />
+                                    {updateGaugeMutation.isPending ? "Saving..." : "Save"}
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingGauge(null)}
+                                    className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 flex items-center"
+                                  >
+                                    <XCircle className="h-3 w-3 mr-1" />
+                                    Cancel
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => setEditingGauge(gauge)}
-                                  className="text-blue-600 hover:text-blue-800"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm(`Are you sure you want to delete "${gauge.name}"?`)) {
-                                      deleteGaugeMutation.mutate(gauge.id);
-                                    }
-                                  }}
-                                  className="text-red-600 hover:text-red-800"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
+                            ) : (
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium text-gray-800">{gauge.name}</h4>
+                                  <p className="text-sm text-gray-600">
+                                    Type: {gauge.type} | Unit: {gauge.unit}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    Range: {gauge.minValue} - {gauge.maxValue}
+                                  </p>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => setEditingGauge(gauge)}
+                                    className="text-blue-600 hover:text-blue-800"
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to delete "${gauge.name}"?`)) {
+                                        deleteGaugeMutation.mutate(gauge.id);
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-800"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         ))}
                       </div>
