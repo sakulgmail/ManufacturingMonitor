@@ -5,7 +5,7 @@ import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Machine, Station, Gauge as GaugeType, InsertMachine, InsertStation, InsertGauge, GaugeType as GaugeTypeEnum, MachineStatus } from "@/lib/types";
+import { Machine, Station, Gauge as GaugeInterface, GaugeType, InsertMachine, InsertStation, InsertGauge, InsertGaugeType, MachineStatus, GaugeCondition } from "@/lib/types";
 
 type IconKey = "factory" | "gauge" | "monitor";
 
@@ -18,7 +18,7 @@ const icons = {
 export default function Settings() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "users">("app");
+  const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "gauge-types" | "users">("app");
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);
@@ -51,17 +51,36 @@ export default function Settings() {
   const [showAddStation, setShowAddStation] = useState(false);
 
   // Gauge management state
-  const [editingGauge, setEditingGauge] = useState<GaugeType | null>(null);
+  const [editingGauge, setEditingGauge] = useState<GaugeInterface | null>(null);
   const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
   const [newGauge, setNewGauge] = useState({
     name: "",
-    type: "pressure" as GaugeTypeEnum,
+    gaugeTypeId: 1,
     unit: "",
     minValue: 0,
     maxValue: 100,
     step: 1
   });
   const [showAddGauge, setShowAddGauge] = useState(false);
+
+  // Gauge Types management state
+  const [editingGaugeType, setEditingGaugeType] = useState<GaugeType | null>(null);
+  const [newGaugeType, setNewGaugeType] = useState({
+    name: "",
+    hasUnit: true,
+    hasMinValue: true,
+    hasMaxValue: true,
+    hasStep: false,
+    hasCondition: false,
+    hasInstruction: false,
+    hasComment: false,
+    defaultUnit: "",
+    defaultMinValue: 0,
+    defaultMaxValue: 100,
+    defaultStep: 1,
+    instruction: ""
+  });
+  const [showAddGaugeType, setShowAddGaugeType] = useState(false);
 
   // User management state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -86,6 +105,12 @@ export default function Settings() {
   // Fetch users data (admin only)
   const { data: usersData = [] } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    enabled: user?.isAdmin === true,
+  });
+
+  // Fetch gauge types data (admin only)
+  const { data: gaugeTypesData = [] } = useQuery<GaugeType[]>({
+    queryKey: ['/api/gauge-types'],
     enabled: user?.isAdmin === true,
   });
 
@@ -437,6 +462,17 @@ export default function Settings() {
                   }`}
                 >
                   Manage Gauges
+                </button>
+                <button
+                  onClick={() => setActiveTab("gauge-types")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "gauge-types"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <Gauge className="h-4 w-4 inline mr-2" />
+                  Manage Gauge Types
                 </button>
                 <button
                   onClick={() => setActiveTab("users")}

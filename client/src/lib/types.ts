@@ -98,12 +98,31 @@ export interface InsertStation {
   description?: string | null;
 }
 
+export interface InsertGaugeType {
+  name: string;
+  hasUnit?: boolean;
+  hasMinValue?: boolean;
+  hasMaxValue?: boolean;
+  hasStep?: boolean;
+  hasCondition?: boolean;
+  hasInstruction?: boolean;
+  hasComment?: boolean;
+  defaultUnit?: string | null;
+  defaultMinValue?: number | null;
+  defaultMaxValue?: number | null;
+  defaultStep?: number | null;
+  instruction?: string | null;
+}
+
 export interface InsertGauge {
   stationId: number;
+  gaugeTypeId: number;
   name: string;
-  type: GaugeType;
-  unit: string;
-  minValue: number;
-  maxValue: number;
-  step?: number;
+  unit?: string | null;
+  minValue?: number | null;
+  maxValue?: number | null;
+  step?: number | null;
+  condition?: string | null;
+  instruction?: string | null;
+  comment?: string | null;
 }
