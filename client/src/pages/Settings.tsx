@@ -1287,7 +1287,7 @@ export default function Settings() {
                       <button
                         onClick={() => {
                           setShowAddGauge(false);
-                          setNewGauge({ name: "", type: "pressure", unit: "", minValue: 0, maxValue: 100, step: 1 });
+                          setNewGauge({ name: "", gaugeTypeId: 1, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "", comment: "" });
                           setSelectedStationId(null);
                         }}
                         className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
