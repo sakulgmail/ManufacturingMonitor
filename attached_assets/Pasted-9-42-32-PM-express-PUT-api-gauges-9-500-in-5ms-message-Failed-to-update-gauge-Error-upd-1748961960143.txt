@@ -1,0 +1,48 @@
+9:42:32 PM [express] PUT /api/gauges/9 500 in 5ms :: {"message":"Failed to update gauge"}
+Error updating gauge: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "undefined",
+    "path": [
+      "gaugeTypeId"
+    ],
+    "message": "Required"
+  }
+]
+    at get error (file:///D:/ManufacturingMonitor/node_modules/zod/dist/esm/v3/types.js:51:31)
+    at ZodObject.parse (file:///D:/ManufacturingMonitor/node_modules/zod/dist/esm/v3/types.js:126:22)
+    at <anonymous> (D:\ManufacturingMonitor\server\routes.ts:539:43)
+    at Layer.handle [as handle_request] (D:\ManufacturingMonitor\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\ManufacturingMonitor\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\ManufacturingMonitor\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\ManufacturingMonitor\node_modules\express\lib\router\layer.js:95:5)
+    at D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:284:15
+    at param (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:365:14)
+    at param (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:376:14)
+    at Function.process_params (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:421:3)
+    at next (D:\ManufacturingMonitor\node_modules\express\lib\router\index.js:280:10)
+    at Immediate._onImmediate (D:\ManufacturingMonitor\node_modules\express-session\index.js:514:7)
+    at process.processImmediate (node:internal/timers:487:21) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    }
+  ]
+}
+9:42:39 PM [express] PUT /api/gauges/9 500 in 2ms :: {"message":"Failed to update gauge"}

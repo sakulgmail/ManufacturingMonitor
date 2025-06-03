@@ -1467,13 +1467,15 @@ export default function Settings() {
                                       if (editingGauge.name.trim()) {
                                         updateGaugeMutation.mutate({
                                           id: editingGauge.id,
-                                          stationId: editingGauge.stationId,
                                           name: editingGauge.name.trim(),
-                                          type: editingGauge.type,
-                                          unit: editingGauge.unit,
-                                          minValue: editingGauge.minValue,
-                                          maxValue: editingGauge.maxValue,
-                                          step: editingGauge.step
+                                          gaugeTypeId: editingGauge.gaugeTypeId,
+                                          unit: editingGauge.unit || null,
+                                          minValue: editingGauge.minValue || null,
+                                          maxValue: editingGauge.maxValue || null,
+                                          step: editingGauge.step || null,
+                                          condition: editingGauge.condition || null,
+                                          instruction: editingGauge.instruction || null,
+                                          comment: editingGauge.comment || null
                                         });
                                       }
                                     }}
