@@ -1469,7 +1469,7 @@ export default function Settings() {
                                           id: editingGauge.id,
                                           name: editingGauge.name.trim(),
                                           gaugeTypeId: editingGauge.gaugeTypeId,
-                                          stationId: editingGauge.stationId,
+                                          stationId: gauge.stationId,
                                           unit: editingGauge.unit || null,
                                           minValue: editingGauge.minValue || null,
                                           maxValue: editingGauge.maxValue || null,
