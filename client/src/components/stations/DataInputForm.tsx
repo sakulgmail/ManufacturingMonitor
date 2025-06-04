@@ -15,6 +15,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [readingValue, setReadingValue] = useState<number | string>("");
+  const [condition, setCondition] = useState<string>("");
   const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gaugeImage, setGaugeImage] = useState<File | null>(null);
@@ -52,7 +53,26 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   // API call to save a new reading
   const saveReadingMutation = useMutation({
     mutationFn: async (reading: InsertReading) => {
-      return apiRequest('POST', '/api/readings', reading);
+      // First save the reading
+      const savedReading = await apiRequest('POST', '/api/readings', reading);
+      
+      // If gauge has condition field and condition is selected, update the gauge condition
+      if (selectedGauge?.gaugeType.hasCondition && condition) {
+        await apiRequest('PUT', `/api/gauges/${selectedGaugeId}`, {
+          id: selectedGaugeId,
+          stationId: selectedGauge.stationId,
+          name: selectedGauge.name,
+          gaugeTypeId: selectedGauge.gaugeTypeId,
+          unit: selectedGauge.unit,
+          minValue: selectedGauge.minValue,
+          maxValue: selectedGauge.maxValue,
+          step: selectedGauge.step,
+          condition: condition,
+          instruction: selectedGauge.instruction
+        });
+      }
+      
+      return savedReading;
     },
     onSuccess: () => {
       // Invalidate queries to refresh data
@@ -67,6 +87,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       
       // Reset form and close modal
       setReadingValue("");
+      setCondition("");
+      setComment("");
       setSelectedGaugeId(null);
       setIsSubmitting(false);
       onClose();
@@ -171,6 +193,16 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       toast({
         title: "Missing Information",
         description: "Please select a station, gauge, and enter a reading value.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if condition is required but not provided
+    if (selectedGauge?.gaugeType.hasCondition && !condition) {
+      toast({
+        title: "Missing Condition",
+        description: "Please select a condition for this gauge.",
         variant: "destructive",
       });
       return;
@@ -287,17 +319,14 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
                 </label>
                 <select
                   className="w-full p-2 border border-gray-300 rounded-md"
-                  value={selectedGauge.condition || ""}
-                  onChange={(e) => {
-                    // Update the gauge condition in the UI
-                    const updatedGauge = { ...selectedGauge, condition: e.target.value };
-                    // You might want to update this in state or handle it differently
-                  }}
+                  value={condition}
+                  onChange={(e) => setCondition(e.target.value)}
                   required
                 >
                   <option value="">Select condition...</option>
-                  <option value="Good condition">Good condition</option>
-                  <option value="Problem">Problem</option>
+                  <option value="Good">Good</option>
+                  <option value="Bad">Bad</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
             )}
