@@ -189,10 +189,21 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedStationId || !selectedGaugeId || !readingValue) {
+    if (!selectedStationId || !selectedGaugeId) {
       toast({
         title: "Missing Information",
-        description: "Please select a station, gauge, and enter a reading value.",
+        description: "Please select a station and gauge.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if numeric reading is required (for gauges with unit/min/max values) but not provided
+    const requiresNumericReading = selectedGauge?.gaugeType.hasUnit || selectedGauge?.gaugeType.hasMinValue || selectedGauge?.gaugeType.hasMaxValue;
+    if (requiresNumericReading && !readingValue) {
+      toast({
+        title: "Missing Reading Value",
+        description: "Please enter a reading value for this gauge.",
         variant: "destructive",
       });
       return;
@@ -213,7 +224,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     const reading: InsertReading = {
       stationId: selectedStationId,
       gaugeId: selectedGaugeId,
-      value: parseFloat(readingValue.toString()),
+      value: requiresNumericReading ? parseFloat(readingValue.toString()) : 0,
       timestamp: new Date().toISOString(),
       staffId: selectedStaffId,
       imageUrl: previewUrl,
