@@ -13,9 +13,12 @@ export default function History() {
     queryKey: ['/api/readings'],
   });
   
-  const { data: stations = [] } = useQuery({
+  const { data: stationsData = [] } = useQuery({
     queryKey: ['/api/stations'],
   });
+  
+  // Sort stations in ascending order by ID
+  const stations = stationsData.sort((a: any, b: any) => a.id - b.id);
   
   // Get unique gauge names from all readings
   const gaugeNames = [...new Set(readings.map(reading => reading.gaugeName))];

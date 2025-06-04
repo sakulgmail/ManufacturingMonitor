@@ -115,14 +115,22 @@ export default function Settings() {
     enabled: user?.isAdmin === true,
   });
 
-  // Deduplicate data by ID to prevent duplicates
-  const machines = machinesData.filter((machine, index, self) => 
-    index === self.findIndex(m => m.id === machine.id)
-  );
+  // Sort users and gauge types in ascending order
+  const users = usersData.sort((a, b) => a.id - b.id);
+  const gaugeTypes = gaugeTypesData.sort((a, b) => a.id - b.id);
+
+  // Deduplicate data by ID and sort in ascending order
+  const machines = machinesData
+    .filter((machine, index, self) => 
+      index === self.findIndex(m => m.id === machine.id)
+    )
+    .sort((a, b) => a.id - b.id);
   
-  const stations = stationsData.filter((station, index, self) => 
-    index === self.findIndex(s => s.id === station.id)
-  );
+  const stations = stationsData
+    .filter((station, index, self) => 
+      index === self.findIndex(s => s.id === station.id)
+    )
+    .sort((a, b) => a.id - b.id);
 
   // Create machine mutation
   const createMachineMutation = useMutation({

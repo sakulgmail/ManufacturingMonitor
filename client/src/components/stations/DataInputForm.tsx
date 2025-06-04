@@ -27,15 +27,18 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     queryKey: ['/api/stations'],
   });
   
-  // Filter out duplicate stations by name
-  const uniqueStations = allStations.filter((station: Station, index: number, self: Station[]) => 
-    index === self.findIndex((s: Station) => s.name === station.name)
-  );
+  // Filter out duplicate stations by name and sort in ascending order by ID
+  const uniqueStations = allStations
+    .filter((station: Station, index: number, self: Station[]) => 
+      index === self.findIndex((s: Station) => s.name === station.name)
+    )
+    .sort((a, b) => a.id - b.id);
   
-  // Fetch all staff members
-  const { data: staffMembers = [] } = useQuery<StaffMember[]>({
+  // Fetch all staff members and sort in ascending order by ID
+  const { data: staffMembersData = [] } = useQuery<StaffMember[]>({
     queryKey: ['/api/staff'],
   });
+  const staffMembers = staffMembersData.sort((a, b) => a.id - b.id);
   
   // Get the selected station
   const selectedStation = selectedStationId 
