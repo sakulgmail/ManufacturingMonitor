@@ -83,6 +83,7 @@ export interface InsertReading {
   timestamp: string;
   staffId?: number | null;
   imageUrl?: string | null;
+  comment?: string | null;
 }
 
 export interface InsertMachine {
@@ -105,7 +106,7 @@ export interface InsertGaugeType {
   hasStep?: boolean;
   hasCondition?: boolean;
   hasInstruction?: boolean;
-  hasComment?: boolean;
+
   defaultUnit?: string | null;
   defaultMinValue?: number | null;
   defaultMaxValue?: number | null;
@@ -123,5 +124,4 @@ export interface InsertGauge {
   step?: number | null;
   condition?: string | null;
   instruction?: string | null;
-  comment?: string | null;
 }
