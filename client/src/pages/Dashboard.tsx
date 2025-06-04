@@ -18,10 +18,10 @@ export default function Dashboard() {
   const [selectedMachineId, setSelectedMachineId] = useState<number | undefined>(undefined);
   const [selectedStationId, setSelectedStationId] = useState<number | undefined>(undefined);
 
-  // Filter stations by selected machine and sort by name with natural sorting
+  // Filter stations by selected machine and sort by ID in ascending order
   const filteredStations = stations
     .filter(station => !selectedMachineId || station.machineId === selectedMachineId)
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    .sort((a, b) => a.id - b.id);
 
   return (
     <>
