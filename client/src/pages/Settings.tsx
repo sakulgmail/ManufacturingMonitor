@@ -1440,7 +1440,7 @@ export default function Settings() {
                                           id: editingGauge.id,
                                           name: editingGauge.name.trim(),
                                           gaugeTypeId: editingGauge.gaugeTypeId,
-                                          stationId: gauge.stationId,
+
                                           unit: editingGauge.unit || null,
                                           minValue: editingGauge.minValue || null,
                                           maxValue: editingGauge.maxValue || null,
@@ -2113,7 +2113,7 @@ export default function Settings() {
                               gaugeType.hasStep && "Step",
                               gaugeType.hasCondition && "Condition",
                               gaugeType.hasInstruction && "Instruction",
-                              gaugeType.hasComment && "Comment"
+
                             ].filter(Boolean).join(", ")}
                           </div>
                           {gaugeType.hasUnit && gaugeType.defaultUnit && (

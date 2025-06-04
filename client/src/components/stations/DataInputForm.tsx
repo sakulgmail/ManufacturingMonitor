@@ -268,8 +268,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
                 </div>
                 {selectedGauge.gaugeType.hasMinValue && selectedGauge.gaugeType.hasMaxValue && (
                   <div className="text-xs text-gray-500 mt-1">
-                    Expected range: {selectedGauge.minValue} - {selectedGauge.maxValue} {selectedGauge.unit}
-                    {readingValue && (parseFloat(readingValue.toString()) < selectedGauge.minValue || parseFloat(readingValue.toString()) > selectedGauge.maxValue) ? (
+                    Expected range: {selectedGauge.minValue || 0} - {selectedGauge.maxValue || 100} {selectedGauge.unit}
+                    {readingValue && (parseFloat(readingValue.toString()) < (selectedGauge.minValue || 0) || parseFloat(readingValue.toString()) > (selectedGauge.maxValue || 100)) ? (
                       <span className="text-red-600 ml-2 font-bold">
                         (ALERT: Current value is outside expected range)
                       </span>
@@ -314,20 +314,19 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               </div>
             )}
             
-            {/* Show comment field for gauges with comment field */}
-            {selectedGauge.gaugeType.hasComment && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Comments
-                </label>
-                <textarea
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  rows={3}
-                  placeholder="Add any additional comments..."
-                  defaultValue={selectedGauge.comment || ""}
-                />
-              </div>
-            )}
+            {/* Comment field for all readings */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Comments
+              </label>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded-md"
+                rows={3}
+                placeholder="Add any additional comments..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+            </div>
           </div>
         )}
         
