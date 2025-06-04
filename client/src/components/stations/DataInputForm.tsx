@@ -184,7 +184,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       value: parseFloat(readingValue.toString()),
       timestamp: new Date().toISOString(),
       staffId: selectedStaffId,
-      imageUrl: previewUrl
+      imageUrl: previewUrl,
+      comment: comment || null
     };
     
     saveReadingMutation.mutate(reading);
@@ -347,6 +348,20 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
               </option>
             ))}
           </select>
+        </div>
+        
+        {/* Comment Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Comments (Optional)
+          </label>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md resize-none"
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add any additional comments about this reading..."
+          />
         </div>
         
         {/* Image Upload Section */}
