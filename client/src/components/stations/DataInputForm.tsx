@@ -15,6 +15,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [readingValue, setReadingValue] = useState<number | string>("");
+  const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gaugeImage, setGaugeImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

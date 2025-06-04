@@ -32,7 +32,7 @@ export const gaugeTypes = pgTable("gauge_types", {
   hasStep: boolean("has_step").notNull().default(false),
   hasCondition: boolean("has_condition").notNull().default(false),
   hasInstruction: boolean("has_instruction").notNull().default(false),
-  hasComment: boolean("has_comment").notNull().default(false),
+
   defaultUnit: text("default_unit"),
   defaultMinValue: real("default_min_value"),
   defaultMaxValue: real("default_max_value"),
@@ -54,7 +54,6 @@ export const gauges = pgTable("gauges", {
   step: real("step"),
   condition: text("condition"), // 'Good condition' or 'Problem'
   instruction: text("instruction"),
-  comment: text("comment"),
 });
 
 // Define the staff members table
@@ -72,6 +71,7 @@ export const readings = pgTable("readings", {
   timestamp: text("timestamp").notNull().default(''),
   staffId: integer("staff_id").references(() => staff.id),
   imageUrl: text("image_url"),
+  comment: text("comment"),
 });
 
 // Insert schemas for validation
