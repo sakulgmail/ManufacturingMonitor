@@ -1440,7 +1440,7 @@ export default function Settings() {
                                           id: editingGauge.id,
                                           name: editingGauge.name.trim(),
                                           gaugeTypeId: editingGauge.gaugeTypeId,
-
+                                          stationId: editingGauge.stationId,
                                           unit: editingGauge.unit || null,
                                           minValue: editingGauge.minValue || null,
                                           maxValue: editingGauge.maxValue || null,
@@ -1470,7 +1470,7 @@ export default function Settings() {
                                 <div>
                                   <h4 className="font-medium text-gray-800">{gauge.name}</h4>
                                   <p className="text-sm text-gray-600">
-                                    Type: {gauge.type} | Unit: {gauge.unit}
+                                    Type: {gauge.gaugeType.name} | Unit: {gauge.unit}
                                   </p>
                                   <p className="text-sm text-gray-600">
                                     Range: {gauge.minValue} - {gauge.maxValue}
@@ -2087,7 +2087,6 @@ export default function Settings() {
                             onClick={() => {
                               if (editingGaugeType.name.trim()) {
                                 updateGaugeTypeMutation.mutate({
-                                  id: editingGaugeType.id,
                                   ...editingGaugeType
                                 });
                               }

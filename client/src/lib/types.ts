@@ -21,6 +21,7 @@ export interface GaugeType {
 
 export interface Gauge {
   id: number;
+  stationId: number;
   name: string;
   gaugeTypeId: number;
   unit?: string | null;
