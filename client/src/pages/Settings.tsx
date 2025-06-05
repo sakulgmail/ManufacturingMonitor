@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key } from "lucide-react";
+import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Machine, Station, Gauge as GaugeInterface, GaugeType, InsertMachine, InsertStation, InsertGauge, InsertGaugeType, MachineStatus, GaugeCondition } from "@/lib/types";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 type IconKey = "factory" | "gauge" | "monitor";
 
@@ -93,6 +94,12 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
 
+  // Local ordering state for drag and drop
+  const [localMachines, setLocalMachines] = useState<Machine[]>([]);
+  const [localStations, setLocalStations] = useState<Station[]>([]);
+  const [localGaugeTypes, setLocalGaugeTypes] = useState<GaugeType[]>([]);
+  const [localGauges, setLocalGauges] = useState<GaugeInterface[]>([]);
+
   // Fetch machines data
   const { data: machinesData = [] } = useQuery<Machine[]>({
     queryKey: ['/api/machines'],
@@ -115,22 +122,61 @@ export default function Settings() {
     enabled: user?.isAdmin === true,
   });
 
-  // Sort users and gauge types in ascending order
+  // Sort users in ascending order
   const users = usersData.sort((a, b) => a.id - b.id);
-  const gaugeTypes = gaugeTypesData.sort((a, b) => a.id - b.id);
 
-  // Deduplicate data by ID and sort in ascending order
-  const machines = machinesData
-    .filter((machine, index, self) => 
-      index === self.findIndex(m => m.id === machine.id)
-    )
-    .sort((a, b) => a.id - b.id);
-  
-  const stations = stationsData
-    .filter((station, index, self) => 
-      index === self.findIndex(s => s.id === station.id)
-    )
-    .sort((a, b) => a.id - b.id);
+  // Update local state when data changes
+  useEffect(() => {
+    const deduplicatedMachines = machinesData
+      .filter((machine, index, self) => 
+        index === self.findIndex(m => m.id === machine.id)
+      )
+      .sort((a, b) => a.id - b.id);
+    setLocalMachines(deduplicatedMachines);
+  }, [machinesData]);
+
+  useEffect(() => {
+    const deduplicatedStations = stationsData
+      .filter((station, index, self) => 
+        index === self.findIndex(s => s.id === station.id)
+      )
+      .sort((a, b) => a.id - b.id);
+    setLocalStations(deduplicatedStations);
+  }, [stationsData]);
+
+  useEffect(() => {
+    const sortedGaugeTypes = gaugeTypesData.sort((a, b) => a.id - b.id);
+    setLocalGaugeTypes(sortedGaugeTypes);
+  }, [gaugeTypesData]);
+
+  // Use local state for rendering
+  const machines = localMachines;
+  const stations = localStations;
+  const gaugeTypes = localGaugeTypes;
+
+  // Drag and drop handlers
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const { source, destination, type } = result;
+    
+    if (type === 'machines') {
+      const reorderedMachines = Array.from(machines);
+      const [removed] = reorderedMachines.splice(source.index, 1);
+      reorderedMachines.splice(destination.index, 0, removed);
+      setLocalMachines(reorderedMachines);
+    } else if (type === 'stations') {
+      const reorderedStations = Array.from(stations);
+      const [removed] = reorderedStations.splice(source.index, 1);
+      reorderedStations.splice(destination.index, 0, removed);
+      setLocalStations(reorderedStations);
+    } else if (type === 'gaugeTypes') {
+      const reorderedGaugeTypes = Array.from(gaugeTypes);
+      const [removed] = reorderedGaugeTypes.splice(source.index, 1);
+      reorderedGaugeTypes.splice(destination.index, 0, removed);
+      setLocalGaugeTypes(reorderedGaugeTypes);
+    }
+  };
 
   // Create machine mutation
   const createMachineMutation = useMutation({
