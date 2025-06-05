@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import MachineOverview from "@/components/dashboard/MachineOverview";
 import StatusOverview from "@/components/dashboard/StatusOverview";
@@ -17,6 +17,15 @@ export default function Dashboard() {
   
   const [selectedMachineId, setSelectedMachineId] = useState<number | undefined>(undefined);
   const [selectedStationId, setSelectedStationId] = useState<number | undefined>(undefined);
+
+  // Automatically select the first machine when machines data loads
+  useEffect(() => {
+    if (machines.length > 0 && selectedMachineId === undefined) {
+      // Sort machines by ID ascending and select the first one
+      const sortedMachines = machines.sort((a, b) => a.id - b.id);
+      setSelectedMachineId(sortedMachines[0].id);
+    }
+  }, [machines, selectedMachineId]);
 
   // Filter stations by selected machine and sort by ID in ascending order
   const filteredStations = stations
