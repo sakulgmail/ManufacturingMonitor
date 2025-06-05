@@ -28,7 +28,9 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
   const stationStatus = useMemo(() => {
     const outOfRangeGauges = station.gauges.filter(gauge => {
       const reading = gauge.currentReading;
-      return reading < gauge.minValue || reading > gauge.maxValue;
+      const minValue = gauge.minValue ?? 0;
+      const maxValue = gauge.maxValue ?? 100;
+      return reading < minValue || reading > maxValue;
     });
     
     return {

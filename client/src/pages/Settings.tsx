@@ -1306,7 +1306,7 @@ export default function Settings() {
                       </div>
                     {station.gauges && station.gauges.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {station.gauges.map((gauge) => (
+                        {station.gauges.sort((a, b) => a.id - b.id).map((gauge) => (
                           <div key={gauge.id} className="border border-gray-100 rounded-md p-3 bg-gray-50">
                             {editingGauge?.id === gauge.id ? (
                               <div className="space-y-3">
