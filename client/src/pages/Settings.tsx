@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
+import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key, ChevronUp, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Machine, Station, Gauge as GaugeInterface, GaugeType, InsertMachine, InsertStation, InsertGauge, InsertGaugeType, MachineStatus, GaugeCondition } from "@/lib/types";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 type IconKey = "factory" | "gauge" | "monitor";
 
@@ -154,27 +153,44 @@ export default function Settings() {
   const stations = localStations;
   const gaugeTypes = localGaugeTypes;
 
-  // Drag and drop handlers
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
-
-    const { source, destination, type } = result;
+  // Move item up/down handlers
+  const moveItemUp = (index: number, type: 'machines' | 'stations' | 'gaugeTypes') => {
+    if (index === 0) return;
     
     if (type === 'machines') {
-      const reorderedMachines = Array.from(machines);
-      const [removed] = reorderedMachines.splice(source.index, 1);
-      reorderedMachines.splice(destination.index, 0, removed);
-      setLocalMachines(reorderedMachines);
+      const newMachines = [...machines];
+      [newMachines[index], newMachines[index - 1]] = [newMachines[index - 1], newMachines[index]];
+      setLocalMachines(newMachines);
     } else if (type === 'stations') {
-      const reorderedStations = Array.from(stations);
-      const [removed] = reorderedStations.splice(source.index, 1);
-      reorderedStations.splice(destination.index, 0, removed);
-      setLocalStations(reorderedStations);
+      const newStations = [...stations];
+      [newStations[index], newStations[index - 1]] = [newStations[index - 1], newStations[index]];
+      setLocalStations(newStations);
     } else if (type === 'gaugeTypes') {
-      const reorderedGaugeTypes = Array.from(gaugeTypes);
-      const [removed] = reorderedGaugeTypes.splice(source.index, 1);
-      reorderedGaugeTypes.splice(destination.index, 0, removed);
-      setLocalGaugeTypes(reorderedGaugeTypes);
+      const newGaugeTypes = [...gaugeTypes];
+      [newGaugeTypes[index], newGaugeTypes[index - 1]] = [newGaugeTypes[index - 1], newGaugeTypes[index]];
+      setLocalGaugeTypes(newGaugeTypes);
+    }
+  };
+
+  const moveItemDown = (index: number, type: 'machines' | 'stations' | 'gaugeTypes') => {
+    const maxIndex = type === 'machines' ? machines.length - 1 : 
+                   type === 'stations' ? stations.length - 1 : 
+                   gaugeTypes.length - 1;
+    
+    if (index === maxIndex) return;
+    
+    if (type === 'machines') {
+      const newMachines = [...machines];
+      [newMachines[index], newMachines[index + 1]] = [newMachines[index + 1], newMachines[index]];
+      setLocalMachines(newMachines);
+    } else if (type === 'stations') {
+      const newStations = [...stations];
+      [newStations[index], newStations[index + 1]] = [newStations[index + 1], newStations[index]];
+      setLocalStations(newStations);
+    } else if (type === 'gaugeTypes') {
+      const newGaugeTypes = [...gaugeTypes];
+      [newGaugeTypes[index], newGaugeTypes[index + 1]] = [newGaugeTypes[index + 1], newGaugeTypes[index]];
+      setLocalGaugeTypes(newGaugeTypes);
     }
   };
 
@@ -822,9 +838,27 @@ export default function Settings() {
                 {machines.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">No machines found. Add your first machine above.</p>
                 ) : (
-                  machines.map((machine) => (
+                  machines.map((machine, index) => (
                     <div key={machine.id} className="border border-gray-200 rounded-md p-4">
-                      {editingMachine?.id === machine.id ? (
+                      <div className="flex items-center">
+                        <div className="flex flex-col mr-3">
+                          <button
+                            onClick={() => moveItemUp(index, 'machines')}
+                            disabled={index === 0}
+                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => moveItemDown(index, 'machines')}
+                            disabled={index === machines.length - 1}
+                            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="flex-1">
+                          {editingMachine?.id === machine.id ? (
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
@@ -933,8 +967,51 @@ export default function Settings() {
                               {deleteMachineMutation.isPending ? "Deleting..." : "Delete"}
                             </button>
                           </div>
+                        ) : (
+                          <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4">
+                                <div>
+                                  <h3 className="font-medium text-gray-900">{machine.name}</h3>
+                                  <p className="text-sm text-gray-600">Machine No: {machine.machineNo}</p>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    machine.status === 'RUNNING' ? 'bg-green-100 text-green-800' :
+                                    machine.status === 'STOP' ? 'bg-red-100 text-red-800' :
+                                    machine.status === 'During Maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {machine.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => setEditingMachine(machine)}
+                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                              >
+                                <Edit2 className="h-3 w-3 mr-1" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete "${machine.name}"? This will also delete all associated stations and gauges.`)) {
+                                    deleteMachineMutation.mutate(machine.id);
+                                  }
+                                }}
+                                disabled={deleteMachineMutation.isPending}
+                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50 flex items-center"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                {deleteMachineMutation.isPending ? "Deleting..." : "Delete"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   ))
                 )}
