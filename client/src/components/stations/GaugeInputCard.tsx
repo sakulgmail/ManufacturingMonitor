@@ -1,22 +1,64 @@
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Gauge } from "@/lib/types";
+import { GaugeWithType, Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 import GaugeImagePreview from "./GaugeImagePreview";
 
 interface GaugeInputCardProps {
-  gauge: Gauge;
+  gauge: GaugeWithType;
   stationId: number;
 }
 
 export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps) {
   const [inputValue, setInputValue] = useState<number>(gauge.currentReading);
+  const [conditionValue, setConditionValue] = useState<string>(gauge.condition || "");
   
-  // Check if the value is outside the expected range
-  const isOutOfRange = useMemo(() => {
-    return inputValue < gauge.minValue || inputValue > gauge.maxValue;
-  }, [inputValue, gauge.minValue, gauge.maxValue]);
+  // Fetch all readings to get latest comment
+  const { data: allReadings = [] } = useQuery<Reading[]>({
+    queryKey: ['/api/readings'],
+  });
+
+  // Get latest comment for this gauge
+  const latestComment = useMemo(() => {
+    const gaugeReadings = allReadings.filter(r => 
+      r.gaugeId === gauge.id && 
+      (r as any).comment && 
+      (r as any).comment.trim().length > 0
+    );
+    const sortedReadings = [...gaugeReadings].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    return (sortedReadings[0] as any)?.comment || null;
+  }, [allReadings, gauge.id]);
+
+  // Determine gauge status based on type and values
+  const gaugeStatus = useMemo(() => {
+    // For condition-type gauges, use condition value
+    if (gauge.gaugeType?.hasCondition) {
+      const currentCondition = conditionValue || gauge.condition;
+      if (currentCondition === "Good" || currentCondition === "Good condition") {
+        return { status: "NORMAL", color: "green" };
+      } else if (currentCondition === "Bad" || currentCondition === "Problem") {
+        return { status: "ALERT", color: "red" };
+      } else if (currentCondition) {
+        return { status: "OTHER", color: "gray" };
+      }
+      return { status: "NOT SET", color: "gray" };
+    }
+    
+    // For min/max value gauges, check if reading is in range
+    if (gauge.gaugeType?.hasMinValue && gauge.gaugeType?.hasMaxValue && 
+        gauge.minValue != null && gauge.maxValue != null) {
+      const isOutOfRange = inputValue < gauge.minValue || inputValue > gauge.maxValue;
+      return {
+        status: isOutOfRange ? "ALERT" : "NORMAL",
+        color: isOutOfRange ? "red" : "green"
+      };
+    }
+    
+    return { status: "NORMAL", color: "green" };
+  }, [inputValue, conditionValue, gauge.minValue, gauge.maxValue, gauge.condition, gauge.gaugeType]);
 
   const { mutate: saveReading, isPending } = useMutation({
     mutationFn: async () => {
@@ -32,48 +74,28 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
     }
   });
 
-  // Get the appropriate icon for each gauge type
+  // Get the appropriate icon for gauge type
   const getGaugeIcon = () => {
-    switch (gauge.type) {
-      case 'pressure':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        );
-      case 'temperature':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-          </svg>
-        );
-      case 'runtime':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        );
-      case 'electrical_power':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
-          </svg>
-        );
-      case 'electrical_current':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-          </svg>
-        );
-      default:
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        );
+    if (gauge.gaugeType?.name === 'Temperature') {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+        </svg>
+      );
+    } else if (gauge.gaugeType?.name === 'Condition') {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 12l2 2 4-4"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      );
+    } else {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      );
     }
   };
 
@@ -85,7 +107,11 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
           <h4 className="font-medium">{gauge.name}</h4>
         </div>
         <div className="text-sm text-gray-600">
-          Range: {gauge.minValue}-{gauge.maxValue} {gauge.unit}
+          {gauge.gaugeType?.hasCondition ? (
+            <span>Type: Condition Check</span>
+          ) : (
+            <span>Range: {gauge.minValue}-{gauge.maxValue} {gauge.unit}</span>
+          )}
         </div>
       </div>
       <div className="p-4">
@@ -95,27 +121,62 @@ export default function GaugeInputCard({ gauge, stationId }: GaugeInputCardProps
         <div className="mb-3">
           <div className="flex justify-between mb-1">
             <label className="block text-gray-700 font-medium">Current Reading</label>
-            <span className={`${isOutOfRange ? 'bg-red-600' : 'bg-green-600'} text-white text-xs font-bold px-2 py-1 rounded`}>
-              {isOutOfRange ? 'ALERT' : 'NORMAL'}
+            <span className={`${
+              gaugeStatus.color === 'red' ? 'bg-red-600' : 
+              gaugeStatus.color === 'gray' ? 'bg-gray-600' : 'bg-green-600'
+            } text-white text-xs font-bold px-2 py-1 rounded`}>
+              {gaugeStatus.status}
             </span>
           </div>
-          <div className="flex">
-            <input 
-              type="number" 
-              className={`border-2 ${isOutOfRange ? 'border-error-500' : 'border-success-500'} rounded-l p-2 w-full text-lg`} 
-              value={inputValue} 
-              step={(gauge.step !== null) ? gauge.step : 1}
-              onChange={(e) => setInputValue(Number(e.target.value))}
-            />
-            <span className={`bg-gray-100 flex items-center px-3 rounded-r border-2 border-l-0 ${isOutOfRange ? 'border-error-500' : 'border-success-500'}`}>
-              {gauge.unit}
-            </span>
-          </div>
+          
+          {gauge.gaugeType?.hasCondition ? (
+            <div className="flex">
+              <select
+                value={conditionValue}
+                onChange={(e) => setConditionValue(e.target.value)}
+                className={`border-2 ${
+                  gaugeStatus.color === 'red' ? 'border-red-500' : 
+                  gaugeStatus.color === 'gray' ? 'border-gray-500' : 'border-green-500'
+                } rounded p-2 w-full text-lg`}
+              >
+                <option value="">Select condition...</option>
+                <option value="Good">Good</option>
+                <option value="Bad">Bad</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+          ) : (
+            <div className="flex">
+              <input 
+                type="number" 
+                className={`border-2 ${
+                  gaugeStatus.color === 'red' ? 'border-red-500' : 
+                  gaugeStatus.color === 'gray' ? 'border-gray-500' : 'border-green-500'
+                } rounded-l p-2 w-full text-lg`} 
+                value={inputValue} 
+                step={(gauge.step !== null) ? gauge.step : 1}
+                onChange={(e) => setInputValue(Number(e.target.value))}
+              />
+              <span className={`bg-gray-100 flex items-center px-3 rounded-r border-2 border-l-0 ${
+                gaugeStatus.color === 'red' ? 'border-red-500' : 
+                gaugeStatus.color === 'gray' ? 'border-gray-500' : 'border-green-500'
+              }`}>
+                {gauge.unit}
+              </span>
+            </div>
+          )}
         </div>
-        <div className="flex justify-between items-center">
+        <div className="mb-3">
           <div className="text-sm text-gray-600">
             Last check: <span>{formatDateTime(gauge.lastChecked)}</span>
           </div>
+          {latestComment && (
+            <div className="text-sm text-gray-600 mt-1">
+              Comment: <span className="italic">{latestComment}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-between items-center">
           <button 
             className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded flex items-center"
             onClick={() => saveReading()}
