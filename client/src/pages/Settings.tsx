@@ -123,28 +123,56 @@ export default function Settings() {
   // Sort users in ascending order
   const users = usersData.sort((a, b) => a.id - b.id);
 
+  // Load saved ordering from localStorage
+  const loadSavedOrder = (items: any[], storageKey: string) => {
+    const savedOrder = localStorage.getItem(storageKey);
+    if (savedOrder) {
+      try {
+        const orderIds = JSON.parse(savedOrder);
+        const orderedItems = orderIds.map((id: number) => items.find(item => item.id === id)).filter(Boolean);
+        const newItems = items.filter(item => !orderIds.includes(item.id));
+        return [...orderedItems, ...newItems];
+      } catch (e) {
+        return items.sort((a, b) => a.id - b.id);
+      }
+    }
+    return items.sort((a, b) => a.id - b.id);
+  };
+
+  // Save ordering to localStorage
+  const saveOrder = (items: any[], storageKey: string) => {
+    const orderIds = items.map(item => item.id);
+    localStorage.setItem(storageKey, JSON.stringify(orderIds));
+  };
+
   // Update local state when data changes
   useEffect(() => {
-    const deduplicatedMachines = machinesData
-      .filter((machine, index, self) => 
-        index === self.findIndex(m => m.id === machine.id)
-      )
-      .sort((a, b) => a.id - b.id);
-    setLocalMachines(deduplicatedMachines);
+    if (machinesData.length > 0) {
+      const deduplicatedMachines = machinesData
+        .filter((machine, index, self) => 
+          index === self.findIndex(m => m.id === machine.id)
+        );
+      const orderedMachines = loadSavedOrder(deduplicatedMachines, 'machineOrder');
+      setLocalMachines(orderedMachines);
+    }
   }, [machinesData]);
 
   useEffect(() => {
-    const deduplicatedStations = stationsData
-      .filter((station, index, self) => 
-        index === self.findIndex(s => s.id === station.id)
-      )
-      .sort((a, b) => a.id - b.id);
-    setLocalStations(deduplicatedStations);
+    if (stationsData.length > 0) {
+      const deduplicatedStations = stationsData
+        .filter((station, index, self) => 
+          index === self.findIndex(s => s.id === station.id)
+        );
+      const orderedStations = loadSavedOrder(deduplicatedStations, 'stationOrder');
+      setLocalStations(orderedStations);
+    }
   }, [stationsData]);
 
   useEffect(() => {
-    const sortedGaugeTypes = gaugeTypesData.sort((a, b) => a.id - b.id);
-    setLocalGaugeTypes(sortedGaugeTypes);
+    if (gaugeTypesData.length > 0) {
+      const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
+      setLocalGaugeTypes(orderedGaugeTypes);
+    }
   }, [gaugeTypesData]);
 
   // Use local state for rendering
@@ -160,14 +188,17 @@ export default function Settings() {
       const newMachines = [...machines];
       [newMachines[index], newMachines[index - 1]] = [newMachines[index - 1], newMachines[index]];
       setLocalMachines(newMachines);
+      saveOrder(newMachines, 'machineOrder');
     } else if (type === 'stations') {
       const newStations = [...stations];
       [newStations[index], newStations[index - 1]] = [newStations[index - 1], newStations[index]];
       setLocalStations(newStations);
+      saveOrder(newStations, 'stationOrder');
     } else if (type === 'gaugeTypes') {
       const newGaugeTypes = [...gaugeTypes];
       [newGaugeTypes[index], newGaugeTypes[index - 1]] = [newGaugeTypes[index - 1], newGaugeTypes[index]];
       setLocalGaugeTypes(newGaugeTypes);
+      saveOrder(newGaugeTypes, 'gaugeTypeOrder');
     }
   };
 
@@ -182,14 +213,17 @@ export default function Settings() {
       const newMachines = [...machines];
       [newMachines[index], newMachines[index + 1]] = [newMachines[index + 1], newMachines[index]];
       setLocalMachines(newMachines);
+      saveOrder(newMachines, 'machineOrder');
     } else if (type === 'stations') {
       const newStations = [...stations];
       [newStations[index], newStations[index + 1]] = [newStations[index + 1], newStations[index]];
       setLocalStations(newStations);
+      saveOrder(newStations, 'stationOrder');
     } else if (type === 'gaugeTypes') {
       const newGaugeTypes = [...gaugeTypes];
       [newGaugeTypes[index], newGaugeTypes[index + 1]] = [newGaugeTypes[index + 1], newGaugeTypes[index]];
       setLocalGaugeTypes(newGaugeTypes);
+      saveOrder(newGaugeTypes, 'gaugeTypeOrder');
     }
   };
 

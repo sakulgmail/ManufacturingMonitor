@@ -7,30 +7,47 @@ import { useQuery } from "@tanstack/react-query";
 import { Machine, Station } from "@/lib/types";
 
 export default function Dashboard() {
-  const { data: machines = [], isLoading: machinesLoading } = useQuery<Machine[]>({
+  const { data: machinesData = [], isLoading: machinesLoading } = useQuery<Machine[]>({
     queryKey: ['/api/machines'],
   });
 
-  const { data: stations = [], isLoading: stationsLoading } = useQuery<Station[]>({
+  const { data: stationsData = [], isLoading: stationsLoading } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
   const [selectedMachineId, setSelectedMachineId] = useState<number | undefined>(undefined);
   const [selectedStationId, setSelectedStationId] = useState<number | undefined>(undefined);
 
+  // Load saved ordering from localStorage
+  const loadSavedOrder = (items: any[], storageKey: string) => {
+    const savedOrder = localStorage.getItem(storageKey);
+    if (savedOrder) {
+      try {
+        const orderIds = JSON.parse(savedOrder);
+        const orderedItems = orderIds.map((id: number) => items.find(item => item.id === id)).filter(Boolean);
+        const newItems = items.filter(item => !orderIds.includes(item.id));
+        return [...orderedItems, ...newItems];
+      } catch (e) {
+        return items.sort((a, b) => a.id - b.id);
+      }
+    }
+    return items.sort((a, b) => a.id - b.id);
+  };
+
+  // Apply saved ordering to machines and stations
+  const machines = loadSavedOrder(machinesData, 'machineOrder');
+  const stations = loadSavedOrder(stationsData, 'stationOrder');
+
   // Automatically select the first machine when machines data loads
   useEffect(() => {
     if (machines.length > 0 && selectedMachineId === undefined) {
-      // Sort machines by ID ascending and select the first one
-      const sortedMachines = machines.sort((a, b) => a.id - b.id);
-      setSelectedMachineId(sortedMachines[0].id);
+      setSelectedMachineId(machines[0].id);
     }
   }, [machines, selectedMachineId]);
 
-  // Filter stations by selected machine and sort by ID in ascending order
+  // Filter stations by selected machine while maintaining custom order
   const filteredStations = stations
-    .filter(station => !selectedMachineId || station.machineId === selectedMachineId)
-    .sort((a, b) => a.id - b.id);
+    .filter(station => !selectedMachineId || station.machineId === selectedMachineId);
 
   return (
     <>
