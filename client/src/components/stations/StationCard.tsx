@@ -86,7 +86,7 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
       {isExpanded && (
         <div className="station-gauges p-4 pt-0 border-t">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {station.gauges.map((gauge) => (
+            {station.gauges.sort((a, b) => a.id - b.id).map((gauge) => (
               isAuthenticated ? (
                 <GaugeInputCard 
                   key={gauge.id} 
