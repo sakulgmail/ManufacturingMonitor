@@ -1,15 +1,15 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Gauge, Reading } from "@/lib/types";
+import { GaugeWithType, Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 interface GaugeCardProps {
-  gauge: Gauge;
+  gauge: GaugeWithType;
   stationId: number;
 }
 
 export default function GaugeCard({ gauge, stationId }: GaugeCardProps) {
-  // Fetch all readings to find the ones with images
+  // Fetch all readings to find the ones with images and latest comment
   const { data: allReadings = [] } = useQuery<Reading[]>({
     queryKey: ['/api/readings'],
   });
@@ -29,11 +29,52 @@ export default function GaugeCard({ gauge, stationId }: GaugeCardProps) {
     // Find the first reading with an image
     return sortedReadings.find(r => r.imageUrl && r.imageUrl.length > 0);
   }, [allReadings, gauge.id]);
+
+  // Get the latest reading with a comment for this specific gauge
+  const latestComment = useMemo(() => {
+    if (!allReadings || !Array.isArray(allReadings)) return null;
+    
+    // Filter readings for this gauge only that have comments
+    const gaugeReadings = allReadings.filter(r => 
+      r.gaugeId === gauge.id && 
+      (r as any).comment && 
+      (r as any).comment.trim().length > 0
+    );
+    
+    // Sort by timestamp (newest first) and get the latest comment
+    const sortedReadings = [...gaugeReadings].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    return (sortedReadings[0] as any)?.comment || null;
+  }, [allReadings, gauge.id]);
   
-  // Determine if current reading is out of range
-  const isOutOfRange = useMemo(() => {
-    return gauge.currentReading < gauge.minValue || gauge.currentReading > gauge.maxValue;
-  }, [gauge.currentReading, gauge.minValue, gauge.maxValue]);
+  // Determine gauge status based on type and values
+  const gaugeStatus = useMemo(() => {
+    // For condition-type gauges, use condition value
+    if (gauge.gaugeType?.hasCondition && gauge.condition) {
+      if (gauge.condition === "Good" || gauge.condition === "Good condition") {
+        return { status: "NORMAL", color: "green" };
+      } else if (gauge.condition === "Bad" || gauge.condition === "Problem") {
+        return { status: "ALERT", color: "red" };
+      } else {
+        return { status: "OTHER", color: "gray" };
+      }
+    }
+    
+    // For min/max value gauges, check if reading is in range
+    if (gauge.gaugeType?.hasMinValue && gauge.gaugeType?.hasMaxValue && 
+        gauge.minValue != null && gauge.maxValue != null) {
+      const isOutOfRange = gauge.currentReading < gauge.minValue || gauge.currentReading > gauge.maxValue;
+      return {
+        status: isOutOfRange ? "ALERT" : "NORMAL",
+        color: isOutOfRange ? "red" : "green"
+      };
+    }
+    
+    // Default status
+    return { status: "NORMAL", color: "green" };
+  }, [gauge.currentReading, gauge.minValue, gauge.maxValue, gauge.condition, gauge.gaugeType]);
   
   // Get the appropriate icon for each gauge type
   const getGaugeIcon = () => {
@@ -88,7 +129,11 @@ export default function GaugeCard({ gauge, stationId }: GaugeCardProps) {
           <h4 className="font-medium">{gauge.name}</h4>
         </div>
         <div className="text-sm text-gray-600">
-          Range: {gauge.minValue}-{gauge.maxValue} {gauge.unit}
+          {gauge.gaugeType?.hasCondition ? (
+            <span>Type: Condition Check</span>
+          ) : (
+            <span>Range: {gauge.minValue}-{gauge.maxValue} {gauge.unit}</span>
+          )}
         </div>
       </div>
       <div className="p-4">
@@ -112,16 +157,29 @@ export default function GaugeCard({ gauge, stationId }: GaugeCardProps) {
         <div className="mb-3">
           <div className="flex justify-between mb-1">
             <label className="block text-gray-700 font-medium">Current Reading</label>
-            <span className={`${isOutOfRange ? 'bg-red-600' : 'bg-green-600'} text-white text-xs font-bold px-2 py-1 rounded`}>
-              {isOutOfRange ? 'ALERT' : 'NORMAL'}
+            <span className={`${
+              gaugeStatus.color === 'red' ? 'bg-red-600' : 
+              gaugeStatus.color === 'gray' ? 'bg-gray-600' : 'bg-green-600'
+            } text-white text-xs font-bold px-2 py-1 rounded`}>
+              {gaugeStatus.status}
             </span>
           </div>
           <div className="flex">
-            <div className={`border-2 ${isOutOfRange ? 'border-error-500' : 'border-success-500'} rounded-l p-2 w-full text-lg`}>
-              {gauge.currentReading}
+            <div className={`border-2 ${
+              gaugeStatus.color === 'red' ? 'border-red-500' : 
+              gaugeStatus.color === 'gray' ? 'border-gray-500' : 'border-green-500'
+            } rounded-l p-2 w-full text-lg`}>
+              {gauge.gaugeType?.hasCondition ? (
+                gauge.condition || "Not Set"
+              ) : (
+                gauge.currentReading
+              )}
             </div>
-            <span className={`bg-gray-100 flex items-center px-3 rounded-r border-2 border-l-0 ${isOutOfRange ? 'border-error-500' : 'border-success-500'}`}>
-              {gauge.unit}
+            <span className={`bg-gray-100 flex items-center px-3 rounded-r border-2 border-l-0 ${
+              gaugeStatus.color === 'red' ? 'border-red-500' : 
+              gaugeStatus.color === 'gray' ? 'border-gray-500' : 'border-green-500'
+            }`}>
+              {gauge.gaugeType?.hasCondition ? "" : gauge.unit}
             </span>
           </div>
         </div>
