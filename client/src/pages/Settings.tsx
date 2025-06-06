@@ -120,6 +120,12 @@ export default function Settings() {
     enabled: user?.isAdmin === true,
   });
 
+  // Fetch gauges data (admin only)
+  const { data: gaugesData = [] } = useQuery<any[]>({
+    queryKey: ['/api/gauges'],
+    enabled: user?.isAdmin === true,
+  });
+
   // Sort users in ascending order
   const users = usersData.sort((a, b) => a.id - b.id);
 
@@ -377,6 +383,55 @@ export default function Settings() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to delete gauge type.", variant: "destructive" });
+    }
+  });
+
+  // Create gauge mutation
+  const createGaugeMutation = useMutation({
+    mutationFn: async (gaugeData: InsertGauge) => {
+      return apiRequest('POST', '/api/gauges', gaugeData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gauges'] });
+      toast({ title: "Success", description: "Gauge created successfully." });
+      setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
+      setSelectedStationId(null);
+      setShowAddGauge(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create gauge.", variant: "destructive" });
+    }
+  });
+
+  // Delete gauge mutation
+  const deleteGaugeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/gauges/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gauges'] });
+      toast({ title: "Success", description: "Gauge deleted successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete gauge.", variant: "destructive" });
+    }
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: InsertUser) => {
+      return apiRequest('POST', '/api/users', userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({ title: "Success", description: "User created successfully." });
+      setNewUsername("");
+      setNewUserPassword("");
+      setNewUserIsAdmin(false);
+      setShowAddUser(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create user.", variant: "destructive" });
     }
   });
 
@@ -907,6 +962,255 @@ export default function Settings() {
                                 </button>
                               </div>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Manage Gauges Tab */}
+            {activeTab === "gauges" && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-semibold text-gray-800">Manage Gauges</h2>
+                  <button
+                    onClick={() => setShowAddGauge(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Gauge
+                  </button>
+                </div>
+
+                {/* Add Gauge Form */}
+                {showAddGauge && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                    <h3 className="text-md font-medium mb-4">Add New Gauge</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Station</label>
+                        <select
+                          value={selectedStationId || ""}
+                          onChange={(e) => setSelectedStationId(Number(e.target.value))}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select a station</option>
+                          {stations.map((station) => {
+                            const machine = machines.find(m => m.id === station.machineId);
+                            return (
+                              <option key={station.id} value={station.id}>
+                                {machine?.name || 'Unknown Machine'} → {station.name}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gauge Name</label>
+                        <input
+                          type="text"
+                          value={newGauge.name || ""}
+                          onChange={(e) => setNewGauge({...newGauge, name: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter gauge name"
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            if (selectedStationId && newGauge.name) {
+                              createGaugeMutation.mutate({ ...newGauge, stationId: selectedStationId });
+                            }
+                          }}
+                          disabled={!newGauge.name || !selectedStationId || createGaugeMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddGauge(false);
+                            setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
+                            setSelectedStationId(null);
+                          }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Gauges List */}
+                <div className="space-y-4">
+                  {stations.map((station) => {
+                    const machine = machines.find(m => m.id === station.machineId);
+                    const stationGauges = gaugesData.filter(g => g.stationId === station.id);
+                    
+                    return (
+                      <div key={station.id} className="border border-gray-200 rounded-md p-4">
+                        <h3 className="font-medium text-gray-900 mb-2">
+                          {machine?.name || 'Unknown Machine'} → {station.name}
+                        </h3>
+                        {stationGauges.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {stationGauges.map((gauge) => (
+                              <div key={gauge.id} className="bg-gray-50 p-3 rounded border">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-sm">{gauge.name}</h4>
+                                    <p className="text-xs text-gray-600">
+                                      Type: {gaugeTypes.find(gt => gt.id === gauge.gaugeTypeId)?.name || 'Unknown'}
+                                    </p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => setEditingGauge(gauge)}
+                                      className="text-blue-600 hover:text-blue-800"
+                                    >
+                                      <Edit2 className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(`Are you sure you want to delete "${gauge.name}"?`)) {
+                                          deleteGaugeMutation.mutate(gauge.id);
+                                        }
+                                      }}
+                                      className="text-red-600 hover:text-red-800"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No gauges configured for this station.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Manage Users Tab */}
+            {activeTab === "users" && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-semibold text-gray-800">Manage Users</h2>
+                  <button
+                    onClick={() => setShowAddUser(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add User
+                  </button>
+                </div>
+
+                {/* Add User Form */}
+                {showAddUser && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                    <h3 className="text-md font-medium mb-4">Add New User</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input
+                          type="text"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input
+                          type="password"
+                          value={newUserPassword}
+                          onChange={(e) => setNewUserPassword(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter password"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={newUserIsAdmin}
+                            onChange={(e) => setNewUserIsAdmin(e.target.checked)}
+                            className="mr-2"
+                          />
+                          Administrator privileges
+                        </label>
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            if (newUsername && newUserPassword) {
+                              createUserMutation.mutate({
+                                username: newUsername,
+                                password: newUserPassword,
+                                isAdmin: newUserIsAdmin
+                              });
+                            }
+                          }}
+                          disabled={!newUsername || !newUserPassword || createUserMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddUser(false);
+                            setNewUsername("");
+                            setNewUserPassword("");
+                            setNewUserIsAdmin(false);
+                          }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Users List */}
+                <div className="space-y-3">
+                  {users.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No users found. Add your first user above.</p>
+                  ) : (
+                    users.map((userItem) => (
+                      <div key={userItem.id} className="border border-gray-200 rounded-md p-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium text-gray-900">{userItem.username}</h3>
+                            <p className="text-sm text-gray-600">
+                              Role: {userItem.isAdmin ? 'Administrator' : 'User'}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Created: {new Date(userItem.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => setResetPasswordUserId(userItem.id)}
+                              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
+                            >
+                              Reset Password
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmUser(userItem)}
+                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </div>
                       </div>
