@@ -419,7 +419,7 @@ export default function Settings() {
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: async (userData: InsertUser) => {
+    mutationFn: async (userData: any) => {
       return apiRequest('POST', '/api/users', userData);
     },
     onSuccess: () => {
@@ -434,6 +434,8 @@ export default function Settings() {
       toast({ title: "Error", description: "Failed to create user.", variant: "destructive" });
     }
   });
+
+
 
   // Load settings from local storage on component mount
   useEffect(() => {
@@ -813,6 +815,143 @@ export default function Settings() {
                   </button>
                 </div>
 
+                {/* Add Station Form */}
+                {showAddStation && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                    <h3 className="text-md font-medium mb-4">Add New Station</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Station Name</label>
+                        <input
+                          type="text"
+                          value={newStationName}
+                          onChange={(e) => setNewStationName(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter station name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Machine</label>
+                        <select
+                          value={newStationMachineId || ""}
+                          onChange={(e) => setNewStationMachineId(Number(e.target.value))}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select a machine</option>
+                          {machines.map((machine) => (
+                            <option key={machine.id} value={machine.id}>
+                              {machine.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea
+                          value={newStationDescription}
+                          onChange={(e) => setNewStationDescription(e.target.value)}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter station description"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            if (newStationName && newStationMachineId) {
+                              createStationMutation.mutate({
+                                name: newStationName,
+                                machineId: newStationMachineId,
+                                description: newStationDescription
+                              });
+                            }
+                          }}
+                          disabled={!newStationName || !newStationMachineId || createStationMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddStation(false);
+                            setNewStationName("");
+                            setNewStationDescription("");
+                            setNewStationMachineId(null);
+                          }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Edit Station Form */}
+                {editingStation && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-blue-50">
+                    <h3 className="text-md font-medium mb-4">Edit Station</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Station Name</label>
+                        <input
+                          type="text"
+                          value={editingStation.name}
+                          onChange={(e) => setEditingStation({...editingStation, name: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter station name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Machine</label>
+                        <select
+                          value={editingStation.machineId}
+                          onChange={(e) => setEditingStation({...editingStation, machineId: Number(e.target.value)})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          {machines.map((machine) => (
+                            <option key={machine.id} value={machine.id}>
+                              {machine.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea
+                          value={editingStation.description || ""}
+                          onChange={(e) => setEditingStation({...editingStation, description: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter station description"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            updateStationMutation.mutate({
+                              id: editingStation.id,
+                              name: editingStation.name,
+                              machineId: editingStation.machineId,
+                              description: editingStation.description || ""
+                            });
+                          }}
+                          disabled={updateStationMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => setEditingStation(null)}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Stations List with Manual Ordering */}
                 <div className="space-y-3">
                   {stations.length === 0 ? (
@@ -896,6 +1035,237 @@ export default function Settings() {
                     Add Gauge Type
                   </button>
                 </div>
+
+                {/* Add Gauge Type Form */}
+                {showAddGaugeType && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                    <h3 className="text-md font-medium mb-4">Add New Gauge Type</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type Name</label>
+                        <input
+                          type="text"
+                          value={newGaugeType.name || ""}
+                          onChange={(e) => setNewGaugeType({...newGaugeType, name: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter gauge type name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Unit</label>
+                        <input
+                          type="text"
+                          value={newGaugeType.defaultUnit || ""}
+                          onChange={(e) => setNewGaugeType({...newGaugeType, defaultUnit: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="e.g., °C, PSI, RPM"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <h4 className="font-medium text-gray-700 mb-2">Features</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasUnit}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasUnit: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Unit
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasMinValue}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasMinValue: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Min Value
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasMaxValue}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasMaxValue: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Max Value
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasStep}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasStep: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Step
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasCondition}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasCondition: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Condition
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={newGaugeType.hasInstruction}
+                              onChange={(e) => setNewGaugeType({...newGaugeType, hasInstruction: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Instruction
+                          </label>
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            if (newGaugeType.name) {
+                              createGaugeTypeMutation.mutate(newGaugeType as any);
+                            }
+                          }}
+                          disabled={!newGaugeType.name || createGaugeTypeMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddGaugeType(false);
+                            setNewGaugeType({
+                              name: "",
+                              hasUnit: true,
+                              hasMinValue: true,
+                              hasMaxValue: true,
+                              hasStep: false,
+                              hasCondition: false,
+                              hasInstruction: false,
+                              defaultUnit: "",
+                              defaultMinValue: 0,
+                              defaultMaxValue: 100,
+                              defaultStep: 1,
+                              instruction: ""
+                            });
+                          }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Edit Gauge Type Form */}
+                {editingGaugeType && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-blue-50">
+                    <h3 className="text-md font-medium mb-4">Edit Gauge Type</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type Name</label>
+                        <input
+                          type="text"
+                          value={editingGaugeType.name}
+                          onChange={(e) => setEditingGaugeType({...editingGaugeType, name: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter gauge type name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Unit</label>
+                        <input
+                          type="text"
+                          value={editingGaugeType.defaultUnit || ""}
+                          onChange={(e) => setEditingGaugeType({...editingGaugeType, defaultUnit: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="e.g., °C, PSI, RPM"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <h4 className="font-medium text-gray-700 mb-2">Features</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasUnit}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasUnit: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Unit
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasMinValue}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasMinValue: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Min Value
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasMaxValue}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasMaxValue: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Max Value
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasStep}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasStep: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Step
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasCondition}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasCondition: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Condition
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={editingGaugeType.hasInstruction}
+                              onChange={(e) => setEditingGaugeType({...editingGaugeType, hasInstruction: e.target.checked})}
+                              className="mr-2"
+                            />
+                            Has Instruction
+                          </label>
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            updateGaugeTypeMutation.mutate({
+                              id: editingGaugeType.id,
+                              ...editingGaugeType
+                            });
+                          }}
+                          disabled={updateGaugeTypeMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => setEditingGaugeType(null)}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Gauge Types List with Manual Ordering */}
                 <div className="space-y-3">
@@ -1022,7 +1392,17 @@ export default function Settings() {
                         <button
                           onClick={() => {
                             if (selectedStationId && newGauge.name) {
-                              createGaugeMutation.mutate({ ...newGauge, stationId: selectedStationId });
+                              createGaugeMutation.mutate({ 
+                                name: newGauge.name,
+                                stationId: selectedStationId,
+                                gaugeTypeId: newGauge.gaugeTypeId || 1,
+                                unit: newGauge.unit || "",
+                                minValue: newGauge.minValue || 0,
+                                maxValue: newGauge.maxValue || 100,
+                                step: newGauge.step || 1,
+                                condition: newGauge.condition || "",
+                                instruction: newGauge.instruction || ""
+                              } as any);
                             }
                           }}
                           disabled={!newGauge.name || !selectedStationId || createGaugeMutation.isPending}
