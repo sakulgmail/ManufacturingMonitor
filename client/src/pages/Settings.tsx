@@ -151,35 +151,27 @@ export default function Settings() {
     localStorage.setItem(storageKey, JSON.stringify(orderIds));
   };
 
-  // Update local state when data changes
+  // Update local state when data changes - optimized
   useEffect(() => {
-    if (machinesData.length > 0) {
-      const deduplicatedMachines = machinesData
-        .filter((machine, index, self) => 
-          index === self.findIndex(m => m.id === machine.id)
-        );
-      const orderedMachines = loadSavedOrder(deduplicatedMachines, 'machineOrder');
+    if (machinesData.length > 0 && localMachines.length === 0) {
+      const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
       setLocalMachines(orderedMachines);
     }
-  }, [machinesData]);
+  }, [machinesData.length]);
 
   useEffect(() => {
-    if (stationsData.length > 0) {
-      const deduplicatedStations = stationsData
-        .filter((station, index, self) => 
-          index === self.findIndex(s => s.id === station.id)
-        );
-      const orderedStations = loadSavedOrder(deduplicatedStations, 'stationOrder');
+    if (stationsData.length > 0 && localStations.length === 0) {
+      const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
       setLocalStations(orderedStations);
     }
-  }, [stationsData]);
+  }, [stationsData.length]);
 
   useEffect(() => {
-    if (gaugeTypesData.length > 0) {
+    if (gaugeTypesData.length > 0 && localGaugeTypes.length === 0) {
       const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
       setLocalGaugeTypes(orderedGaugeTypes);
     }
-  }, [gaugeTypesData]);
+  }, [gaugeTypesData.length]);
 
   // Use local state for rendering
   const machines = localMachines;
@@ -1246,10 +1238,8 @@ export default function Settings() {
                       <div className="md:col-span-2 flex space-x-2">
                         <button
                           onClick={() => {
-                            updateGaugeTypeMutation.mutate({
-                              id: editingGaugeType.id,
-                              ...editingGaugeType
-                            });
+                            const { id, ...updateData } = editingGaugeType;
+                            updateGaugeTypeMutation.mutate({ id, ...updateData });
                           }}
                           disabled={updateGaugeTypeMutation.isPending}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
