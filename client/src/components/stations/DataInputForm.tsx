@@ -257,7 +257,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             <option value="">-- Select Station --</option>
             {uniqueStations.map((station: Station) => (
               <option key={station.id} value={station.id}>
-                {station.id}. {station.name.replace(/^\d+\.\s*/, '')}
+                {station.name}
               </option>
             ))}
           </select>
