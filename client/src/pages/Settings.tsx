@@ -151,27 +151,33 @@ export default function Settings() {
     localStorage.setItem(storageKey, JSON.stringify(orderIds));
   };
 
-  // Update local state when data changes - optimized
+  // Update local state when data changes
   useEffect(() => {
-    if (machinesData.length > 0 && localMachines.length === 0) {
+    if (machinesData.length > 0) {
       const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
       setLocalMachines(orderedMachines);
+    } else {
+      setLocalMachines([]);
     }
-  }, [machinesData.length]);
+  }, [machinesData]);
 
   useEffect(() => {
-    if (stationsData.length > 0 && localStations.length === 0) {
+    if (stationsData.length > 0) {
       const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
       setLocalStations(orderedStations);
+    } else {
+      setLocalStations([]);
     }
-  }, [stationsData.length]);
+  }, [stationsData]);
 
   useEffect(() => {
-    if (gaugeTypesData.length > 0 && localGaugeTypes.length === 0) {
+    if (gaugeTypesData.length > 0) {
       const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
       setLocalGaugeTypes(orderedGaugeTypes);
+    } else {
+      setLocalGaugeTypes([]);
     }
-  }, [gaugeTypesData.length]);
+  }, [gaugeTypesData]);
 
   // Use local state for rendering
   const machines = localMachines;

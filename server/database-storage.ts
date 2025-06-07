@@ -187,39 +187,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateGaugeType(id: number, gaugeTypeData: Partial<InsertGaugeType>): Promise<GaugeType> {
-    console.log("DatabaseStorage.updateGaugeType called with id:", id, "data:", gaugeTypeData);
-    
-    try {
-      const result = await db.update(gaugeTypes).set(gaugeTypeData).where(eq(gaugeTypes.id, id)).returning();
-      console.log("Database update result:", result);
-      
-      if (!result[0]) {
-        throw new Error("Gauge type not found");
-      }
-      
-      console.log("Returning updated gauge type:", result[0]);
-      return result[0];
-    } catch (error) {
-      console.error("Database update error:", error);
-      throw error;
+    const result = await db.update(gaugeTypes).set(gaugeTypeData).where(eq(gaugeTypes.id, id)).returning();
+    if (!result[0]) {
+      throw new Error("Gauge type not found");
     }
+    return result[0];
   }
 
   async deleteGaugeType(id: number): Promise<void> {
-    console.log("DatabaseStorage.deleteGaugeType called with id:", id);
-    
-    try {
-      const result = await db.delete(gaugeTypes).where(eq(gaugeTypes.id, id));
-      console.log("Database delete result:", result);
-      
-      if (!result.rowCount || result.rowCount === 0) {
-        throw new Error("Gauge type not found");
-      }
-      
-      console.log("Gauge type deleted successfully");
-    } catch (error) {
-      console.error("Database delete error:", error);
-      throw error;
+    const result = await db.delete(gaugeTypes).where(eq(gaugeTypes.id, id));
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("Gauge type not found");
     }
   }
 
