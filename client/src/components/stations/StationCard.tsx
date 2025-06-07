@@ -26,16 +26,37 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
 
   // Calculate if there are any alerts for this station
   const stationStatus = useMemo(() => {
-    const outOfRangeGauges = station.gauges.filter(gauge => {
-      const reading = gauge.currentReading;
-      const minValue = gauge.minValue ?? 0;
-      const maxValue = gauge.maxValue ?? 100;
-      return reading < minValue || reading > maxValue;
+    const alertGauges = station.gauges.filter(gauge => {
+      // Check condition-type gauges
+      if (gauge.gaugeType?.hasCondition && gauge.condition) {
+        if (gauge.condition === "Bad" || gauge.condition === "Problem") {
+          return true;
+        }
+      }
+      
+      // Check min/max value gauges
+      if (gauge.gaugeType?.hasMinValue || gauge.gaugeType?.hasMaxValue) {
+        let isOutOfRange = false;
+        
+        // Check minimum value if it exists
+        if (gauge.gaugeType?.hasMinValue && gauge.minValue != null) {
+          isOutOfRange = isOutOfRange || gauge.currentReading < gauge.minValue;
+        }
+        
+        // Check maximum value if it exists
+        if (gauge.gaugeType?.hasMaxValue && gauge.maxValue != null) {
+          isOutOfRange = isOutOfRange || gauge.currentReading > gauge.maxValue;
+        }
+        
+        return isOutOfRange;
+      }
+      
+      return false;
     });
     
     return {
-      hasAlerts: outOfRangeGauges.length > 0,
-      alertCount: outOfRangeGauges.length
+      hasAlerts: alertGauges.length > 0,
+      alertCount: alertGauges.length
     };
   }, [station]);
 
