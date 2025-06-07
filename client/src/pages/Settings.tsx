@@ -98,6 +98,7 @@ export default function Settings() {
   const [localMachines, setLocalMachines] = useState<Machine[]>([]);
   const [localStations, setLocalStations] = useState<Station[]>([]);
   const [localGaugeTypes, setLocalGaugeTypes] = useState<GaugeType[]>([]);
+  const [localGauges, setLocalGauges] = useState<any[]>([]);
 
   // Fetch machines data
   const { data: machinesData = [] } = useQuery<Machine[]>({
@@ -168,13 +169,19 @@ export default function Settings() {
     setLocalGaugeTypes(orderedGaugeTypes);
   }, [JSON.stringify(gaugeTypesData)]);
 
+  useEffect(() => {
+    const orderedGauges = loadSavedOrder(gaugesData, 'gaugeOrder');
+    setLocalGauges(orderedGauges);
+  }, [JSON.stringify(gaugesData)]);
+
   // Use local state for rendering
   const machines = localMachines;
   const stations = localStations;
   const gaugeTypes = localGaugeTypes;
+  const gauges = localGauges;
 
   // Move item up/down handlers
-  const moveItemUp = (index: number, type: 'machines' | 'stations' | 'gaugeTypes') => {
+  const moveItemUp = (index: number, type: 'machines' | 'stations' | 'gaugeTypes' | 'gauges') => {
     if (index === 0) return;
     
     if (type === 'machines') {
@@ -192,13 +199,19 @@ export default function Settings() {
       [newGaugeTypes[index], newGaugeTypes[index - 1]] = [newGaugeTypes[index - 1], newGaugeTypes[index]];
       setLocalGaugeTypes(newGaugeTypes);
       saveOrder(newGaugeTypes, 'gaugeTypeOrder');
+    } else if (type === 'gauges') {
+      const newGauges = [...gauges];
+      [newGauges[index], newGauges[index - 1]] = [newGauges[index - 1], newGauges[index]];
+      setLocalGauges(newGauges);
+      saveOrder(newGauges, 'gaugeOrder');
     }
   };
 
-  const moveItemDown = (index: number, type: 'machines' | 'stations' | 'gaugeTypes') => {
+  const moveItemDown = (index: number, type: 'machines' | 'stations' | 'gaugeTypes' | 'gauges') => {
     const maxIndex = type === 'machines' ? machines.length - 1 : 
                    type === 'stations' ? stations.length - 1 : 
-                   gaugeTypes.length - 1;
+                   type === 'gaugeTypes' ? gaugeTypes.length - 1 :
+                   gauges.length - 1;
     
     if (index === maxIndex) return;
     
@@ -217,6 +230,11 @@ export default function Settings() {
       [newGaugeTypes[index], newGaugeTypes[index + 1]] = [newGaugeTypes[index + 1], newGaugeTypes[index]];
       setLocalGaugeTypes(newGaugeTypes);
       saveOrder(newGaugeTypes, 'gaugeTypeOrder');
+    } else if (type === 'gauges') {
+      const newGauges = [...gauges];
+      [newGauges[index], newGauges[index + 1]] = [newGauges[index + 1], newGauges[index]];
+      setLocalGauges(newGauges);
+      saveOrder(newGauges, 'gaugeOrder');
     }
   };
 
@@ -1677,11 +1695,11 @@ export default function Settings() {
                   </div>
                 )}
 
-                {/* Gauges List */}
+                {/* Gauges List with Manual Ordering */}
                 <div className="space-y-4">
                   {stations.map((station) => {
                     const machine = machines.find(m => m.id === station.machineId);
-                    const stationGauges = gaugesData.filter(g => g.stationId === station.id);
+                    const stationGauges = gauges.filter(g => g.stationId === station.id);
                     
                     return (
                       <div key={station.id} className="border border-gray-200 rounded-md p-4">
@@ -1689,10 +1707,32 @@ export default function Settings() {
                           {machine?.name || 'Unknown Machine'} → {station.name}
                         </h3>
                         {stationGauges.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {stationGauges.map((gauge) => (
-                              <div key={gauge.id} className="bg-gray-50 p-3 rounded border">
-                                <div className="flex justify-between items-start">
+                          <div className="space-y-3">
+                            {stationGauges.map((gauge, index) => (
+                              <div key={gauge.id} className="border border-gray-200 rounded-md p-4">
+                                <div className="flex items-center">
+                                  <div className="flex flex-col mr-3">
+                                    <button
+                                      onClick={() => {
+                                        const gaugeIndex = gauges.findIndex(g => g.id === gauge.id);
+                                        moveItemUp(gaugeIndex, 'gauges');
+                                      }}
+                                      disabled={gauges.findIndex(g => g.id === gauge.id) === 0}
+                                      className="text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed p-1"
+                                    >
+                                      <ChevronUp className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const gaugeIndex = gauges.findIndex(g => g.id === gauge.id);
+                                        moveItemDown(gaugeIndex, 'gauges');
+                                      }}
+                                      disabled={gauges.findIndex(g => g.id === gauge.id) === gauges.length - 1}
+                                      className="text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed p-1"
+                                    >
+                                      <ChevronDown className="h-4 w-4" />
+                                    </button>
+                                  </div>
                                   <div className="flex-1">
                                     <h4 className="font-medium text-sm">{gauge.name}</h4>
                                     <p className="text-xs text-gray-600">
