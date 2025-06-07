@@ -648,8 +648,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const gaugeTypeId = parseInt(req.params.id);
+      console.log("Updating gauge type", gaugeTypeId, "with data:", req.body);
       const validatedData = insertGaugeTypeSchema.partial().parse(req.body);
+      console.log("Validated data:", validatedData);
       const updatedGaugeType = await storage.updateGaugeType(gaugeTypeId, validatedData);
+      console.log("Updated gauge type result:", updatedGaugeType);
       res.json(updatedGaugeType);
     } catch (error) {
       if (error instanceof ZodError) {
