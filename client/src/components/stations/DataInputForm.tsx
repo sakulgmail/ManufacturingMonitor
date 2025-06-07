@@ -27,8 +27,14 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     queryKey: ['/api/stations'],
   });
   
-  // Use all stations and sort in ascending order by ID (override any manual ordering)
-  const uniqueStations = [...allStations].sort((a, b) => a.id - b.id);
+  // Use all stations and sort in ascending order by the number in station name
+  const uniqueStations = [...allStations].sort((a, b) => {
+    const getNumberFromName = (name: string) => {
+      const match = name.match(/^(\d+)\./);
+      return match ? parseInt(match[1]) : 999;
+    };
+    return getNumberFromName(a.name) - getNumberFromName(b.name);
+  });
   
   // Fetch all staff members and sort in ascending order by ID
   const { data: staffMembersData = [] } = useQuery<StaffMember[]>({
