@@ -1595,7 +1595,7 @@ export default function Settings() {
                                   <div className="flex-1">
                                     <h4 className="font-medium text-sm">{gauge.name}</h4>
                                     <p className="text-xs text-gray-600">
-                                      Type: {gaugeTypes.find(gt => gt.id === gauge.gaugeTypeId)?.name || 'Unknown'}
+                                      Type: {gauge.gaugeType?.name || gaugeTypes.find(gt => gt.id === gauge.gaugeTypeId)?.name || 'Unknown'}
                                     </p>
                                   </div>
                                   <div className="flex space-x-2">
