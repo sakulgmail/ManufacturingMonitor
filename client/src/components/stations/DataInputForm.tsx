@@ -24,7 +24,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
 
   // Fetch all stations with their gauges
   const { data: allStations = [] } = useQuery<Station[]>({
-    queryKey: ['/api/stations-with-gauges'],
+    queryKey: ['/api/stations'],
   });
   
   // Use all stations (no filtering by name) and sort in ascending order by ID
