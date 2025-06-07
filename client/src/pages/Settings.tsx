@@ -55,6 +55,7 @@ export default function Settings() {
   const [newGauge, setNewGauge] = useState<Partial<InsertGauge>>({
     name: "",
     gaugeTypeId: 0,
+    stationId: 0,
     unit: "",
     minValue: 0,
     maxValue: 100,
@@ -381,7 +382,7 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
       toast({ title: "Success", description: "Gauge created successfully." });
-      setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
+      setNewGauge({ name: "", gaugeTypeId: 0, stationId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
       setSelectedStationId(null);
       setShowAddGauge(false);
     },
@@ -1391,21 +1392,21 @@ export default function Settings() {
                       <div className="md:col-span-2 flex space-x-2">
                         <button
                           onClick={() => {
-                            if (selectedStationId && newGauge.name) {
+                            if (selectedStationId && newGauge.name && newGauge.gaugeTypeId && newGauge.gaugeTypeId > 0) {
                               createGaugeMutation.mutate({ 
                                 name: newGauge.name,
                                 stationId: selectedStationId,
-                                gaugeTypeId: newGauge.gaugeTypeId || 1,
-                                unit: newGauge.unit || "",
-                                minValue: newGauge.minValue || 0,
-                                maxValue: newGauge.maxValue || 100,
-                                step: newGauge.step || 1,
-                                condition: newGauge.condition || "",
-                                instruction: newGauge.instruction || ""
-                              } as any);
+                                gaugeTypeId: newGauge.gaugeTypeId,
+                                unit: newGauge.unit || null,
+                                minValue: newGauge.minValue || null,
+                                maxValue: newGauge.maxValue || null,
+                                step: newGauge.step || null,
+                                condition: newGauge.condition || null,
+                                instruction: newGauge.instruction || null
+                              });
                             }
                           }}
-                          disabled={!newGauge.name || !selectedStationId || createGaugeMutation.isPending}
+                          disabled={!newGauge.name || !selectedStationId || !newGauge.gaugeTypeId || newGauge.gaugeTypeId === 0 || createGaugeMutation.isPending}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
                         >
                           Save
@@ -1413,7 +1414,7 @@ export default function Settings() {
                         <button
                           onClick={() => {
                             setShowAddGauge(false);
-                            setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
+                            setNewGauge({ name: "", gaugeTypeId: 0, stationId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
                             setSelectedStationId(null);
                           }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
