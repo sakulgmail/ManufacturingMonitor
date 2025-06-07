@@ -234,6 +234,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   };
 
   // For debugging
+  console.log("All stations ordered:", uniqueStations.map(s => ({ id: s.id, name: s.name })));
   console.log("Selected station:", selectedStation);
   console.log("Station gauges:", stationGauges);
 
@@ -256,7 +257,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             <option value="">-- Select Station --</option>
             {uniqueStations.map((station: Station) => (
               <option key={station.id} value={station.id}>
-                {station.name}
+                {station.id}. {station.name.replace(/^\d+\.\s*/, '')}
               </option>
             ))}
           </select>
