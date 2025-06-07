@@ -379,7 +379,7 @@ export default function Settings() {
       return apiRequest('POST', '/api/gauges', gaugeData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gauges'] });
+      queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
       toast({ title: "Success", description: "Gauge created successfully." });
       setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
       setSelectedStationId(null);
