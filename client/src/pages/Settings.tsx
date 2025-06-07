@@ -165,7 +165,7 @@ export default function Settings() {
   useEffect(() => {
     const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
     setLocalGaugeTypes(orderedGaugeTypes);
-  }, [gaugeTypesData]);
+  }, [JSON.stringify(gaugeTypesData)]);
 
   // Use local state for rendering
   const machines = localMachines;
@@ -390,13 +390,28 @@ export default function Settings() {
     }
   });
 
+  // Update gauge mutation
+  const updateGaugeMutation = useMutation({
+    mutationFn: async ({ id, ...gaugeData }: { id: number } & Partial<InsertGauge>) => {
+      return apiRequest('PUT', `/api/gauges/${id}`, gaugeData);
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
+      toast({ title: "Success", description: "Gauge updated successfully." });
+      setEditingGauge(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update gauge.", variant: "destructive" });
+    }
+  });
+
   // Delete gauge mutation
   const deleteGaugeMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/gauges/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gauges'] });
+      queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
       toast({ title: "Success", description: "Gauge deleted successfully." });
     },
     onError: () => {
@@ -1401,6 +1416,156 @@ export default function Settings() {
                             setNewGauge({ name: "", gaugeTypeId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
                             setSelectedStationId(null);
                           }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Edit Gauge Form */}
+                {editingGauge && (
+                  <div className="mb-6 p-4 border border-gray-200 rounded-md bg-blue-50">
+                    <h3 className="text-md font-medium mb-4">Edit Gauge</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gauge Name</label>
+                        <input
+                          type="text"
+                          value={editingGauge.name}
+                          onChange={(e) => setEditingGauge({...editingGauge, name: e.target.value})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          placeholder="Enter gauge name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gauge Type</label>
+                        <select
+                          value={editingGauge.gaugeTypeId}
+                          onChange={(e) => setEditingGauge({...editingGauge, gaugeTypeId: Number(e.target.value)})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select gauge type...</option>
+                          {gaugeTypes.map((gaugeType) => (
+                            <option key={gaugeType.id} value={gaugeType.id}>
+                              {gaugeType.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Dynamic fields based on selected gauge type */}
+                      {editingGauge.gaugeTypeId && (() => {
+                        const selectedGaugeType = gaugeTypes.find(gt => gt.id === editingGauge.gaugeTypeId);
+                        if (!selectedGaugeType) return null;
+                        
+                        return (
+                          <>
+                            <div className="grid grid-cols-2 gap-4">
+                              {selectedGaugeType.hasUnit && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                  <input
+                                    type="text"
+                                    value={editingGauge.unit || selectedGaugeType.defaultUnit || ""}
+                                    onChange={(e) => setEditingGauge({...editingGauge, unit: e.target.value})}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                    placeholder={selectedGaugeType.defaultUnit || "Enter unit"}
+                                  />
+                                </div>
+                              )}
+                              {selectedGaugeType.hasMinValue && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Value</label>
+                                  <input
+                                    type="number"
+                                    value={editingGauge.minValue ?? selectedGaugeType.defaultMinValue ?? 0}
+                                    onChange={(e) => setEditingGauge({...editingGauge, minValue: Number(e.target.value)})}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  />
+                                </div>
+                              )}
+                              {selectedGaugeType.hasMaxValue && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Value</label>
+                                  <input
+                                    type="number"
+                                    value={editingGauge.maxValue ?? selectedGaugeType.defaultMaxValue ?? 100}
+                                    onChange={(e) => setEditingGauge({...editingGauge, maxValue: Number(e.target.value)})}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  />
+                                </div>
+                              )}
+                              {selectedGaugeType.hasStep && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Step</label>
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    value={editingGauge.step ?? selectedGaugeType.defaultStep ?? 1}
+                                    onChange={(e) => setEditingGauge({...editingGauge, step: Number(e.target.value)})}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  />
+                                </div>
+                              )}
+                              {selectedGaugeType.hasCondition && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                  <select
+                                    value={editingGauge.condition || ""}
+                                    onChange={(e) => setEditingGauge({...editingGauge, condition: e.target.value})}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  >
+                                    <option value="">Select condition...</option>
+                                    <option value="Good condition">Good condition</option>
+                                    <option value="Problem">Problem</option>
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                            {selectedGaugeType.hasInstruction && (
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instruction</label>
+                                <textarea
+                                  value={editingGauge.instruction || selectedGaugeType.instruction || ""}
+                                  onChange={(e) => setEditingGauge({...editingGauge, instruction: e.target.value})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  rows={3}
+                                  placeholder={selectedGaugeType.instruction || "Enter instructions for this gauge"}
+                                />
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                      
+                      <div className="md:col-span-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            if (editingGauge.name.trim()) {
+                              updateGaugeMutation.mutate({
+                                id: editingGauge.id,
+                                name: editingGauge.name.trim(),
+                                gaugeTypeId: editingGauge.gaugeTypeId,
+                                stationId: editingGauge.stationId,
+                                unit: editingGauge.unit || null,
+                                minValue: editingGauge.minValue || null,
+                                maxValue: editingGauge.maxValue || null,
+                                step: editingGauge.step || null,
+                                condition: editingGauge.condition || null,
+                                instruction: editingGauge.instruction || null
+                              });
+                            }
+                          }}
+                          disabled={!editingGauge.name.trim() || updateGaugeMutation.isPending}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {updateGaugeMutation.isPending ? "Updating..." : "Update"}
+                        </button>
+                        <button
+                          onClick={() => setEditingGauge(null)}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
                         >
                           Cancel
