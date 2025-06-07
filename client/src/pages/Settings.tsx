@@ -165,7 +165,7 @@ export default function Settings() {
   useEffect(() => {
     const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
     setLocalGaugeTypes(orderedGaugeTypes);
-  }, [gaugeTypesData.length]);
+  }, [gaugeTypesData]);
 
   // Use local state for rendering
   const machines = localMachines;
