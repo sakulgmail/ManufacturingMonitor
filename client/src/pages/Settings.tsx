@@ -320,7 +320,7 @@ export default function Settings() {
       return apiRequest('POST', '/api/gauge-types', gaugeTypeData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      queryClient.refetchQueries({ queryKey: ['/api/gauge-types'] });
       toast({ title: "Success", description: "Gauge type created successfully." });
       setNewGaugeType({
         name: "",
@@ -349,7 +349,8 @@ export default function Settings() {
       return apiRequest('PUT', `/api/gauge-types/${id}`, gaugeTypeData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      // Force refetch instead of just invalidating to ensure fresh data
+      queryClient.refetchQueries({ queryKey: ['/api/gauge-types'] });
       toast({ title: "Success", description: "Gauge type updated successfully." });
       setEditingGaugeType(null);
     },
@@ -364,7 +365,7 @@ export default function Settings() {
       return apiRequest('DELETE', `/api/gauge-types/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
+      queryClient.refetchQueries({ queryKey: ['/api/gauge-types'] });
       toast({ title: "Success", description: "Gauge type deleted successfully." });
     },
     onError: () => {
