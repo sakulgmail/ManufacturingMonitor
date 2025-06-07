@@ -317,7 +317,7 @@ export default function Settings() {
   // Create gauge type mutation
   const createGaugeTypeMutation = useMutation({
     mutationFn: async (gaugeTypeData: InsertGaugeType) => {
-      return apiRequest('POST', '/api/gauge-types/create', gaugeTypeData);
+      return apiRequest('POST', '/api/gauge-types', gaugeTypeData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/gauge-types'] });
