@@ -1389,6 +1389,105 @@ export default function Settings() {
                           placeholder="Enter gauge name"
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gauge Type</label>
+                        <select
+                          value={newGauge.gaugeTypeId || ""}
+                          onChange={(e) => setNewGauge({...newGauge, gaugeTypeId: Number(e.target.value)})}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select gauge type...</option>
+                          {gaugeTypes.map((gaugeType) => (
+                            <option key={gaugeType.id} value={gaugeType.id}>
+                              {gaugeType.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Dynamic fields based on selected gauge type */}
+                      {newGauge.gaugeTypeId && (() => {
+                        const selectedGaugeType = gaugeTypes.find(gt => gt.id === newGauge.gaugeTypeId);
+                        if (!selectedGaugeType) return null;
+                        
+                        return (
+                          <>
+                            {selectedGaugeType.hasUnit && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <input
+                                  type="text"
+                                  value={newGauge.unit || selectedGaugeType.defaultUnit || ""}
+                                  onChange={(e) => setNewGauge({...newGauge, unit: e.target.value})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder={selectedGaugeType.defaultUnit || "Enter unit"}
+                                />
+                              </div>
+                            )}
+                            {selectedGaugeType.hasMinValue && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Min Value</label>
+                                <input
+                                  type="number"
+                                  value={newGauge.minValue ?? selectedGaugeType.defaultMinValue ?? ""}
+                                  onChange={(e) => setNewGauge({...newGauge, minValue: Number(e.target.value)})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder={String(selectedGaugeType.defaultMinValue || 0)}
+                                />
+                              </div>
+                            )}
+                            {selectedGaugeType.hasMaxValue && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Max Value</label>
+                                <input
+                                  type="number"
+                                  value={newGauge.maxValue ?? selectedGaugeType.defaultMaxValue ?? ""}
+                                  onChange={(e) => setNewGauge({...newGauge, maxValue: Number(e.target.value)})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder={String(selectedGaugeType.defaultMaxValue || 100)}
+                                />
+                              </div>
+                            )}
+                            {selectedGaugeType.hasStep && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Step</label>
+                                <input
+                                  type="number"
+                                  value={newGauge.step ?? selectedGaugeType.defaultStep ?? ""}
+                                  onChange={(e) => setNewGauge({...newGauge, step: Number(e.target.value)})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder={String(selectedGaugeType.defaultStep || 1)}
+                                />
+                              </div>
+                            )}
+                            {selectedGaugeType.hasCondition && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                <input
+                                  type="text"
+                                  value={newGauge.condition || ""}
+                                  onChange={(e) => setNewGauge({...newGauge, condition: e.target.value})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder="Enter condition"
+                                />
+                              </div>
+                            )}
+                            {selectedGaugeType.hasInstruction && (
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instruction</label>
+                                <textarea
+                                  value={newGauge.instruction || selectedGaugeType.instruction || ""}
+                                  onChange={(e) => setNewGauge({...newGauge, instruction: e.target.value})}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                  placeholder={selectedGaugeType.instruction || "Enter instruction"}
+                                  rows={2}
+                                />
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                      
                       <div className="md:col-span-2 flex space-x-2">
                         <button
                           onClick={() => {
