@@ -47,8 +47,14 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     ? allStations.find((station: Station) => station.id === selectedStationId)
     : null;
     
-  // Get gauges from the selected station and sort in ascending order by ID (override any manual ordering)
-  const stationGauges = selectedStation?.gauges ? [...selectedStation.gauges].sort((a, b) => a.id - b.id) : [];
+  // Get gauges from the selected station and sort in ascending order by the number in gauge name
+  const stationGauges = selectedStation?.gauges ? [...selectedStation.gauges].sort((a, b) => {
+    const getNumberFromName = (name: string) => {
+      const match = name.match(/^(\d+)\./);
+      return match ? parseInt(match[1]) : 999;
+    };
+    return getNumberFromName(a.name) - getNumberFromName(b.name);
+  }) : [];
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
