@@ -381,6 +381,7 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations-with-gauges'] });
       toast({ title: "Success", description: "Gauge created successfully." });
       setNewGauge({ name: "", gaugeTypeId: 0, stationId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
       setSelectedStationId(null);
@@ -398,6 +399,7 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ['/api/gauges'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations-with-gauges'] });
       toast({ title: "Success", description: "Gauge updated successfully." });
       setEditingGauge(null);
     },
