@@ -519,7 +519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all gauges
   app.get('/api/gauges', async (req, res) => {
     try {
-      const gauges = await storage.getGaugesByStation(0); // Get all gauges
+      const gauges = await storage.getAllGauges();
       res.json(gauges);
     } catch (error) {
       console.error("Error fetching gauges:", error);

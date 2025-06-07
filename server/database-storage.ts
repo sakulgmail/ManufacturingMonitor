@@ -218,6 +218,18 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getAllGauges(): Promise<GaugeWithType[]> {
+    const result = await db
+      .select()
+      .from(gauges)
+      .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id));
+    
+    return result.map(row => ({
+      ...row.gauges,
+      gaugeType: row.gauge_types!
+    }));
+  }
+
   async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
     const result = await db
       .select()

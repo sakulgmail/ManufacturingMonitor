@@ -46,6 +46,7 @@ export interface IStorage {
   
   // Gauges
   getGauge(id: number): Promise<GaugeWithType | undefined>;
+  getAllGauges(): Promise<GaugeWithType[]>;
   getGaugesByStation(stationId: number): Promise<GaugeWithType[]>;
   createGauge(gauge: InsertGauge): Promise<Gauge>;
   updateGauge(id: number, gauge: Partial<InsertGauge>): Promise<Gauge>;
@@ -288,6 +289,15 @@ export class MemStorage implements IStorage {
     if (!gaugeType) return undefined;
     
     return { ...gauge, gaugeType };
+  }
+
+  async getAllGauges(): Promise<GaugeWithType[]> {
+    const gauges = Array.from(this.gauges.values());
+    
+    return gauges.map(gauge => {
+      const gaugeType = this.gaugeTypes.get(gauge.gaugeTypeId);
+      return { ...gauge, gaugeType: gaugeType! };
+    }).filter(gauge => gauge.gaugeType);
   }
 
   async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
