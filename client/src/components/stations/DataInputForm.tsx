@@ -27,12 +27,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     queryKey: ['/api/stations'],
   });
   
-  // Filter out duplicate stations by name and sort in ascending order by ID
-  const uniqueStations = allStations
-    .filter((station: Station, index: number, self: Station[]) => 
-      index === self.findIndex((s: Station) => s.name === station.name)
-    )
-    .sort((a, b) => a.id - b.id);
+  // Use all stations (no filtering by name) and sort in ascending order by ID
+  const uniqueStations = allStations.sort((a, b) => a.id - b.id);
   
   // Fetch all staff members and sort in ascending order by ID
   const { data: staffMembersData = [] } = useQuery<StaffMember[]>({

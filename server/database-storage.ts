@@ -231,16 +231,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGaugesByStation(stationId: number): Promise<GaugeWithType[]> {
-    const result = await db
-      .select()
-      .from(gauges)
-      .leftJoin(gaugeTypes, eq(gauges.gaugeTypeId, gaugeTypes.id))
-      .where(eq(gauges.stationId, stationId));
+    // Get all gauges for the station
+    const stationGauges = await db.select().from(gauges).where(eq(gauges.stationId, stationId));
     
-    return result.map(row => ({
-      ...row.gauges,
-      gaugeType: row.gauge_types!
-    }));
+    // Enrich each gauge with its gauge type
+    const result: GaugeWithType[] = [];
+    for (const gauge of stationGauges) {
+      const gaugeType = await this.getGaugeType(gauge.gaugeTypeId);
+      if (gaugeType) {
+        result.push({
+          ...gauge,
+          gaugeType
+        });
+      }
+    }
+    
+    return result;
   }
 
   async createGauge(gauge: InsertGauge): Promise<Gauge> {
