@@ -274,7 +274,7 @@ export default function Settings() {
       return apiRequest('POST', '/api/stations/create', stationData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
       toast({ title: "Success", description: "Station created successfully." });
       setNewStationName("");
       setNewStationDescription("");
@@ -292,7 +292,7 @@ export default function Settings() {
       return apiRequest('PUT', `/api/stations/${id}`, stationData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
       toast({ title: "Success", description: "Station updated successfully." });
       setEditingStation(null);
     },
@@ -307,7 +307,7 @@ export default function Settings() {
       return apiRequest('DELETE', `/api/stations/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
       toast({ title: "Success", description: "Station deleted successfully." });
     },
     onError: () => {
