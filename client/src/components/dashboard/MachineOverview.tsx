@@ -10,15 +10,15 @@ interface MachineOverviewProps {
 const getStatusColor = (status: MachineStatus) => {
   switch (status) {
     case 'RUNNING':
-      return 'bg-green-50 border-green-500 text-green-700 hover:bg-green-100';
+      return 'bg-green-50 border-2 border-[#196f3d] text-[#196f3d] hover:bg-green-100';
     case 'STOP':
-      return 'bg-red-50 border-red-500 text-red-700 hover:bg-red-100';
+      return 'bg-gray-50 border-2 border-[#d0d3d4] text-[#d0d3d4] hover:bg-gray-100';
     case 'During Maintenance':
-      return 'bg-yellow-50 border-yellow-500 text-yellow-700 hover:bg-yellow-100';
+      return 'bg-gray-50 border-2 border-[#d0d3d4] text-[#d0d3d4] hover:bg-gray-100';
     case 'Out of Order':
-      return 'bg-gray-50 border-gray-500 text-gray-700 hover:bg-gray-100';
+      return 'bg-gray-50 border-2 border-[#d0d3d4] text-[#d0d3d4] hover:bg-gray-100';
     default:
-      return 'bg-gray-50 border-gray-500 text-gray-700 hover:bg-gray-100';
+      return 'bg-gray-50 border-2 border-[#d0d3d4] text-[#d0d3d4] hover:bg-gray-100';
   }
 };
 
