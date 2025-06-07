@@ -63,9 +63,19 @@ export default function GaugeCard({ gauge, stationId }: GaugeCardProps) {
     }
     
     // For min/max value gauges, check if reading is in range
-    if (gauge.gaugeType?.hasMinValue && gauge.gaugeType?.hasMaxValue && 
-        gauge.minValue != null && gauge.maxValue != null) {
-      const isOutOfRange = gauge.currentReading < gauge.minValue || gauge.currentReading > gauge.maxValue;
+    if (gauge.gaugeType?.hasMinValue || gauge.gaugeType?.hasMaxValue) {
+      let isOutOfRange = false;
+      
+      // Check minimum value if it exists
+      if (gauge.gaugeType?.hasMinValue && gauge.minValue != null) {
+        isOutOfRange = isOutOfRange || gauge.currentReading < gauge.minValue;
+      }
+      
+      // Check maximum value if it exists
+      if (gauge.gaugeType?.hasMaxValue && gauge.maxValue != null) {
+        isOutOfRange = isOutOfRange || gauge.currentReading > gauge.maxValue;
+      }
+      
       return {
         status: isOutOfRange ? "ALERT" : "NORMAL",
         color: isOutOfRange ? "red" : "green"
