@@ -153,31 +153,19 @@ export default function Settings() {
 
   // Update local state when data changes
   useEffect(() => {
-    if (machinesData.length > 0) {
-      const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
-      setLocalMachines(orderedMachines);
-    } else {
-      setLocalMachines([]);
-    }
-  }, [machinesData]);
+    const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
+    setLocalMachines(orderedMachines);
+  }, [machinesData.length]);
 
   useEffect(() => {
-    if (stationsData.length > 0) {
-      const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
-      setLocalStations(orderedStations);
-    } else {
-      setLocalStations([]);
-    }
-  }, [stationsData]);
+    const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
+    setLocalStations(orderedStations);
+  }, [stationsData.length]);
 
   useEffect(() => {
-    if (gaugeTypesData.length > 0) {
-      const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
-      setLocalGaugeTypes(orderedGaugeTypes);
-    } else {
-      setLocalGaugeTypes([]);
-    }
-  }, [gaugeTypesData]);
+    const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
+    setLocalGaugeTypes(orderedGaugeTypes);
+  }, [gaugeTypesData.length]);
 
   // Use local state for rendering
   const machines = localMachines;
