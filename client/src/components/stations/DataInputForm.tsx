@@ -27,8 +27,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     queryKey: ['/api/stations'],
   });
   
-  // Use all stations (no filtering by name) and sort in ascending order by ID
-  const uniqueStations = allStations.sort((a, b) => a.id - b.id);
+  // Use all stations and sort in ascending order by ID (override any manual ordering)
+  const uniqueStations = [...allStations].sort((a, b) => a.id - b.id);
   
   // Fetch all staff members and sort in ascending order by ID
   const { data: staffMembersData = [] } = useQuery<StaffMember[]>({
@@ -41,8 +41,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     ? allStations.find((station: Station) => station.id === selectedStationId)
     : null;
     
-  // Get gauges from the selected station and sort in ascending order by ID
-  const stationGauges = selectedStation?.gauges?.sort((a, b) => a.id - b.id) || [];
+  // Get gauges from the selected station and sort in ascending order by ID (override any manual ordering)
+  const stationGauges = selectedStation?.gauges ? [...selectedStation.gauges].sort((a, b) => a.id - b.id) : [];
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
