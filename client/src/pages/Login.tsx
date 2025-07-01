@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -16,11 +16,12 @@ export default function Login() {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    setLocation("/");
-    return null;
-  }
+  // Use useEffect for redirect to avoid hooks violation
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, setLocation]);
 
   // Login mutation
   const loginMutation = useMutation({
