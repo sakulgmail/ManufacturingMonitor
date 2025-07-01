@@ -458,8 +458,9 @@ export class MemStorage implements IStorage {
       gaugeId: readingData.gaugeId,
       value: readingData.value,
       timestamp: readingData.timestamp || new Date().toISOString(),
-      staffId: readingData.staffId || null,
-      imageUrl: readingData.imageUrl || null
+      userId: readingData.userId || null,
+      imageUrl: readingData.imageUrl || null,
+      comment: readingData.comment || null
     };
     this.readingRecords.set(id, newReading);
     return newReading;
@@ -477,7 +478,7 @@ export class MemStorage implements IStorage {
   private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {
     const station = await this.getStation(reading.stationId);
     const gauge = await this.getGauge(reading.gaugeId);
-    const staffMember = reading.staffId ? await this.getStaff(reading.staffId) : undefined;
+    const user = reading.userId ? await this.getUser(reading.userId) : undefined;
     
     return {
       ...reading,
@@ -486,7 +487,7 @@ export class MemStorage implements IStorage {
       unit: gauge?.unit || '',
       minValue: gauge?.minValue || 0,
       maxValue: gauge?.maxValue || 0,
-      staffName: staffMember?.name || 'Unknown Staff'
+      username: user?.username || 'Unknown'
     };
   }
 

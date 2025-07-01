@@ -426,11 +426,11 @@ export class DatabaseStorage implements IStorage {
     const [station] = await db.select().from(stations).where(eq(stations.id, reading.stationId));
     const [gauge] = await db.select().from(gauges).where(eq(gauges.id, reading.gaugeId));
     
-    let staffName = "Unknown";
-    if (reading.staffId) {
-      const [staffMember] = await db.select().from(staff).where(eq(staff.id, reading.staffId));
-      if (staffMember) {
-        staffName = staffMember.name;
+    let username = "Unknown";
+    if (reading.userId) {
+      const [user] = await db.select().from(users).where(eq(users.id, reading.userId));
+      if (user) {
+        username = user.username;
       }
     }
 
@@ -441,7 +441,7 @@ export class DatabaseStorage implements IStorage {
       unit: gauge ? gauge.unit : "",
       minValue: gauge ? gauge.minValue : 0,
       maxValue: gauge ? gauge.maxValue : 0,
-      staffName
+      username
     };
   }
 

@@ -69,7 +69,7 @@ export const readings = pgTable("readings", {
   gaugeId: integer("gauge_id").notNull().references(() => gauges.id),
   value: real("value").notNull(),
   timestamp: text("timestamp").notNull().default(''),
-  staffId: integer("staff_id").references(() => staff.id),
+  userId: integer("user_id").references(() => users.id),
   imageUrl: text("image_url"),
   comment: text("comment"),
 });
@@ -105,7 +105,7 @@ export interface ReadingWithDetails extends Reading {
   unit: string;
   minValue: number;
   maxValue: number;
-  staffName: string;
+  username: string;
 }
 
 // Extended Gauge type with gauge type details for the frontend

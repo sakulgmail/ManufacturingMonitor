@@ -235,12 +235,11 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     
     setIsSubmitting(true);
     
-    const reading: Omit<InsertReading, 'staffId'> & { staffUsername: string } = {
+    const reading: Omit<InsertReading, 'userId'> = {
       stationId: selectedStationId,
       gaugeId: selectedGaugeId,
       value: requiresNumericReading ? parseFloat(readingValue.toString()) : 0,
       timestamp: new Date().toISOString(),
-      staffUsername: user?.username || '',
       imageUrl: previewUrl,
       comment: comment || null
     };

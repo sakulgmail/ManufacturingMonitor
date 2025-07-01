@@ -581,29 +581,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new reading 
   app.post('/api/readings', async (req, res) => {
     try {
-      const { staffUsername, ...restData } = req.body;
-      console.log('Received staffUsername:', staffUsername);
+      // Get userId from session
+      const userId = req.session?.userId;
       
-      // Create or find staff member based on username
-      let staffId = null;
-      if (staffUsername) {
-        // Check if staff member already exists with this username
-        const allStaff = await storage.getAllStaff();
-        let existingStaff = allStaff.find(staff => staff.name === staffUsername);
-        
-        if (!existingStaff) {
-          // Create new staff member with the username
-          console.log('Creating new staff member:', staffUsername);
-          existingStaff = await storage.createStaff({ name: staffUsername });
-        }
-        staffId = existingStaff.id;
-        console.log('Using staffId:', staffId);
-      }
-      
-      // Validate the request body with staffId
+      // Validate the request body with userId
       const readingData = insertReadingSchema.parse({
-        ...restData,
-        staffId
+        ...req.body,
+        userId
       });
       
       const station = await storage.getStation(readingData.stationId);
