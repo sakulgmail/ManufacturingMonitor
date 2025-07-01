@@ -6,6 +6,14 @@ import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
 
+// Extend session interface to include our custom properties
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+    isAdmin?: boolean;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up session middleware
   app.use(session({
