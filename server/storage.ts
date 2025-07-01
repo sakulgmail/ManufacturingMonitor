@@ -722,7 +722,7 @@ export class MemStorage implements IStorage {
           gaugeId: gauge.id,
           value,
           timestamp: readingTime.toISOString(),
-          staffId: Math.random() > 0.5 ? staff1.id : staff2.id
+          userId: 4
         });
       }
     }

@@ -3,14 +3,14 @@ import {
   stations, 
   gaugeTypes,
   gauges, 
-  staff, 
+ 
   readings,
   users,
   type Machine,
   type Station, 
   type GaugeType,
   type Gauge, 
-  type Staff, 
+ 
   type Reading,
   type User,
   type InsertMachine,
@@ -612,7 +612,7 @@ export class DatabaseStorage implements IStorage {
       gaugeId: gauge1_1.id,
       value: 78,
       timestamp: new Date().toISOString(),
-      staffId: staff1.id
+      userId: 4
     });
     
     const reading2 = await this.createReading({
@@ -620,7 +620,7 @@ export class DatabaseStorage implements IStorage {
       gaugeId: gauge1_2.id,
       value: 26,
       timestamp: new Date().toISOString(),
-      staffId: staff2.id
+      userId: 4
     });
     
     // ... Add more sample readings

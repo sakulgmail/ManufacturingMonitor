@@ -57,10 +57,7 @@ export const gauges = pgTable("gauges", {
 });
 
 // Define the staff members table
-export const staff = pgTable("staff", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-});
+
 
 // Define the readings table to store history of readings
 export const readings = pgTable("readings", {
@@ -79,7 +76,7 @@ export const insertMachineSchema = createInsertSchema(machines);
 export const insertStationSchema = createInsertSchema(stations);
 export const insertGaugeTypeSchema = createInsertSchema(gaugeTypes);
 export const insertGaugeSchema = createInsertSchema(gauges);
-export const insertStaffSchema = createInsertSchema(staff);
+
 export const insertReadingSchema = createInsertSchema(readings);
 
 // Types for insertion
@@ -87,7 +84,7 @@ export type InsertMachine = z.infer<typeof insertMachineSchema>;
 export type InsertStation = z.infer<typeof insertStationSchema>;
 export type InsertGaugeType = z.infer<typeof insertGaugeTypeSchema>;
 export type InsertGauge = z.infer<typeof insertGaugeSchema>;
-export type InsertStaff = z.infer<typeof insertStaffSchema>;
+
 export type InsertReading = z.infer<typeof insertReadingSchema>;
 
 // Types for selection
