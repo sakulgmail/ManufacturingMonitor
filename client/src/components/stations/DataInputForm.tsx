@@ -133,11 +133,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     }
   };
 
-  // Handle staff selection
-  const handleStaffChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const staffId = parseInt(e.target.value);
-    setSelectedStaffId(staffId);
-  };
+
 
   // Handle reading value change
   const handleReadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,12 +235,12 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     
     setIsSubmitting(true);
     
-    const reading: InsertReading = {
+    const reading: Omit<InsertReading, 'staffId'> & { staffUsername: string } = {
       stationId: selectedStationId,
       gaugeId: selectedGaugeId,
       value: requiresNumericReading ? parseFloat(readingValue.toString()) : 0,
       timestamp: new Date().toISOString(),
-      staffId: selectedStaffId,
+      staffUsername: user?.username || '',
       imageUrl: previewUrl,
       comment: comment || null
     };
@@ -377,24 +373,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           </div>
         )}
         
-        {/* Staff Selection */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Staff Member (Optional)
-          </label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={selectedStaffId || ""}
-            onChange={handleStaffChange}
-          >
-            <option value="">-- Select Staff Member --</option>
-            {staffMembers.map((staff: StaffMember) => (
-              <option key={staff.id} value={staff.id}>
-                {staff.name}
-              </option>
-            ))}
-          </select>
-        </div>
+
         
         {/* Comment Section */}
         <div className="mb-4">
