@@ -501,12 +501,7 @@ export class DatabaseStorage implements IStorage {
       description: "Research and development testing"
     });
 
-    // Create staff members
-    const staff1 = await this.createStaff({ name: "John Smith" });
-    const staff2 = await this.createStaff({ name: "Sarah Johnson" });
-    const staff3 = await this.createStaff({ name: "Michael Brown" });
-    const staff4 = await this.createStaff({ name: "Emily Wilson" });
-    const staff5 = await this.createStaff({ name: "David Garcia" });
+
 
     // Get gauge types to use for test data
     const allGaugeTypes = await this.getAllGaugeTypes();

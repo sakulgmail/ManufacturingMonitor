@@ -79,7 +79,7 @@ export class MemStorage implements IStorage {
   private stations: Map<number, Station>;
   private gauges: Map<number, Gauge>;
   private gaugeTypes: Map<number, GaugeType>;
-  private staffMembers: Map<number, Staff>;
+
   private readingRecords: Map<number, Reading>;
   private users: Map<number, User>;
   
@@ -87,7 +87,7 @@ export class MemStorage implements IStorage {
   private stationCurrentId: number;
   private gaugeCurrentId: number;
   private gaugeTypeCurrentId: number;
-  private staffCurrentId: number;
+
   private readingCurrentId: number;
   private userCurrentId: number;
 
@@ -96,7 +96,7 @@ export class MemStorage implements IStorage {
     this.stations = new Map();
     this.gauges = new Map();
     this.gaugeTypes = new Map();
-    this.staffMembers = new Map();
+
     this.readingRecords = new Map();
     this.users = new Map();
     
@@ -104,7 +104,7 @@ export class MemStorage implements IStorage {
     this.stationCurrentId = 1;
     this.gaugeCurrentId = 1;
     this.gaugeTypeCurrentId = 1;
-    this.staffCurrentId = 1;
+
     this.readingCurrentId = 1;
     this.userCurrentId = 1;
   }
@@ -407,21 +407,7 @@ export class MemStorage implements IStorage {
     this.gaugeTypes.delete(id);
   }
 
-  // Staff methods
-  async getStaff(id: number): Promise<Staff | undefined> {
-    return this.staffMembers.get(id);
-  }
 
-  async getAllStaff(): Promise<Staff[]> {
-    return Array.from(this.staffMembers.values());
-  }
-
-  async createStaff(staffData: InsertStaff): Promise<Staff> {
-    const id = this.staffCurrentId++;
-    const newStaff: Staff = { id, ...staffData };
-    this.staffMembers.set(id, newStaff);
-    return newStaff;
-  }
 
   // Reading methods
   async getReading(id: number): Promise<Reading | undefined> {
@@ -586,9 +572,7 @@ export class MemStorage implements IStorage {
       status: 'RUNNING'
     });
 
-    // Create staff members
-    const staff1 = await this.createStaff({ name: 'John Doe' });
-    const staff2 = await this.createStaff({ name: 'Jane Smith' });
+
 
     // Create stations with machine assignments
     const stationConfigs = [

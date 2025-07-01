@@ -454,16 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all staff
-  app.get('/api/staff', async (req, res) => {
-    try {
-      const staff = await storage.getAllStaff();
-      res.json(staff);
-    } catch (error) {
-      console.error("Error fetching staff:", error);
-      res.status(500).json({ message: "Failed to fetch staff" });
-    }
-  });
+
 
   // Create a new station
   app.post('/api/stations/create', async (req, res) => {
