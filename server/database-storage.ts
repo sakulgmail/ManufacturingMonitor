@@ -17,7 +17,7 @@ import {
   type InsertStation, 
   type InsertGaugeType,
   type InsertGauge, 
-  type InsertStaff, 
+ 
   type InsertReading,
   type InsertUser,
   type ReadingWithDetails, 
@@ -292,20 +292,7 @@ export class DatabaseStorage implements IStorage {
     return updatedGauge;
   }
 
-  // Staff
-  async getStaff(id: number): Promise<Staff | undefined> {
-    const [staffMember] = await db.select().from(staff).where(eq(staff.id, id));
-    return staffMember || undefined;
-  }
 
-  async getAllStaff(): Promise<Staff[]> {
-    return db.select().from(staff);
-  }
-
-  async createStaff(staffData: InsertStaff): Promise<Staff> {
-    const [newStaff] = await db.insert(staff).values(staffData).returning();
-    return newStaff;
-  }
 
   // Readings
   async getReading(id: number): Promise<Reading | undefined> {

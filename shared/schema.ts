@@ -92,7 +92,7 @@ export type Machine = typeof machines.$inferSelect;
 export type Station = typeof stations.$inferSelect;
 export type GaugeType = typeof gaugeTypes.$inferSelect;
 export type Gauge = typeof gauges.$inferSelect;
-export type Staff = typeof staff.$inferSelect;
+
 export type Reading = typeof readings.$inferSelect;
 
 // Extended Reading type with additional details for the frontend

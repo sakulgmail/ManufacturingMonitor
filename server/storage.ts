@@ -2,11 +2,10 @@ import {
   Machine, InsertMachine,
   Station, InsertStation, 
   GaugeType, InsertGaugeType,
-  Gauge, InsertGauge, 
-  Staff, InsertStaff, 
+  Gauge, InsertGauge,
   Reading, InsertReading,
   User, InsertUser,
-  machines, stations, gaugeTypes, gauges, staff, readings, users
+  machines, stations, gaugeTypes, gauges, readings, users
 } from "@shared/schema";
 
 // Helper function to ensure date values are stored as strings
@@ -53,10 +52,7 @@ export interface IStorage {
   deleteGauge(id: number): Promise<void>;
   updateGaugeReading(id: number, value: number, timestamp: string): Promise<Gauge>;
   
-  // Staff
-  getStaff(id: number): Promise<Staff | undefined>;
-  getAllStaff(): Promise<Staff[]>;
-  createStaff(staff: InsertStaff): Promise<Staff>;
+
   
   // Readings
   getReading(id: number): Promise<Reading | undefined>;
