@@ -3,6 +3,7 @@ import { Station, Gauge, StaffMember, InsertReading } from "@/lib/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Image, Upload } from "lucide-react";
 
 interface DataInputFormProps {
@@ -11,9 +12,9 @@ interface DataInputFormProps {
 
 export default function DataInputForm({ onClose }: DataInputFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
   const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(null);
-  const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [readingValue, setReadingValue] = useState<number | string>("");
   const [condition, setCondition] = useState<string>("");
   const [comment, setComment] = useState<string>("");
@@ -36,11 +37,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     return getNumberFromName(a.name) - getNumberFromName(b.name);
   });
   
-  // Fetch all staff members and sort in ascending order by ID
-  const { data: staffMembersData = [] } = useQuery<StaffMember[]>({
-    queryKey: ['/api/staff'],
-  });
-  const staffMembers = staffMembersData.sort((a, b) => a.id - b.id);
+
   
   // Get the selected station
   const selectedStation = selectedStationId 
