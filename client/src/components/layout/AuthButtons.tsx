@@ -7,9 +7,9 @@ export default function AuthButtons() {
   const { user, isAuthenticated, logout } = useAuth();
   const [, setLocation] = useLocation();
 
-  // If we're already on the login or signup page, don't show the login button
+  // If we're already on the login page, don't show the login button
   const currentPath = window.location.pathname;
-  if (currentPath === "/login" || currentPath === "/signup") {
+  if (currentPath === "/login") {
     return null;
   }
 
@@ -40,14 +40,6 @@ export default function AuthButtons() {
       >
         <LogIn className="h-4 w-4" />
         <span>Login</span>
-      </Button>
-      <Button 
-        variant="outline" 
-        className="flex items-center space-x-1 text-gray-600"
-        onClick={() => setLocation("/signup")}
-      >
-        <User className="h-4 w-4" />
-        <span>Sign Up</span>
       </Button>
     </div>
   );
