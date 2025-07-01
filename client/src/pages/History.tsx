@@ -114,7 +114,7 @@ export default function History() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gauge</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reading</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -139,7 +139,7 @@ export default function History() {
                             {isOutOfRange ? 'Alert' : 'Normal'}
                           </span>
                         </td>
-                        <td className="px-6 py-3">{reading.staffName}</td>
+                        <td className="px-6 py-3">{reading.username}</td>
                       </tr>
                     );
                   })
