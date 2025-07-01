@@ -60,7 +60,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
 
   // API call to save a new reading
   const saveReadingMutation = useMutation({
-    mutationFn: async (reading: InsertReading) => {
+    mutationFn: async (reading: Omit<InsertReading, 'staffId'> & { staffUsername: string }) => {
       // First save the reading
       const savedReading = await apiRequest('POST', '/api/readings', reading);
       
