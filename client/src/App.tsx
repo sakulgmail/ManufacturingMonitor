@@ -15,14 +15,20 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       setLocation('/login');
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-[calc(100vh-240px)]">
+      <div className="text-gray-600">Loading...</div>
+    </div>;
+  }
 
   if (!isAuthenticated) {
     return null;
@@ -32,15 +38,15 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
   // Redirect root path to login if not authenticated
   useEffect(() => {
-    if (location === '/' && !isAuthenticated) {
+    if (!isLoading && location === '/' && !isAuthenticated) {
       setLocation('/login');
     }
-  }, [location, isAuthenticated, setLocation]);
+  }, [location, isAuthenticated, isLoading, setLocation]);
 
   return (
     <Switch>

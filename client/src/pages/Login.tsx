@@ -7,25 +7,39 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    setLocation("/");
+    return null;
+  }
 
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
       return apiRequest("POST", "/api/auth/login", credentials);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    onSuccess: async () => {
+      // Refetch auth data and wait for it to complete
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      setLocation("/");
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        setLocation("/");
+      }, 50);
     },
     onError: (error: any) => {
       toast({
