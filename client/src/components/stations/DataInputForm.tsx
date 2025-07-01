@@ -229,6 +229,16 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       });
       return;
     }
+
+    // Check if gauge image is provided (now mandatory)
+    if (!gaugeImage) {
+      toast({
+        title: "Missing Gauge Image",
+        description: "Please upload an image of the gauge reading.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -406,7 +416,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
         {/* Image Upload Section */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Gauge Image (Optional)
+            Gauge Image <span className="text-red-500">*</span>
           </label>
           <input
             type="file"
