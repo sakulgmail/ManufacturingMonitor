@@ -14,6 +14,14 @@ declare module 'express-session' {
   }
 }
 
+// Also extend the Session interface directly  
+declare module 'express-session' {
+  interface Session {
+    userId?: number;
+    isAdmin?: boolean;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up session middleware
   app.use(session({
@@ -53,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set user in session
       req.session.userId = user.id;
-      req.session.isAdmin = user.isAdmin;
+      req.session.isAdmin = user.isAdmin ?? false;
       
       // Don't send the password back to the client
       const { password: _, ...userWithoutPassword } = user;
@@ -582,6 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get userId from session
       const userId = req.session?.userId;
+      console.log('Creating reading with userId:', userId, 'Session:', req.session);
       
       // Validate the request body with userId
       const readingData = insertReadingSchema.parse({
