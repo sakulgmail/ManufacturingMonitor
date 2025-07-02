@@ -5,8 +5,7 @@ import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGauge
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
-import ConnectPgSimple from "connect-pg-simple";
-import { pool } from "./db";
+import MemoryStore from "memorystore";
 
 // Extend session interface to include our custom properties
 declare module 'express-session' {
@@ -25,20 +24,24 @@ declare module 'express-session' {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up PostgreSQL session store
-  const PgStore = ConnectPgSimple(session);
+  // Set up memory session store with better persistence
+  const MemStore = MemoryStore(session);
   
-  // Set up session middleware with PostgreSQL store
+  // Set up session middleware with memory store
   app.use(session({
-    store: new PgStore({
-      pool: pool,
-      tableName: 'session',
-      createTableIfMissing: true
+    store: new MemStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
     }),
     secret: 'factory-monitor-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    rolling: true, // Reset expiration on activity
+    cookie: { 
+      secure: false, 
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax'
+    }
   }));
 
   // Test data initialization is handled in server/index.ts
@@ -617,9 +620,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('==============================');
       
       if (!userId) {
-        console.error('No userId in session for reading creation - proceeding without authentication check for debugging');
-        // Temporarily remove the auth check to see what's happening
-        // return res.status(401).json({ message: "User not authenticated" });
+        console.error('No userId in session for reading creation');
+        return res.status(401).json({ message: "User not authenticated" });
       }
       
       // Validate the request body with userId
