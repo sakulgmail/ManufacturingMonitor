@@ -590,13 +590,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get userId from session
       const userId = req.session?.userId;
-      console.log('Creating reading with userId:', userId, 'Session:', req.session);
+      console.log('Creating reading with userId:', userId, 'Session keys:', Object.keys(req.session || {}));
+      
+      if (!userId) {
+        console.error('No userId in session for reading creation');
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       // Validate the request body with userId
       const readingData = insertReadingSchema.parse({
         ...req.body,
         userId
       });
+      
+      console.log('Parsed reading data:', readingData);
       
       const station = await storage.getStation(readingData.stationId);
       if (!station) {
@@ -609,6 +616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const reading = await storage.createReading(readingData);
+      console.log('Created reading:', reading);
       
       // Update gauge current reading
       await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp);

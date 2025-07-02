@@ -414,8 +414,10 @@ export class DatabaseStorage implements IStorage {
     const [gauge] = await db.select().from(gauges).where(eq(gauges.id, reading.gaugeId));
     
     let username = "Unknown";
+    console.log('Enriching reading with userId:', reading.userId);
     if (reading.userId) {
       const [user] = await db.select().from(users).where(eq(users.id, reading.userId));
+      console.log('Found user for reading:', user);
       if (user) {
         username = user.username;
       }
@@ -425,9 +427,9 @@ export class DatabaseStorage implements IStorage {
       ...reading,
       stationName: station ? station.name : "Unknown Station",
       gaugeName: gauge ? gauge.name : "Unknown Gauge",
-      unit: gauge ? gauge.unit : "",
-      minValue: gauge ? gauge.minValue : 0,
-      maxValue: gauge ? gauge.maxValue : 0,
+      unit: gauge?.unit || "",
+      minValue: gauge?.minValue || 0,
+      maxValue: gauge?.maxValue || 0,
       username
     };
   }
