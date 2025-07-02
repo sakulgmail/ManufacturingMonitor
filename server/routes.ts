@@ -419,37 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Save a new reading (simplified endpoint)
-  app.post('/api/readings', async (req, res) => {
-    try {
-      // Validate the request body
-      const readingData = insertReadingSchema.parse(req.body);
-      
-      const station = await storage.getStation(readingData.stationId);
-      if (!station) {
-        return res.status(404).json({ message: "Station not found" });
-      }
-      
-      const gauge = await storage.getGauge(readingData.gaugeId);
-      if (!gauge) {
-        return res.status(404).json({ message: "Gauge not found" });
-      }
-      
-      const reading = await storage.createReading(readingData);
-      
-      // Update gauge current reading
-      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp);
-      
-      res.status(201).json(reading);
-    } catch (error) {
-      console.error("Error saving reading:", error);
-      if (error instanceof ZodError) {
-        res.status(400).json({ message: "Invalid reading data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Failed to save reading" });
-      }
-    }
-  });
+
 
   // Save a new reading for a gauge (legacy endpoint)
   app.post('/api/stations/:stationId/gauges/:gaugeId/readings', async (req, res) => {
