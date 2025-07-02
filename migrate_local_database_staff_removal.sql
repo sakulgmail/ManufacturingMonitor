@@ -24,7 +24,7 @@ BEGIN
         SET user_id = CASE 
             WHEN staff_id = 1 THEN (SELECT id FROM users WHERE username = 'admin' LIMIT 1)
             WHEN staff_id = 2 THEN (SELECT id FROM users WHERE username = 'sakult' LIMIT 1)
-            ELSE (SELECT id FROM users WHERE isAdmin = true LIMIT 1)
+            ELSE (SELECT id FROM users WHERE is_admin = true LIMIT 1)
         END
         WHERE user_id IS NULL;
     END IF;
