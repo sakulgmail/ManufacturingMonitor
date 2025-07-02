@@ -328,7 +328,11 @@ export class DatabaseStorage implements IStorage {
       imageUrl: readingData.imageUrl || null
     };
     
+    console.log('Database createReading - Input data:', readingData);
+    console.log('Database createReading - Data to insert:', dataToInsert);
+    
     const [newReading] = await db.insert(readings).values(dataToInsert).returning();
+    console.log('Database createReading - Created reading:', newReading);
     return newReading;
   }
 
