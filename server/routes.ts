@@ -5,6 +5,8 @@ import { insertReadingSchema, insertUserSchema, insertStationSchema, insertGauge
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
+import ConnectPgSimple from "connect-pg-simple";
+import { pool } from "./db";
 
 // Extend session interface to include our custom properties
 declare module 'express-session' {
@@ -23,8 +25,16 @@ declare module 'express-session' {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up session middleware
+  // Set up PostgreSQL session store
+  const PgStore = ConnectPgSimple(session);
+  
+  // Set up session middleware with PostgreSQL store
   app.use(session({
+    store: new PgStore({
+      pool: pool,
+      tableName: 'session',
+      createTableIfMissing: true
+    }),
     secret: 'factory-monitor-secret-key',
     resave: false,
     saveUninitialized: false,
