@@ -96,9 +96,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get('/api/auth/me', async (req, res) => {
+    console.log('=== AUTH/ME DEBUG ===');
+    console.log('Session exists:', !!req.session);
+    console.log('Session userId:', req.session?.userId);
+    console.log('Session isAdmin:', req.session?.isAdmin);
+    console.log('Full session keys:', Object.keys(req.session || {}));
+    console.log('====================');
+    
     try {
       // Check if user is logged in
       if (!req.session.userId) {
+        console.log('No userId in session for auth/me');
         return res.status(401).json({ message: "Not authenticated" });
       }
       
