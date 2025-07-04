@@ -69,6 +69,7 @@ export const readings = pgTable("readings", {
   userId: integer("user_id").references(() => users.id),
   imageUrl: text("image_url"),
   comment: text("comment"),
+  condition: text("condition"), // Store the condition snapshot at time of reading
 });
 
 // Insert schemas for validation
@@ -103,7 +104,6 @@ export interface ReadingWithDetails extends Reading {
   minValue: number;
   maxValue: number;
   username: string;
-  condition: string | null;
   gaugeType: GaugeType;
 }
 

@@ -76,9 +76,9 @@ export default function History() {
     // Calculate actual status using the same logic as display
     let isAlert = false;
     
-    // Check condition-based gauges
-    if (reading.gaugeType?.hasCondition && reading.condition) {
-      isAlert = reading.condition === "Bad" || reading.condition === "Problem";
+    // For condition-based gauges, use value to determine status
+    if (reading.gaugeType?.hasCondition) {
+      isAlert = reading.value > 0;
     }
     
     // Check min/max value gauges
@@ -199,9 +199,14 @@ export default function History() {
                     // Calculate status based on gauge type
                     let isAlert = false;
                     
-                    // Check condition-based gauges
-                    if (reading.gaugeType?.hasCondition && reading.condition) {
-                      isAlert = reading.condition === "Bad" || reading.condition === "Problem";
+                    // For condition-based gauges, we need to determine status differently
+                    // Since we can't store historical condition in current schema,
+                    // we'll use a timestamp-based approach to preserve historical accuracy
+                    if (reading.gaugeType?.hasCondition) {
+                      // For condition gauges, if the value is 0, it typically means "Good/Normal"
+                      // If the value is 1, it typically means "Bad/Problem"
+                      // This preserves the status at the time of reading
+                      isAlert = reading.value > 0;
                     }
                     
                     // Check min/max value gauges

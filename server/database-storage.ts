@@ -470,7 +470,6 @@ export class DatabaseStorage implements IStorage {
       unit: gauge?.unit || "",
       minValue: gauge?.minValue || 0,
       maxValue: gauge?.maxValue || 0,
-      condition: gauge?.condition || null,
       gaugeType: gaugeType || {
         id: 0,
         name: "Unknown",

@@ -61,10 +61,10 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   // API call to save a new reading
   const saveReadingMutation = useMutation({
     mutationFn: async (reading: Omit<InsertReading, 'userId'>) => {
-      // First save the reading
+      // Save the reading with the condition snapshot
       const savedReading = await apiRequest('POST', '/api/readings', reading);
       
-      // If gauge has condition field and condition is selected, update the gauge condition
+      // Update the gauge's current condition to reflect latest status
       if (selectedGauge?.gaugeType.hasCondition && condition) {
         await apiRequest('PUT', `/api/gauges/${selectedGaugeId}`, {
           id: selectedGaugeId,
@@ -235,10 +235,19 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     
     setIsSubmitting(true);
     
+    // For condition-based gauges, map condition to numerical value to preserve historical status
+    let readingValueToStore: number;
+    if (selectedGauge?.gaugeType.hasCondition) {
+      // Map condition to number: Good=0 (Normal), Bad/Problem=1 (Alert)
+      readingValueToStore = (condition === "Bad" || condition === "Problem") ? 1 : 0;
+    } else {
+      readingValueToStore = requiresNumericReading ? parseFloat(readingValue.toString()) : 0;
+    }
+    
     const reading: Omit<InsertReading, 'userId'> = {
       stationId: selectedStationId,
       gaugeId: selectedGaugeId,
-      value: requiresNumericReading ? parseFloat(readingValue.toString()) : 0,
+      value: readingValueToStore,
       timestamp: new Date().toISOString(),
       imageUrl: previewUrl,
       comment: comment || null
