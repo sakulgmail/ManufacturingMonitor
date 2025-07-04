@@ -250,7 +250,8 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       value: readingValueToStore,
       timestamp: new Date().toISOString(),
       imageUrl: previewUrl,
-      comment: comment || null
+      comment: comment || null,
+      condition: selectedGauge?.gaugeType.hasCondition ? condition : null
     };
     
     saveReadingMutation.mutate(reading);
