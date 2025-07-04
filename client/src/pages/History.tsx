@@ -36,17 +36,34 @@ export default function History() {
     return aNum - bNum;
   });
   
-  // Get unique gauge names based on selected station
+  // Get unique gauge names based on selected station and sort them
   const getUniqueGaugeNames = () => {
+    let gaugeList: string[];
+    
     if (selectedStation === "all") {
-      const allGauges = readings.map(reading => reading.gaugeName);
-      return [...new Set(allGauges)];
+      gaugeList = readings.map(reading => reading.gaugeName);
     } else {
-      const filteredGauges = readings
+      gaugeList = readings
         .filter(reading => reading.stationId.toString() === selectedStation)
         .map(reading => reading.gaugeName);
-      return [...new Set(filteredGauges)];
     }
+    
+    // Get unique values manually
+    const uniqueGauges: string[] = [];
+    gaugeList.forEach(gauge => {
+      if (!uniqueGauges.includes(gauge)) {
+        uniqueGauges.push(gauge);
+      }
+    });
+    
+    // Sort gauge names by extracting numbers from the beginning
+    return uniqueGauges.sort((a, b) => {
+      const getNumberFromName = (name: string) => {
+        const match = name.match(/^(\d+)\./);
+        return match ? parseInt(match[1]) : 999;
+      };
+      return getNumberFromName(a) - getNumberFromName(b);
+    });
   };
   
   const gaugeNames = getUniqueGaugeNames();
