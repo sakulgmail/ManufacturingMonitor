@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery } from "@tanstack/react-query";
-import { Reading } from "@/lib/types";
+import { ReadingWithDetails } from "@shared/schema";
 import { formatDateTime } from "@/lib/utils";
 
 interface Station {
@@ -20,7 +20,7 @@ export default function History() {
     setSelectedGauge("all");
   }, [selectedStation]);
   
-  const { data: readings = [], isLoading } = useQuery<Reading[]>({
+  const { data: readings = [], isLoading } = useQuery<ReadingWithDetails[]>({
     queryKey: ['/api/readings'],
   });
   
@@ -171,7 +171,30 @@ export default function History() {
                   </tr>
                 ) : (
                   sortedReadings.map((reading) => {
-                    const isOutOfRange = reading.value < reading.minValue || reading.value > reading.maxValue;
+                    // Calculate status based on gauge type
+                    let isAlert = false;
+                    
+                    // Check condition-based gauges
+                    if (reading.gaugeType?.hasCondition && reading.condition) {
+                      isAlert = reading.condition === "Bad" || reading.condition === "Problem";
+                    }
+                    
+                    // Check min/max value gauges
+                    if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+                      let isOutOfRange = false;
+                      
+                      // Check minimum value if it exists
+                      if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+                        isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+                      }
+                      
+                      // Check maximum value if it exists
+                      if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+                        isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+                      }
+                      
+                      isAlert = isOutOfRange;
+                    }
                     
                     return (
                       <tr key={reading.id}>
@@ -180,8 +203,8 @@ export default function History() {
                         <td className="px-6 py-3">{reading.gaugeName}</td>
                         <td className="px-6 py-3">{reading.value} {reading.unit}</td>
                         <td className="px-6 py-3">
-                          <span className={`px-2 py-1 ${isOutOfRange ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} rounded-full text-xs`}>
-                            {isOutOfRange ? 'Alert' : 'Normal'}
+                          <span className={`px-2 py-1 ${isAlert ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} rounded-full text-xs`}>
+                            {isAlert ? 'Alert' : 'Normal'}
                           </span>
                         </td>
                         <td className="px-6 py-3">{reading.username}</td>

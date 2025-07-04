@@ -81,9 +81,38 @@ export class DatabaseStorage implements IStorage {
           .from(gauges)
           .where(eq(gauges.stationId, station.id));
         
+        // Enrich gauges with their types
+        const gaugesWithTypes = await Promise.all(
+          stationGauges.map(async (gauge) => {
+            const [gaugeType] = await db
+              .select()
+              .from(gaugeTypes)
+              .where(eq(gaugeTypes.id, gauge.gaugeTypeId));
+            
+            return {
+              ...gauge,
+              gaugeType: gaugeType || {
+                id: 0,
+                name: "Unknown",
+                hasUnit: false,
+                hasMinValue: false,
+                hasMaxValue: false,
+                hasStep: false,
+                hasCondition: false,
+                hasInstruction: false,
+                defaultUnit: "",
+                defaultMinValue: 0,
+                defaultMaxValue: 100,
+                defaultStep: 1,
+                instruction: ""
+              }
+            };
+          })
+        );
+        
         return {
           ...station,
-          gauges: stationGauges
+          gauges: gaugesWithTypes
         };
       })
     );
@@ -427,6 +456,13 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    // Get gauge type information
+    let gaugeType: GaugeType | null = null;
+    if (gauge?.gaugeTypeId) {
+      const [foundGaugeType] = await db.select().from(gaugeTypes).where(eq(gaugeTypes.id, gauge.gaugeTypeId));
+      gaugeType = foundGaugeType || null;
+    }
+
     return {
       ...reading,
       stationName: station ? station.name : "Unknown Station",
@@ -434,6 +470,22 @@ export class DatabaseStorage implements IStorage {
       unit: gauge?.unit || "",
       minValue: gauge?.minValue || 0,
       maxValue: gauge?.maxValue || 0,
+      condition: gauge?.condition || null,
+      gaugeType: gaugeType || {
+        id: 0,
+        name: "Unknown",
+        hasUnit: false,
+        hasMinValue: false,
+        hasMaxValue: false,
+        hasStep: false,
+        hasCondition: false,
+        hasInstruction: false,
+        defaultUnit: "",
+        defaultMinValue: 0,
+        defaultMaxValue: 100,
+        defaultStep: 1,
+        instruction: ""
+      },
       username
     };
   }

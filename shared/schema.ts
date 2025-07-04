@@ -103,6 +103,8 @@ export interface ReadingWithDetails extends Reading {
   minValue: number;
   maxValue: number;
   username: string;
+  condition: string | null;
+  gaugeType: GaugeType;
 }
 
 // Extended Gauge type with gauge type details for the frontend
