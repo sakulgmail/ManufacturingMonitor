@@ -72,10 +72,35 @@ export default function History() {
   const filteredReadings = readings.filter(reading => {
     const stationMatch = selectedStation === "all" || reading.stationId.toString() === selectedStation;
     const gaugeMatch = selectedGauge === "all" || reading.gaugeName === selectedGauge;
-    const inRange = reading.value >= reading.minValue && reading.value <= reading.maxValue;
+    
+    // Calculate actual status using the same logic as display
+    let isAlert = false;
+    
+    // Check condition-based gauges
+    if (reading.gaugeType?.hasCondition && reading.condition) {
+      isAlert = reading.condition === "Bad" || reading.condition === "Problem";
+    }
+    
+    // Check min/max value gauges
+    if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+      let isOutOfRange = false;
+      
+      // Check minimum value if it exists
+      if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+        isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+      }
+      
+      // Check maximum value if it exists
+      if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+        isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+      }
+      
+      isAlert = isOutOfRange;
+    }
+    
     const statusMatch = selectedStatus === "all" 
-      || (selectedStatus === "normal" && inRange)
-      || (selectedStatus === "alert" && !inRange);
+      || (selectedStatus === "normal" && !isAlert)
+      || (selectedStatus === "alert" && isAlert);
     
     return stationMatch && gaugeMatch && statusMatch;
   });
