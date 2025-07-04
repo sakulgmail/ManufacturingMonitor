@@ -109,7 +109,14 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
       {isExpanded && (
         <div className="station-gauges p-4 pt-0 border-t">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {station.gauges.sort((a, b) => a.id - b.id).map((gauge) => (
+            {station.gauges.sort((a, b) => {
+              // Extract the number from the start of the gauge name for proper sorting
+              const getNumberFromName = (name: string) => {
+                const match = name.match(/^(\d+)\./);
+                return match ? parseInt(match[1]) : 999;
+              };
+              return getNumberFromName(a.name) - getNumberFromName(b.name);
+            }).map((gauge) => (
               <GaugeCard
                 key={gauge.id}
                 gauge={gauge}
