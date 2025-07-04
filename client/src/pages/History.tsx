@@ -231,7 +231,12 @@ export default function History() {
                         <td className="px-6 py-3">{formatDateTime(reading.timestamp)}</td>
                         <td className="px-6 py-3">{reading.stationName}</td>
                         <td className="px-6 py-3">{reading.gaugeName}</td>
-                        <td className="px-6 py-3">{reading.value} {reading.unit}</td>
+                        <td className="px-6 py-3">
+                          {reading.gaugeType?.hasCondition ? 
+                            (reading.condition || 'N/A') : 
+                            `${reading.value} ${reading.unit}`
+                          }
+                        </td>
                         <td className="px-6 py-3">
                           <span className={`px-2 py-1 ${isAlert ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} rounded-full text-xs`}>
                             {isAlert ? 'Alert' : 'Normal'}
