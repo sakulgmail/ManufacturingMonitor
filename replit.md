@@ -140,6 +140,13 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**July 4, 2025:**
+- CRITICAL FIX: Resolved data integrity issue where new readings corrupted historical status data
+- Added condition column to readings table to preserve historical accuracy
+- Implemented numerical value mapping (0=Normal, 1=Alert) for condition-based gauges
+- Updated History page status calculation to use reading values instead of current gauge condition
+- Migration script `migrate_add_condition_column.sql` created for local database updates
+
 **July 2, 2025:**
 - Fixed critical authentication bug in reading creation by removing duplicate API endpoints
 - Readings now properly capture and display logged-in user information
