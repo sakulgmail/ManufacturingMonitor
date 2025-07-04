@@ -17,8 +17,13 @@ export default function History() {
     queryKey: ['/api/stations'],
   });
   
-  // Sort stations in ascending order by ID
-  const stations = stationsData.sort((a: any, b: any) => a.id - b.id);
+  // Sort stations by name (natural sort to handle "1. Control & Safety", "2. Temperature", etc.)
+  const stations = stationsData.sort((a: any, b: any) => {
+    // Extract the number from the start of the name for proper sorting
+    const aNum = parseInt(a.name.match(/^\d+/)?.[0] || '0');
+    const bNum = parseInt(b.name.match(/^\d+/)?.[0] || '0');
+    return aNum - bNum;
+  });
   
   // Get unique gauge names from all readings
   const gaugeNames = [...new Set(readings.map(reading => reading.gaugeName))];
