@@ -78,7 +78,7 @@ export const insertStationSchema = createInsertSchema(stations);
 export const insertGaugeTypeSchema = createInsertSchema(gaugeTypes);
 export const insertGaugeSchema = createInsertSchema(gauges);
 
-export const insertReadingSchema = createInsertSchema(readings);
+export const insertReadingSchema = createInsertSchema(readings).omit({ id: true });
 
 // Types for insertion
 export type InsertMachine = z.infer<typeof insertMachineSchema>;
