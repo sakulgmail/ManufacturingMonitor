@@ -138,6 +138,16 @@ The application is configured to be deployed on Replit with the following setup:
 5. Run `npm run start` to start the production server
 6. Use `npm run db:push` to synchronize the database schema
 
+## Recent Changes
+
+**July 2, 2025:**
+- Fixed critical authentication bug in reading creation by removing duplicate API endpoints
+- Readings now properly capture and display logged-in user information
+- Fixed station sorting in History tab to display in correct numerical order (1, 2, 3, 4, 5)
+- Fixed gauge sorting within stations in Dashboard to display in proper numerical sequence
+- Implemented dynamic gauge filtering in History tab based on selected station
+- Removed broken TypeScript files that were preventing frontend compilation
+
 ## Development Notes
 
 - The database schema is defined in `shared/schema.ts`
@@ -145,3 +155,4 @@ The application is configured to be deployed on Replit with the following setup:
 - The API endpoints are defined in `server/routes.ts`
 - Frontend pages are in `client/src/pages/`
 - UI components are in `client/src/components/`
+- Migration script `migrate_local_database_staff_removal.sql` available for local database updates
