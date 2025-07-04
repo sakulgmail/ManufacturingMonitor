@@ -1,32 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery } from "@tanstack/react-query";
 import { Reading } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
+
+interface Station {
+  id: number;
+  name: string;
+  machineId: number;
+}
 
 export default function History() {
   const [selectedStation, setSelectedStation] = useState<string>("all");
   const [selectedGauge, setSelectedGauge] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   
+  // Reset gauge selection when station changes
+  useEffect(() => {
+    setSelectedGauge("all");
+  }, [selectedStation]);
+  
   const { data: readings = [], isLoading } = useQuery<Reading[]>({
     queryKey: ['/api/readings'],
   });
   
-  const { data: stationsData = [] } = useQuery({
+  const { data: stationsData = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
   // Sort stations by name (natural sort to handle "1. Control & Safety", "2. Temperature", etc.)
-  const stations = stationsData.sort((a: any, b: any) => {
+  const stations = stationsData.sort((a: Station, b: Station) => {
     // Extract the number from the start of the name for proper sorting
     const aNum = parseInt(a.name.match(/^\d+/)?.[0] || '0');
     const bNum = parseInt(b.name.match(/^\d+/)?.[0] || '0');
     return aNum - bNum;
   });
   
-  // Get unique gauge names from all readings
-  const gaugeNames = [...new Set(readings.map(reading => reading.gaugeName))];
+  // Get unique gauge names based on selected station
+  const getUniqueGaugeNames = () => {
+    if (selectedStation === "all") {
+      const allGauges = readings.map(reading => reading.gaugeName);
+      return [...new Set(allGauges)];
+    } else {
+      const filteredGauges = readings
+        .filter(reading => reading.stationId.toString() === selectedStation)
+        .map(reading => reading.gaugeName);
+      return [...new Set(filteredGauges)];
+    }
+  };
+  
+  const gaugeNames = getUniqueGaugeNames();
   
   // Filter readings based on selection
   const filteredReadings = readings.filter(reading => {
