@@ -35,7 +35,10 @@ export default function NavigationTabs({ activeTab }: NavigationTabsProps) {
             History
           </button>
           <button 
-            className="px-4 py-3 text-gray-600 hover:text-primary-600"
+            className={`px-4 py-3 ${activeTab === "reports" 
+              ? "text-primary-600 border-b-2 border-primary-600 font-medium" 
+              : "text-gray-600 hover:text-primary-600"}`}
+            onClick={() => handleTabChange("/reports")}
           >
             Reports
           </button>

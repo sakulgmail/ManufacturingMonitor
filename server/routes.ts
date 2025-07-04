@@ -709,6 +709,285 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reports endpoints
+  app.get("/api/reports/run", async (req: Request, res: Response) => {
+    try {
+      const {
+        machines = '',
+        stations = '',
+        gauges = '',
+        dateFrom,
+        dateTo,
+        statusFilter = 'all',
+        includeImages = 'true',
+        includeComments = 'true'
+      } = req.query;
+
+      // Parse filters
+      const machineIds = machines ? (machines as string).split(',').map(Number).filter(Boolean) : [];
+      const stationIds = stations ? (stations as string).split(',').map(Number).filter(Boolean) : [];
+      const gaugeIds = gauges ? (gauges as string).split(',').map(Number).filter(Boolean) : [];
+
+      // Get all readings with details
+      let readings = await storage.getAllReadingsWithDetails();
+
+      // Apply filters
+      if (machineIds.length > 0) {
+        // Filter by machine through station relationship
+        const machineStations = await storage.getAllStations();
+        const validStationIds = machineStations
+          .filter(station => machineIds.includes(station.machineId))
+          .map(station => station.id);
+        readings = readings.filter(reading => validStationIds.includes(reading.stationId));
+      }
+
+      if (stationIds.length > 0) {
+        readings = readings.filter(reading => stationIds.includes(reading.stationId));
+      }
+
+      if (gaugeIds.length > 0) {
+        readings = readings.filter(reading => gaugeIds.includes(reading.gaugeId));
+      }
+
+      // Date range filter
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom as string);
+        readings = readings.filter(reading => new Date(reading.timestamp) >= fromDate);
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo as string);
+        toDate.setHours(23, 59, 59, 999); // End of day
+        readings = readings.filter(reading => new Date(reading.timestamp) <= toDate);
+      }
+
+      // Status filter
+      if (statusFilter !== 'all') {
+        readings = readings.filter(reading => {
+          let isAlert = false;
+          
+          if (reading.gaugeType?.hasCondition) {
+            isAlert = reading.value > 0;
+          }
+          
+          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+            let isOutOfRange = false;
+            
+            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+            }
+            
+            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+            }
+            
+            isAlert = isOutOfRange;
+          }
+
+          return statusFilter === 'alert' ? isAlert : !isAlert;
+        });
+      }
+
+      // Get machine data for report
+      const allMachines = await storage.getAllMachines();
+      const machineMap = new Map(allMachines.map(m => [m.id, m]));
+
+      // Get station data
+      const allStations = await storage.getAllStations();
+      const stationMap = new Map(allStations.map(s => [s.id, s]));
+
+      // Format report results
+      const reportResults = readings.map(reading => {
+        const station = stationMap.get(reading.stationId);
+        const machine = station ? machineMap.get(station.machineId) : null;
+        
+        let isAlert = false;
+        if (reading.gaugeType?.hasCondition) {
+          isAlert = reading.value > 0;
+        }
+        if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+          let isOutOfRange = false;
+          if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+            isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+          }
+          if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+            isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+          }
+          isAlert = isOutOfRange;
+        }
+
+        return {
+          id: reading.id,
+          timestamp: reading.timestamp,
+          machineName: machine?.name || 'Unknown',
+          stationName: reading.stationName,
+          gaugeName: reading.gaugeName,
+          value: reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value,
+          unit: reading.unit,
+          status: isAlert ? 'Alert' : 'Normal',
+          username: reading.username,
+          ...(includeComments === 'true' && { comment: reading.comment }),
+          ...(includeImages === 'true' && { imageUrl: reading.imageUrl })
+        };
+      });
+
+      res.json(reportResults);
+    } catch (error) {
+      console.error('Error running report:', error);
+      res.status(500).json({ message: "Failed to run report" });
+    }
+  });
+
+  app.get("/api/reports/export", async (req: Request, res: Response) => {
+    try {
+      const {
+        machines = '',
+        stations = '',
+        gauges = '',
+        dateFrom,
+        dateTo,
+        statusFilter = 'all',
+        includeImages = 'true',
+        includeComments = 'true'
+      } = req.query;
+
+      // Reuse the same filtering logic as /api/reports/run
+      const machineIds = machines ? (machines as string).split(',').map(Number).filter(Boolean) : [];
+      const stationIds = stations ? (stations as string).split(',').map(Number).filter(Boolean) : [];
+      const gaugeIds = gauges ? (gauges as string).split(',').map(Number).filter(Boolean) : [];
+
+      let readings = await storage.getAllReadingsWithDetails();
+
+      // Apply the same filters as the run endpoint
+      if (machineIds.length > 0) {
+        const machineStations = await storage.getAllStations();
+        const validStationIds = machineStations
+          .filter(station => machineIds.includes(station.machineId))
+          .map(station => station.id);
+        readings = readings.filter(reading => validStationIds.includes(reading.stationId));
+      }
+
+      if (stationIds.length > 0) {
+        readings = readings.filter(reading => stationIds.includes(reading.stationId));
+      }
+
+      if (gaugeIds.length > 0) {
+        readings = readings.filter(reading => gaugeIds.includes(reading.gaugeId));
+      }
+
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom as string);
+        readings = readings.filter(reading => new Date(reading.timestamp) >= fromDate);
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo as string);
+        toDate.setHours(23, 59, 59, 999);
+        readings = readings.filter(reading => new Date(reading.timestamp) <= toDate);
+      }
+
+      if (statusFilter !== 'all') {
+        readings = readings.filter(reading => {
+          let isAlert = false;
+          
+          if (reading.gaugeType?.hasCondition) {
+            isAlert = reading.value > 0;
+          }
+          
+          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+            let isOutOfRange = false;
+            
+            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+            }
+            
+            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+            }
+            
+            isAlert = isOutOfRange;
+          }
+
+          return statusFilter === 'alert' ? isAlert : !isAlert;
+        });
+      }
+
+      // Get additional data for formatting
+      const allMachines = await storage.getAllMachines();
+      const machineMap = new Map(allMachines.map(m => [m.id, m]));
+      const allStations = await storage.getAllStations();
+      const stationMap = new Map(allStations.map(s => [s.id, s]));
+
+      // Create CSV content
+      const headers = [
+        'Timestamp',
+        'Machine',
+        'Station', 
+        'Gauge',
+        'Value',
+        'Unit',
+        'Status',
+        'User'
+      ];
+
+      if (includeComments === 'true') headers.push('Comment');
+      if (includeImages === 'true') headers.push('Image URL');
+
+      const csvRows = [headers.join(',')];
+
+      readings.forEach(reading => {
+        const station = stationMap.get(reading.stationId);
+        const machine = station ? machineMap.get(station.machineId) : null;
+        
+        let isAlert = false;
+        if (reading.gaugeType?.hasCondition) {
+          isAlert = reading.value > 0;
+        }
+        if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+          let isOutOfRange = false;
+          if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+            isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+          }
+          if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+            isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+          }
+          isAlert = isOutOfRange;
+        }
+
+        const row = [
+          `"${new Date(reading.timestamp).toLocaleString()}"`,
+          `"${machine?.name || 'Unknown'}"`,
+          `"${reading.stationName}"`,
+          `"${reading.gaugeName}"`,
+          `"${reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value}"`,
+          `"${reading.unit || ''}"`,
+          `"${isAlert ? 'Alert' : 'Normal'}"`,
+          `"${reading.username}"`
+        ];
+
+        if (includeComments === 'true') {
+          row.push(`"${reading.comment || ''}"`);
+        }
+        if (includeImages === 'true') {
+          row.push(`"${reading.imageUrl || ''}"`);
+        }
+
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.csv"`);
+      res.send(csvContent);
+
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      res.status(500).json({ message: "Failed to export report" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

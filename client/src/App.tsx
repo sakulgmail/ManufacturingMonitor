@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
+import { Reports } from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/history" component={() => <ProtectedRoute component={History} />} />
+      <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route component={NotFound} />
     </Switch>
