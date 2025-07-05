@@ -95,7 +95,7 @@ export function Reports() {
     }
   };
 
-  const exportToCSV = async () => {
+  const exportToFormat = async (exportFormat: 'csv' | 'excel') => {
     try {
       const queryParams = new URLSearchParams({
         machines: currentQuery.machines.join(','),
@@ -106,7 +106,7 @@ export function Reports() {
         statusFilter: currentQuery.statusFilter,
         includeImages: currentQuery.includeImages.toString(),
         includeComments: currentQuery.includeComments.toString(),
-        format: 'excel'
+        format: exportFormat
       });
 
       const response = await fetch(`/api/reports/export?${queryParams}`);
@@ -116,13 +116,14 @@ export function Reports() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.csv`;
+      const extension = exportFormat === 'excel' ? 'xlsx' : 'csv';
+      a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.${extension}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Error exporting to CSV:', error);
+      console.error(`Error exporting to ${exportFormat}:`, error);
     }
   };
 
@@ -297,27 +298,39 @@ export function Reports() {
             </div>
 
             {/* Options */}
-            <div className="flex gap-6">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includeImages"
-                  checked={currentQuery.includeImages}
-                  onCheckedChange={(checked) => 
-                    setCurrentQuery({ ...currentQuery, includeImages: !!checked })
-                  }
-                />
-                <Label htmlFor="includeImages">Include Images</Label>
+            <div className="space-y-4">
+              <div className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeImages"
+                    checked={currentQuery.includeImages}
+                    onCheckedChange={(checked) => 
+                      setCurrentQuery({ ...currentQuery, includeImages: !!checked })
+                    }
+                  />
+                  <Label htmlFor="includeImages">Include Images</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeComments"
+                    checked={currentQuery.includeComments}
+                    onCheckedChange={(checked) => 
+                      setCurrentQuery({ ...currentQuery, includeComments: !!checked })
+                    }
+                  />
+                  <Label htmlFor="includeComments">Include Comments</Label>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includeComments"
-                  checked={currentQuery.includeComments}
-                  onCheckedChange={(checked) => 
-                    setCurrentQuery({ ...currentQuery, includeComments: !!checked })
-                  }
-                />
-                <Label htmlFor="includeComments">Include Comments</Label>
-              </div>
+              
+              {currentQuery.includeImages && (
+                <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
+                  <strong>Image Export Options:</strong>
+                  <ul className="mt-1 space-y-1">
+                    <li>• <strong>CSV:</strong> Shows image URLs (links only)</li>
+                    <li>• <strong>Excel:</strong> Shows "Has Image" status and reading references for easier image tracking</li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
@@ -326,9 +339,13 @@ export function Reports() {
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Report"}
               </Button>
-              <Button onClick={exportToCSV} variant="outline" disabled={reportResults.length === 0}>
+              <Button onClick={() => exportToFormat('csv')} variant="outline" disabled={reportResults.length === 0}>
                 <Download className="h-4 w-4 mr-2" />
                 Export to CSV
+              </Button>
+              <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0}>
+                <Download className="h-4 w-4 mr-2" />
+                Export to Excel
               </Button>
               <Button onClick={saveQuery} variant="outline" disabled={!currentQuery.name}>
                 <Save className="h-4 w-4 mr-2" />

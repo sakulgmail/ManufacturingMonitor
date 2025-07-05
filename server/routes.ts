@@ -6,6 +6,7 @@ import session from "express-session";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
 import MemoryStore from "memorystore";
+import * as XLSX from 'xlsx';
 
 // Extend session interface to include our custom properties
 declare module 'express-session' {
@@ -848,7 +849,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dateTo,
         statusFilter = 'all',
         includeImages = 'true',
-        includeComments = 'true'
+        includeComments = 'true',
+        format = 'csv'
       } = req.query;
 
       // Reuse the same filtering logic as /api/reports/run
@@ -975,12 +977,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         csvRows.push(row.join(','));
       });
 
-      const csvContent = csvRows.join('\n');
+      if (format === 'excel') {
+        // Create Excel workbook with better image handling
+        const workbook = XLSX.utils.book_new();
+        
+        // Prepare data for Excel
+        const excelData = readings.map(reading => {
+          const station = stationMap.get(reading.stationId);
+          const machine = station ? machineMap.get(station.machineId) : null;
+          
+          let isAlert = false;
+          if (reading.gaugeType?.hasCondition) {
+            isAlert = reading.value > 0;
+          }
+          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+            let isOutOfRange = false;
+            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+            }
+            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+            }
+            isAlert = isOutOfRange;
+          }
 
-      // Set headers for file download
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.csv"`);
-      res.send(csvContent);
+          const rowData: any = {
+            'Timestamp': new Date(reading.timestamp).toLocaleString(),
+            'Machine': machine?.name || 'Unknown',
+            'Station': reading.stationName,
+            'Gauge': reading.gaugeName,
+            'Value': reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value,
+            'Unit': reading.unit || '',
+            'Status': isAlert ? 'Alert' : 'Normal',
+            'User': reading.username
+          };
+
+          if (includeComments === 'true') {
+            rowData['Comment'] = reading.comment || '';
+          }
+          
+          if (includeImages === 'true') {
+            // For Excel, provide a more user-friendly image reference
+            if (reading.imageUrl) {
+              rowData['Has Image'] = 'Yes';
+              rowData['Image Reference'] = `Reading_${reading.id}`;
+            } else {
+              rowData['Has Image'] = 'No';
+              rowData['Image Reference'] = '';
+            }
+          }
+
+          return rowData;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Manufacturing Report');
+
+        // Generate Excel buffer
+        const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        // Set headers for Excel download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.xlsx"`);
+        res.send(excelBuffer);
+      } else {
+        // CSV format - improve image handling
+        const csvContent = csvRows.join('\n');
+
+        // Set headers for CSV download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.csv"`);
+        res.send(csvContent);
+      }
 
     } catch (error) {
       console.error('Error exporting report:', error);
