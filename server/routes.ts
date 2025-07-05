@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import fs from 'fs';
 import path from 'path';
+import PDFDocument from 'pdfkit';
 
 // Extend session interface to include our custom properties
 declare module 'express-session' {
@@ -853,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         statusFilter = 'all',
         includeImages = 'true',
         includeComments = 'true',
-        format = 'csv'
+        format = 'excel'
       } = req.query;
 
       // Reuse the same filtering logic as /api/reports/run
@@ -1092,10 +1093,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate Excel buffer
       const buffer = await workbook.xlsx.writeBuffer();
 
-      // Set headers for Excel download
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.xlsx"`);
-      res.send(buffer);
+      if (format === 'pdf') {
+        // Create PDF with embedded images
+        const doc = new PDFDocument({ margin: 50 });
+        const chunks: Buffer[] = [];
+        
+        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('end', () => {
+          const pdfBuffer = Buffer.concat(chunks);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.pdf"`);
+          res.send(pdfBuffer);
+        });
+
+        // Add title
+        doc.fontSize(20).text('Manufacturing Report', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
+        doc.moveDown(2);
+
+        // Process each reading
+        for (const reading of readings) {
+          const station = stationMap.get(reading.stationId);
+          const machine = station ? machineMap.get(station.machineId) : null;
+          
+          let isAlert = false;
+          if (reading.gaugeType?.hasCondition) {
+            isAlert = reading.value > 0;
+          }
+          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+            let isOutOfRange = false;
+            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+            }
+            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+            }
+            isAlert = isOutOfRange;
+          }
+
+          // Add reading information
+          doc.fontSize(14).fillColor('black').text(`Reading #${reading.id}`, { underline: true });
+          doc.moveDown(0.5);
+          
+          doc.fontSize(10);
+          doc.text(`Timestamp: ${new Date(reading.timestamp).toLocaleString()}`);
+          doc.text(`Machine: ${machine?.name || 'Unknown'}`);
+          doc.text(`Station: ${reading.stationName}`);
+          doc.text(`Gauge: ${reading.gaugeName}`);
+          doc.text(`Value: ${reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value}`);
+          doc.text(`Unit: ${reading.unit || ''}`);
+          doc.text(`Status: ${isAlert ? 'Alert' : 'Normal'}`);
+          doc.text(`User: ${reading.username}`);
+          
+          if (includeComments === 'true' && reading.comment) {
+            doc.text(`Comment: ${reading.comment}`);
+          }
+
+          // Add image if available
+          if (includeImages === 'true' && reading.imageUrl) {
+            try {
+              const imagePath = reading.imageUrl.startsWith('/') ? 
+                path.join(process.cwd(), 'public', reading.imageUrl) : 
+                reading.imageUrl;
+              
+              if (reading.imageUrl.startsWith('/') && fs.existsSync(imagePath)) {
+                doc.moveDown(0.5);
+                doc.text('Image:');
+                doc.image(imagePath, { width: 200, height: 150 });
+              }
+            } catch (error) {
+              console.error('Error adding image to PDF:', error);
+              doc.text('Image: [Error loading image]');
+            }
+          }
+
+          doc.moveDown(1);
+          
+          // Add page break if needed (except for last reading)
+          if (readings.indexOf(reading) < readings.length - 1) {
+            if (doc.y > 600) { // Check if we need a new page
+              doc.addPage();
+            }
+          }
+        }
+
+        doc.end();
+      } else {
+        // Excel format (existing code)
+        // Set headers for Excel download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.xlsx"`);
+        res.send(buffer);
+      }
 
     } catch (error) {
       console.error('Error exporting report:', error);

@@ -95,7 +95,7 @@ export function Reports() {
     }
   };
 
-  const exportToFormat = async (exportFormat: 'csv' | 'excel') => {
+  const exportToFormat = async (exportFormat: 'excel' | 'pdf') => {
     try {
       const queryParams = new URLSearchParams({
         machines: currentQuery.machines.join(','),
@@ -106,7 +106,7 @@ export function Reports() {
         statusFilter: currentQuery.statusFilter,
         includeImages: currentQuery.includeImages.toString(),
         includeComments: currentQuery.includeComments.toString(),
-        format: 'excel'
+        format: exportFormat
       });
 
       const response = await fetch(`/api/reports/export?${queryParams}`);
@@ -116,7 +116,7 @@ export function Reports() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const extension = exportFormat === 'excel' ? 'xlsx' : 'csv';
+      const extension = exportFormat === 'excel' ? 'xlsx' : 'pdf';
       a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.${extension}`;
       document.body.appendChild(a);
       a.click();
@@ -324,7 +324,11 @@ export function Reports() {
               
               {currentQuery.includeImages && (
                 <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
-                  <strong>Image Export:</strong> Excel will include actual embedded images for each reading (when available)
+                  <strong>Image Export Options:</strong>
+                  <ul className="mt-1 space-y-1">
+                    <li>• <strong>Excel:</strong> Attempts to embed images in spreadsheet cells</li>
+                    <li>• <strong>PDF:</strong> Embeds actual images directly in the document for each reading</li>
+                  </ul>
                 </div>
               )}
             </div>
@@ -338,6 +342,10 @@ export function Reports() {
               <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0}>
                 <Download className="h-4 w-4 mr-2" />
                 Export to Excel
+              </Button>
+              <Button onClick={() => exportToFormat('pdf')} variant="outline" disabled={reportResults.length === 0}>
+                <Download className="h-4 w-4 mr-2" />
+                Export to PDF
               </Button>
               <Button onClick={saveQuery} variant="outline" disabled={!currentQuery.name}>
                 <Save className="h-4 w-4 mr-2" />
