@@ -95,7 +95,7 @@ export function Reports() {
     }
   };
 
-  const exportToExcel = async () => {
+  const exportToCSV = async () => {
     try {
       const queryParams = new URLSearchParams({
         machines: currentQuery.machines.join(','),
@@ -116,13 +116,13 @@ export function Reports() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.xlsx`;
+      a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Error exporting to Excel:', error);
+      console.error('Error exporting to CSV:', error);
     }
   };
 
@@ -326,9 +326,9 @@ export function Reports() {
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Report"}
               </Button>
-              <Button onClick={exportToExcel} variant="outline" disabled={reportResults.length === 0}>
+              <Button onClick={exportToCSV} variant="outline" disabled={reportResults.length === 0}>
                 <Download className="h-4 w-4 mr-2" />
-                Export to Excel
+                Export to CSV
               </Button>
               <Button onClick={saveQuery} variant="outline" disabled={!currentQuery.name}>
                 <Save className="h-4 w-4 mr-2" />
