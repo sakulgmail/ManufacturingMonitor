@@ -140,6 +140,14 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**July 5, 2025:**
+- CRITICAL FIX: Resolved image embedding issue in report exports
+- Fixed Excel export to properly handle base64 data URI images from database
+- Fixed PDF export to properly handle base64 data URI images from database
+- Added automatic image type detection from data URI headers
+- Images now embed properly in both Excel cells and PDF documents
+- Enhanced export functionality with comprehensive error handling and debugging
+
 **July 4, 2025:**
 - CRITICAL FIX: Resolved data integrity issue where new readings corrupted historical status data
 - Added condition column to readings table to preserve historical accuracy
