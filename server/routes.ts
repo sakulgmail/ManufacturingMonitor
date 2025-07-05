@@ -1057,10 +1057,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               path.join(process.cwd(), 'public', reading.imageUrl) : 
               reading.imageUrl;
             
-            if (reading.imageUrl.startsWith('/') && fs.existsSync(imagePath)) {
+            console.log('Excel: Processing image for reading', reading.id);
+            console.log('Excel: Original imageUrl:', reading.imageUrl);
+            console.log('Excel: Computed imagePath:', imagePath);
+            console.log('Excel: File exists:', fs.existsSync(imagePath));
+            
+            if (reading.imageUrl.startsWith('data:')) {
+              // Handle base64 data URI
+              const base64Data = reading.imageUrl.split(',')[1];
+              const imageBuffer = Buffer.from(base64Data, 'base64');
+              
+              // Determine image type from data URI
+              const mimeType = reading.imageUrl.split(';')[0].split(':')[1];
+              const extension = mimeType.split('/')[1];
+              
+              console.log('Excel: Detected image type:', extension);
+              
               const imageId = workbook.addImage({
-                filename: imagePath,
-                extension: path.extname(imagePath).slice(1) as any,
+                buffer: imageBuffer,
+                extension: extension as any,
               });
 
               // Calculate cell position for image column
@@ -1072,7 +1087,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
                 // Set row height to accommodate image
                 row.height = 75;
+                console.log('Excel: Image embedded successfully for reading', reading.id);
               }
+            } else {
+              console.log('Excel: Image is not a data URI, skipping');
             }
           } catch (error) {
             console.error('Error adding image to Excel:', error);
@@ -1153,17 +1171,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Add image if available
           if (includeImages === 'true' && reading.imageUrl) {
             try {
-              const imagePath = reading.imageUrl.startsWith('/') ? 
-                path.join(process.cwd(), 'public', reading.imageUrl) : 
-                reading.imageUrl;
+              console.log('PDF: Processing image for reading', reading.id);
+              console.log('PDF: Original imageUrl type:', typeof reading.imageUrl);
+              console.log('PDF: Original imageUrl starts with data:', reading.imageUrl.startsWith('data:'));
               
-              if (reading.imageUrl.startsWith('/') && fs.existsSync(imagePath)) {
+              if (reading.imageUrl.startsWith('data:')) {
+                // Handle base64 data URI
+                const base64Data = reading.imageUrl.split(',')[1];
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+                
                 doc.moveDown(0.5);
                 doc.text('Image:');
-                doc.image(imagePath, { width: 200, height: 150 });
+                doc.image(imageBuffer, { width: 200, height: 150 });
+                console.log('PDF: Image embedded successfully for reading', reading.id);
+              } else {
+                console.log('PDF: Image is not a data URI, skipping');
               }
             } catch (error) {
-              console.error('Error adding image to PDF:', error);
+              console.error('PDF: Error adding image:', error);
               doc.text('Image: [Error loading image]');
             }
           }
