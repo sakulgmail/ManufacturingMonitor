@@ -209,22 +209,31 @@ export function Reports() {
               <div>
                 <Label>Machines</Label>
                 <Select
-                  value={currentQuery.machines.length === 1 ? currentQuery.machines[0].toString() : ""}
+                  value={currentQuery.machines.length === 1 ? currentQuery.machines[0].toString() : "all"}
                   onValueChange={(value) => {
-                    const machineId = parseInt(value);
-                    setCurrentQuery({
-                      ...currentQuery,
-                      machines: [machineId],
-                      stations: [], // Reset dependent filters
-                      gauges: []
-                    });
+                    if (value === "all") {
+                      setCurrentQuery({
+                        ...currentQuery,
+                        machines: [],
+                        stations: [],
+                        gauges: []
+                      });
+                    } else {
+                      const machineId = parseInt(value);
+                      setCurrentQuery({
+                        ...currentQuery,
+                        machines: [machineId],
+                        stations: [], // Reset dependent filters
+                        gauges: []
+                      });
+                    }
                   }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select machine..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Machines</SelectItem>
+                    <SelectItem value="all">All Machines</SelectItem>
                     {machines.map((machine: any) => (
                       <SelectItem key={machine.id} value={machine.id.toString()}>
                         {machine.name}
@@ -237,21 +246,29 @@ export function Reports() {
               <div>
                 <Label>Stations</Label>
                 <Select
-                  value={currentQuery.stations.length === 1 ? currentQuery.stations[0].toString() : ""}
+                  value={currentQuery.stations.length === 1 ? currentQuery.stations[0].toString() : "all"}
                   onValueChange={(value) => {
-                    const stationId = parseInt(value);
-                    setCurrentQuery({
-                      ...currentQuery,
-                      stations: [stationId],
-                      gauges: [] // Reset dependent filters
-                    });
+                    if (value === "all") {
+                      setCurrentQuery({
+                        ...currentQuery,
+                        stations: [],
+                        gauges: []
+                      });
+                    } else {
+                      const stationId = parseInt(value);
+                      setCurrentQuery({
+                        ...currentQuery,
+                        stations: [stationId],
+                        gauges: [] // Reset dependent filters
+                      });
+                    }
                   }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select station..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Stations</SelectItem>
+                    <SelectItem value="all">All Stations</SelectItem>
                     {getFilteredStations().map((station: any) => (
                       <SelectItem key={station.id} value={station.id.toString()}>
                         {station.name}
