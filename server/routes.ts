@@ -7,6 +7,9 @@ import bcrypt from "bcrypt";
 import { ZodError } from "zod";
 import MemoryStore from "memorystore";
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import fs from 'fs';
+import path from 'path';
 
 // Extend session interface to include our custom properties
 declare module 'express-session' {
@@ -977,78 +980,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
         csvRows.push(row.join(','));
       });
 
-      if (format === 'excel') {
-        // Create Excel workbook with better image handling
-        const workbook = XLSX.utils.book_new();
-        
-        // Prepare data for Excel
-        const excelData = readings.map(reading => {
-          const station = stationMap.get(reading.stationId);
-          const machine = station ? machineMap.get(station.machineId) : null;
-          
-          let isAlert = false;
-          if (reading.gaugeType?.hasCondition) {
-            isAlert = reading.value > 0;
-          }
-          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
-            let isOutOfRange = false;
-            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
-              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
-            }
-            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
-              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
-            }
-            isAlert = isOutOfRange;
-          }
+      // Create Excel workbook with embedded images using ExcelJS
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Manufacturing Report');
 
-          const rowData: any = {
-            'Timestamp': new Date(reading.timestamp).toLocaleString(),
-            'Machine': machine?.name || 'Unknown',
-            'Station': reading.stationName,
-            'Gauge': reading.gaugeName,
-            'Value': reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value,
-            'Unit': reading.unit || '',
-            'Status': isAlert ? 'Alert' : 'Normal',
-            'User': reading.username
-          };
+      // Define columns
+      const columns: any[] = [
+        { header: 'Timestamp', key: 'timestamp', width: 20 },
+        { header: 'Machine', key: 'machine', width: 15 },
+        { header: 'Station', key: 'station', width: 20 },
+        { header: 'Gauge', key: 'gauge', width: 20 },
+        { header: 'Value', key: 'value', width: 12 },
+        { header: 'Unit', key: 'unit', width: 10 },
+        { header: 'Status', key: 'status', width: 10 },
+        { header: 'User', key: 'user', width: 15 }
+      ];
 
-          if (includeComments === 'true') {
-            rowData['Comment'] = reading.comment || '';
-          }
-          
-          if (includeImages === 'true') {
-            // For Excel, provide a more user-friendly image reference
-            if (reading.imageUrl) {
-              rowData['Has Image'] = 'Yes';
-              rowData['Image Reference'] = `Reading_${reading.id}`;
-            } else {
-              rowData['Has Image'] = 'No';
-              rowData['Image Reference'] = '';
-            }
-          }
-
-          return rowData;
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Manufacturing Report');
-
-        // Generate Excel buffer
-        const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-
-        // Set headers for Excel download
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.xlsx"`);
-        res.send(excelBuffer);
-      } else {
-        // CSV format - improve image handling
-        const csvContent = csvRows.join('\n');
-
-        // Set headers for CSV download
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.csv"`);
-        res.send(csvContent);
+      if (includeComments === 'true') {
+        columns.push({ header: 'Comment', key: 'comment', width: 30 });
       }
+
+      if (includeImages === 'true') {
+        columns.push({ header: 'Image', key: 'image', width: 20 });
+      }
+
+      worksheet.columns = columns;
+
+      // Add data rows with images
+      for (let i = 0; i < readings.length; i++) {
+        const reading = readings[i];
+        const station = stationMap.get(reading.stationId);
+        const machine = station ? machineMap.get(station.machineId) : null;
+        
+        let isAlert = false;
+        if (reading.gaugeType?.hasCondition) {
+          isAlert = reading.value > 0;
+        }
+        if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
+          let isOutOfRange = false;
+          if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
+            isOutOfRange = isOutOfRange || reading.value < reading.minValue;
+          }
+          if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
+            isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
+          }
+          isAlert = isOutOfRange;
+        }
+
+        const rowData: any = {
+          timestamp: new Date(reading.timestamp).toLocaleString(),
+          machine: machine?.name || 'Unknown',
+          station: reading.stationName,
+          gauge: reading.gaugeName,
+          value: reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value,
+          unit: reading.unit || '',
+          status: isAlert ? 'Alert' : 'Normal',
+          user: reading.username
+        };
+
+        if (includeComments === 'true') {
+          rowData.comment = reading.comment || '';
+        }
+
+        if (includeImages === 'true') {
+          rowData.image = reading.imageUrl ? 'Image attached' : 'No image';
+        }
+
+        const row = worksheet.addRow(rowData);
+        
+        // Add image if available and images are included
+        if (includeImages === 'true' && reading.imageUrl) {
+          try {
+            // Check if image file exists (for local files)
+            const imagePath = reading.imageUrl.startsWith('/') ? 
+              path.join(process.cwd(), 'public', reading.imageUrl) : 
+              reading.imageUrl;
+            
+            if (reading.imageUrl.startsWith('/') && fs.existsSync(imagePath)) {
+              const imageId = workbook.addImage({
+                filename: imagePath,
+                extension: path.extname(imagePath).slice(1) as any,
+              });
+
+              // Calculate cell position for image column
+              const imageColumnIndex = columns.findIndex(col => col.key === 'image');
+              if (imageColumnIndex >= 0) {
+                worksheet.addImage(imageId, {
+                  tl: { col: imageColumnIndex, row: i + 1 }, // +1 because header is row 0
+                  ext: { width: 100, height: 75 }
+                });
+                // Set row height to accommodate image
+                row.height = 75;
+              }
+            }
+          } catch (error) {
+            console.error('Error adding image to Excel:', error);
+            // Continue without the image
+          }
+        }
+      }
+
+      // Style the header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE6E6FA' }
+      };
+
+      // Generate Excel buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // Set headers for Excel download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.xlsx"`);
+      res.send(buffer);
 
     } catch (error) {
       console.error('Error exporting report:', error);

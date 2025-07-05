@@ -106,7 +106,7 @@ export function Reports() {
         statusFilter: currentQuery.statusFilter,
         includeImages: currentQuery.includeImages.toString(),
         includeComments: currentQuery.includeComments.toString(),
-        format: exportFormat
+        format: 'excel'
       });
 
       const response = await fetch(`/api/reports/export?${queryParams}`);
@@ -324,11 +324,7 @@ export function Reports() {
               
               {currentQuery.includeImages && (
                 <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
-                  <strong>Image Export Options:</strong>
-                  <ul className="mt-1 space-y-1">
-                    <li>• <strong>CSV:</strong> Shows image URLs (links only)</li>
-                    <li>• <strong>Excel:</strong> Shows "Has Image" status and reading references for easier image tracking</li>
-                  </ul>
+                  <strong>Image Export:</strong> Excel will include actual embedded images for each reading (when available)
                 </div>
               )}
             </div>
@@ -338,10 +334,6 @@ export function Reports() {
               <Button onClick={runReport} disabled={isRunning}>
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Report"}
-              </Button>
-              <Button onClick={() => exportToFormat('csv')} variant="outline" disabled={reportResults.length === 0}>
-                <Download className="h-4 w-4 mr-2" />
-                Export to CSV
               </Button>
               <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0}>
                 <Download className="h-4 w-4 mr-2" />
