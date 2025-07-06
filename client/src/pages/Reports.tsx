@@ -430,9 +430,25 @@ export function Reports() {
                         {currentQuery.includeImages && (
                           <td className="px-4 py-2">
                             {result.imageUrl ? (
-                              <a href={result.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                View
-                              </a>
+                              <img 
+                                src={result.imageUrl} 
+                                alt="Gauge reading" 
+                                className="w-16 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                                onClick={() => {
+                                  // Create a modal or new window to show full-size image
+                                  const newWindow = window.open();
+                                  if (newWindow) {
+                                    newWindow.document.write(`
+                                      <html>
+                                        <head><title>Gauge Image</title></head>
+                                        <body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+                                          <img src="${result.imageUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="Gauge reading"/>
+                                        </body>
+                                      </html>
+                                    `);
+                                  }
+                                }}
+                              />
                             ) : '-'}
                           </td>
                         )}
