@@ -61,54 +61,58 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
   }, [station]);
 
   return (
-    <div className="station-card bg-white rounded-lg shadow" id={`station-${station.id}`}>
+    <div className="station-card bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden" id={`station-${station.id}`}>
       <div 
-        className="station-header p-4 cursor-pointer flex justify-between items-center"
+        className="station-header p-6 cursor-pointer flex justify-between items-center hover:bg-white/50 transition-colors duration-200"
         onClick={onToggleExpand}
       >
         <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 12a5 5 0 0 0-5-5m5 5a5 5 0 0 1-5 5m5-5H3m14-5-3-3m3 3-3 3"/>
-          </svg>
-          <h3 className="text-xl font-semibold">{station.name}</h3>
+          <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 12a5 5 0 0 0-5-5m5 5a5 5 0 0 1-5 5m5-5H3m14-5-3-3m3 3-3 3"/>
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">{station.name}</h3>
         </div>
         <div className="flex items-center">
           {stationStatus.hasAlerts ? (
-            <span className="flex items-center text-error-600 mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <span className="flex items-center text-red-600 mr-4 bg-red-50 px-3 py-2 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                 <line x1="12" y1="9" x2="12" y2="13"></line>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
-              <span>{stationStatus.alertCount} {stationStatus.alertCount === 1 ? 'Alert' : 'Alerts'}</span>
+              <span className="font-semibold">{stationStatus.alertCount} {stationStatus.alertCount === 1 ? 'Alert' : 'Alerts'}</span>
             </span>
           ) : (
-            <span className="flex items-center text-success-600 mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <span className="flex items-center text-emerald-600 mr-4 bg-emerald-50 px-3 py-2 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-              <span>All Normal</span>
+              <span className="font-semibold">All Normal</span>
             </span>
           )}
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-6 w-6 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className={`h-5 w-5 text-gray-600 transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
         </div>
       </div>
       
       {isExpanded && (
-        <div className="station-gauges p-4 pt-0 border-t">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="station-gauges bg-gradient-to-br from-gray-50/50 to-blue-50/50 p-6 border-t border-white/20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {station.gauges.sort((a, b) => {
               // Extract the number from the start of the gauge name for proper sorting
               const getNumberFromName = (name: string) => {
@@ -126,12 +130,19 @@ export default function StationCard({ station, isExpanded, onToggleExpand }: Sta
           </div>
           
           {/* Station History */}
-          <div className="mt-6 border-t pt-4">
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-semibold text-lg">Recent History</h4>
-              <button className="text-primary-600 hover:text-primary-700 flex items-center">
-                <span>View All</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="mt-8 border-t border-white/20 pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h4 className="font-bold text-lg text-gray-900">Recent History</h4>
+              </div>
+              <button className="text-blue-600 hover:text-blue-700 flex items-center bg-blue-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                <span className="font-medium">View All</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </button>

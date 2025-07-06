@@ -45,7 +45,7 @@ export default function StationsList({ stations, isLoading = false, selectedStat
     return (
       <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-4 h-24 animate-pulse"></div>
+          <div key={index} className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 h-32 animate-pulse"></div>
         ))}
       </div>
     );

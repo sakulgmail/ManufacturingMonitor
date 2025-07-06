@@ -50,30 +50,38 @@ export default function Dashboard() {
     .filter(station => !selectedMachineId || station.machineId === selectedMachineId);
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <NavigationTabs activeTab="dashboard" />
       
-      <MachineOverview 
-        machines={machines} 
-        isLoading={machinesLoading} 
-        onMachineSelect={setSelectedMachineId}
-      />
-      
-      {selectedMachineId && (
-        <StatusOverview 
-          stations={filteredStations} 
-          isLoading={stationsLoading} 
-          onStationSelect={setSelectedStationId}
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+        {/* Header Section */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Production Dashboard</h1>
+          <p className="text-gray-600">Monitor machine status and gauge readings in real-time</p>
+        </div>
+        
+        <MachineOverview 
+          machines={machines} 
+          isLoading={machinesLoading} 
+          onMachineSelect={setSelectedMachineId}
         />
-      )}
-      
-      {selectedMachineId && (
-        <StationsList 
-          stations={filteredStations} 
-          isLoading={stationsLoading} 
-          selectedStationId={selectedStationId} 
-        />
-      )}
-    </>
+        
+        {selectedMachineId && (
+          <StatusOverview 
+            stations={filteredStations} 
+            isLoading={stationsLoading} 
+            onStationSelect={setSelectedStationId}
+          />
+        )}
+        
+        {selectedMachineId && (
+          <StationsList 
+            stations={filteredStations} 
+            isLoading={stationsLoading} 
+            selectedStationId={selectedStationId} 
+          />
+        )}
+      </div>
+    </div>
   );
 }
