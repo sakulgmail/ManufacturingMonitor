@@ -185,12 +185,13 @@ export default function History() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reading</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {sortedReadings.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                       No readings match your filter criteria.
                     </td>
                   </tr>
@@ -243,6 +244,31 @@ export default function History() {
                           </span>
                         </td>
                         <td className="px-6 py-3">{reading.username}</td>
+                        <td className="px-6 py-3">
+                          {reading.imageUrl ? (
+                            <img 
+                              src={reading.imageUrl} 
+                              alt="Gauge reading" 
+                              className="w-16 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => {
+                                // Create a modal or new window to show full-size image
+                                const newWindow = window.open();
+                                if (newWindow) {
+                                  newWindow.document.write(`
+                                    <html>
+                                      <head><title>Gauge Image</title></head>
+                                      <body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+                                        <img src="${reading.imageUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="Gauge reading"/>
+                                      </body>
+                                    </html>
+                                  `);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })
