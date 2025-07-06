@@ -96,11 +96,18 @@ export default function StatusOverview({ stations, isLoading = false, onStationS
 
   if (isLoading) {
     return (
-      <div className="mb-6 bg-white rounded-lg shadow p-4">
-        <h2 className="text-xl font-semibold mb-4">Station Status Overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Station Status Overview</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, index) => (
-            <div key={index} className="bg-gray-100 rounded p-3 h-20 animate-pulse"></div>
+            <div key={index} className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 h-24 animate-pulse"></div>
           ))}
         </div>
       </div>
@@ -108,52 +115,59 @@ export default function StatusOverview({ stations, isLoading = false, onStationS
   }
 
   return (
-    <div className="mb-6 bg-white rounded-lg shadow p-4">
-      <h2 className="text-xl font-semibold mb-4">Station Status Overview</h2>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Station Status Overview</h2>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {stationStatuses.map((station) => (
           <button 
             key={station.id}
             onClick={() => onStationSelect?.(station.id)}
             className={`${
               station.hasAlerts 
-                ? "bg-red-50 border border-error-500 hover:bg-red-100" 
-                : "bg-green-50 border border-success-500 hover:bg-green-100"
-            } rounded p-3 flex flex-col items-center transition-colors duration-200 hover:shadow-md cursor-pointer`}
+                ? "bg-gradient-to-br from-red-50 to-rose-100 border-2 border-red-300 hover:from-red-100 hover:to-rose-200 hover:border-red-400 shadow-lg shadow-red-100" 
+                : "bg-gradient-to-br from-emerald-50 to-green-100 border-2 border-emerald-300 hover:from-emerald-100 hover:to-green-200 hover:border-emerald-400 shadow-lg shadow-emerald-100"
+            } rounded-xl p-4 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer transform`}
           >
             <div className={`${
-              station.hasAlerts ? "text-error-700" : "text-success-700"
-            } font-semibold text-center`}>
+              station.hasAlerts ? "text-red-700" : "text-emerald-700"
+            } font-bold text-center text-sm mb-2`}>
               {station.name}
             </div>
             <div className={`${
-              station.hasAlerts ? "text-error-600" : "text-success-600"
-            } flex items-center mb-2`}>
+              station.hasAlerts ? "text-red-600" : "text-emerald-600"
+            } flex items-center mb-3`}>
               {station.hasAlerts ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                     <line x1="12" y1="9" x2="12" y2="13"></line>
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                   </svg>
-                  <span className="text-xs">{station.alertCount} Alert{station.alertCount !== 1 ? 's' : ''}</span>
+                  <span className="text-xs font-semibold">{station.alertCount} Alert{station.alertCount !== 1 ? 's' : ''}</span>
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
-                  <span className="text-xs">All Normal</span>
+                  <span className="text-xs font-semibold">All Normal</span>
                 </>
               )}
             </div>
-            <div className="text-xs text-center">
+            <div className="text-xs text-center bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1">
               <div className="font-medium mb-1">Last update:</div>
-              <div className={`${
-                station.updateStatus === 'recent' ? 'text-green-600' :
-                station.updateStatus === 'old' ? 'text-red-600' :
-                'text-red-600'
+              <div className={`font-mono text-xs ${
+                station.updateStatus === 'recent' ? 'text-green-700' :
+                station.updateStatus === 'old' ? 'text-red-700' :
+                'text-red-700'
               }`}>
                 {station.updateStatus === 'unknown' ? 'Unknown' :
                  station.lastUpdate ? station.lastUpdate.toLocaleDateString('en-CA') + ' ' + 
