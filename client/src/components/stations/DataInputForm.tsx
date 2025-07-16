@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Station, Gauge, StaffMember, InsertReading } from "@/lib/types";
+import { Station, Gauge, StaffMember, InsertReading, Machine } from "@/lib/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ interface DataInputFormProps {
 export default function DataInputForm({ onClose }: DataInputFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(null);
   const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
   const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(null);
   const [readingValue, setReadingValue] = useState<number | string>("");
@@ -23,13 +24,32 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch all machines
+  const { data: machinesData = [] } = useQuery<Machine[]>({
+    queryKey: ['/api/machines'],
+  });
+
+  // Sort machines by machine number (MACH01, MACH02, etc.)
+  const allMachines = [...machinesData].sort((a, b) => {
+    const getMachineNumber = (name: string) => {
+      const match = name.match(/MACH(\d+)/);
+      return match ? parseInt(match[1]) : 999;
+    };
+    return getMachineNumber(a.name) - getMachineNumber(b.name);
+  });
+
   // Fetch all stations with their gauges
   const { data: allStations = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],
   });
   
-  // Use all stations and sort in ascending order by the number in station name
-  const uniqueStations = [...allStations].sort((a, b) => {
+  // Filter stations by selected machine
+  const filteredStations = selectedMachineId 
+    ? allStations.filter((station: Station) => station.machineId === selectedMachineId)
+    : [];
+  
+  // Sort stations in ascending order by the number in station name
+  const sortedStations = [...filteredStations].sort((a, b) => {
     const getNumberFromName = (name: string) => {
       const match = name.match(/^(\d+)\./);
       return match ? parseInt(match[1]) : 999;
@@ -41,7 +61,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   
   // Get the selected station
   const selectedStation = selectedStationId 
-    ? allStations.find((station: Station) => station.id === selectedStationId)
+    ? sortedStations.find((station: Station) => station.id === selectedStationId)
     : null;
     
   // Get gauges from the selected station and sort in ascending order by the number in gauge name
@@ -52,6 +72,15 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
     };
     return getNumberFromName(a.name) - getNumberFromName(b.name);
   }) : [];
+
+  // Handler for machine selection change
+  const handleMachineChange = (machineId: number | null) => {
+    setSelectedMachineId(machineId);
+    setSelectedStationId(null); // Reset station when machine changes
+    setSelectedGaugeId(null); // Reset gauge when machine changes
+    setReadingValue("");
+    setCondition("");
+  };
 
   // Get the selected gauge details
   const selectedGauge = selectedGaugeId 
@@ -193,10 +222,10 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedStationId || !selectedGaugeId) {
+    if (!selectedMachineId || !selectedStationId || !selectedGaugeId) {
       toast({
         title: "Missing Information",
-        description: "Please select a station and gauge.",
+        description: "Please select a machine, station, and gauge.",
         variant: "destructive",
       });
       return;
@@ -258,7 +287,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   };
 
   // For debugging
-  console.log("All stations ordered:", uniqueStations.map(s => ({ id: s.id, name: s.name })));
+  console.log("All stations ordered:", sortedStations.map(s => ({ id: s.id, name: s.name })));
   console.log("Selected station:", selectedStation);
   console.log("Station gauges:", stationGauges);
 
@@ -267,6 +296,26 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       <h2 className="text-xl font-bold mb-4">Enter New Reading</h2>
       
       <form onSubmit={handleSubmit}>
+        {/* Machine Selection */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select Machine
+          </label>
+          <select
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={selectedMachineId || ""}
+            onChange={(e) => handleMachineChange(e.target.value ? parseInt(e.target.value) : null)}
+            required
+          >
+            <option value="">-- Select Machine --</option>
+            {allMachines.map((machine: Machine) => (
+              <option key={machine.id} value={machine.id}>
+                {machine.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Station Selection */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -277,9 +326,10 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             value={selectedStationId || ""}
             onChange={handleStationChange}
             required
+            disabled={!selectedMachineId}
           >
             <option value="">-- Select Station --</option>
-            {uniqueStations.map((station: Station) => (
+            {sortedStations.map((station: Station) => (
               <option key={station.id} value={station.id}>
                 {station.name}
               </option>
