@@ -25,8 +25,17 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all machines
-  const { data: allMachines = [] } = useQuery<Machine[]>({
+  const { data: machinesData = [] } = useQuery<Machine[]>({
     queryKey: ['/api/machines'],
+  });
+
+  // Sort machines by machine number (MACH01, MACH02, etc.)
+  const allMachines = [...machinesData].sort((a, b) => {
+    const getMachineNumber = (name: string) => {
+      const match = name.match(/MACH(\d+)/);
+      return match ? parseInt(match[1]) : 999;
+    };
+    return getMachineNumber(a.name) - getMachineNumber(b.name);
   });
 
   // Fetch all stations with their gauges
