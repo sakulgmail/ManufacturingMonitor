@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Define custom types for our application
-export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
+export type MachineStatus = 'RUNNING' | 'STOP' | 'Require Morning Check' | 'Out of Order';
 export type GaugeCondition = 'Good condition' | 'Problem';
 
 // Define the machines table

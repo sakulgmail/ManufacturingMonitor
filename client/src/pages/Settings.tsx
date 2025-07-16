@@ -639,7 +639,7 @@ export default function Settings() {
                         >
                           <option value="RUNNING">RUNNING</option>
                           <option value="STOP">STOP</option>
-                          <option value="During Maintenance">During Maintenance</option>
+                          <option value="Require Morning Check">Require Morning Check</option>
                           <option value="Out of Order">Out of Order</option>
                         </select>
                       </div>
@@ -742,7 +742,7 @@ export default function Settings() {
                                     >
                                       <option value="RUNNING">RUNNING</option>
                                       <option value="STOP">STOP</option>
-                                      <option value="During Maintenance">During Maintenance</option>
+                                      <option value="Require Morning Check">Require Morning Check</option>
                                       <option value="Out of Order">Out of Order</option>
                                     </select>
                                   </div>

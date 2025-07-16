@@ -1,5 +1,5 @@
 // Types for our application
-export type MachineStatus = 'RUNNING' | 'STOP' | 'During Maintenance' | 'Out of Order';
+export type MachineStatus = 'RUNNING' | 'STOP' | 'Require Morning Check' | 'Out of Order';
 export type GaugeCondition = 'Good condition' | 'Problem';
 
 export interface GaugeType {
