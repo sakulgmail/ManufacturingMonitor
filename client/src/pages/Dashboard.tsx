@@ -230,10 +230,10 @@ export default function Dashboard() {
                             <p className="text-sm text-gray-600">{machine.machineNo}</p>
                           </div>
                         </div>
-                        <div className="flex-1 grid grid-cols-2 gap-4">
-                          <div className="flex flex-col">
+                        <div className="flex-1 grid grid-cols-2 gap-6">
+                          <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Machine Status</span>
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium text-center ${
+                            <div className={`px-4 py-2 rounded-full text-sm font-medium min-w-[120px] text-center ${
                               isRunning 
                                 ? 'bg-emerald-100 text-emerald-800' 
                                 : 'bg-gray-100 text-gray-800'
@@ -244,9 +244,9 @@ export default function Dashboard() {
                                machine.status === 'Out of Order' ? 'Out of Order' : machine.status}
                             </div>
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Gauge Status</span>
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium text-center ${
+                            <div className={`px-4 py-2 rounded-full text-sm font-medium min-w-[120px] text-center ${
                               gaugeStatus === 'alert' 
                                 ? 'bg-red-100 text-red-800' 
                                 : 'bg-emerald-100 text-emerald-800'
