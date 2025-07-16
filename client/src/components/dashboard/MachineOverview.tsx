@@ -13,7 +13,7 @@ const getStatusColor = (status: MachineStatus) => {
       return 'bg-gradient-to-br from-emerald-50 to-green-100 border-2 border-emerald-300 text-emerald-700 hover:from-emerald-100 hover:to-green-200 hover:border-emerald-400 shadow-lg shadow-emerald-100';
     case 'STOP':
       return 'bg-gradient-to-br from-slate-50 to-gray-100 border-2 border-slate-300 text-slate-600 hover:from-slate-100 hover:to-gray-200 hover:border-slate-400 shadow-lg shadow-slate-100';
-    case 'During Maintenance':
+    case 'Require Morning Check':
       return 'bg-gradient-to-br from-yellow-50 to-orange-100 border-2 border-yellow-300 text-yellow-700 hover:from-yellow-100 hover:to-orange-200 hover:border-yellow-400 shadow-lg shadow-yellow-100';
     case 'Out of Order':
       return 'bg-gradient-to-br from-red-50 to-rose-100 border-2 border-red-300 text-red-700 hover:from-red-100 hover:to-rose-200 hover:border-red-400 shadow-lg shadow-red-100';
