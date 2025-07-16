@@ -5,7 +5,8 @@ import {
   Gauge, InsertGauge,
   Reading, InsertReading,
   User, InsertUser,
-  machines, stations, gaugeTypes, gauges, readings, users
+  SystemSettings, InsertSystemSettings,
+  machines, stations, gaugeTypes, gauges, readings, users, systemSettings
 } from "@shared/schema";
 
 // Helper function to ensure date values are stored as strings
@@ -69,6 +70,16 @@ export interface IStorage {
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
   updateUserPassword(id: number, hashedPassword: string): Promise<User>;
+  
+  // System Settings
+  getSystemSetting(key: string): Promise<SystemSettings | undefined>;
+  getAllSystemSettings(): Promise<SystemSettings[]>;
+  createSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings>;
+  updateSystemSetting(key: string, value: string, enabled?: boolean): Promise<SystemSettings>;
+  deleteSystemSetting(key: string): Promise<void>;
+  
+  // Machine Status Reset
+  resetAllMachineStatus(): Promise<void>;
   
   // Initialize test data
   initializeTestData(): Promise<void>;
@@ -541,6 +552,39 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  // System Settings (stub implementation for MemStorage)
+  async getSystemSetting(key: string): Promise<SystemSettings | undefined> {
+    // Not implemented in MemStorage
+    return undefined;
+  }
+
+  async getAllSystemSettings(): Promise<SystemSettings[]> {
+    // Not implemented in MemStorage
+    return [];
+  }
+
+  async createSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings> {
+    // Not implemented in MemStorage
+    throw new Error("System settings not implemented in MemStorage");
+  }
+
+  async updateSystemSetting(key: string, value: string, enabled?: boolean): Promise<SystemSettings> {
+    // Not implemented in MemStorage
+    throw new Error("System settings not implemented in MemStorage");
+  }
+
+  async deleteSystemSetting(key: string): Promise<void> {
+    // Not implemented in MemStorage
+    throw new Error("System settings not implemented in MemStorage");
+  }
+
+  // Machine Status Reset
+  async resetAllMachineStatus(): Promise<void> {
+    this.machines.forEach(machine => {
+      machine.status = "Require Morning Check";
+    });
   }
 
   // Initialize test data for the application

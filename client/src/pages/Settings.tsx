@@ -18,7 +18,7 @@ const icons = {
 export default function Settings() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "gauge-types" | "users">("app");
+  const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "gauge-types" | "users" | "reset-time">("app");
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);
@@ -94,6 +94,11 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
 
+  // Machine Status Reset Time state
+  const [resetTimeEnabled, setResetTimeEnabled] = useState(false);
+  const [resetTime, setResetTime] = useState("07:00");
+  const [resetTimeLoading, setResetTimeLoading] = useState(false);
+
   // Local ordering state for manual arrangement
   const [localMachines, setLocalMachines] = useState<Machine[]>([]);
   const [localStations, setLocalStations] = useState<Station[]>([]);
@@ -125,6 +130,12 @@ export default function Settings() {
   // Fetch gauges data (admin only)
   const { data: gaugesData = [] } = useQuery<any[]>({
     queryKey: ['/api/gauges'],
+    enabled: user?.isAdmin === true,
+  });
+
+  // Fetch system settings (admin only)
+  const { data: systemSettings = [], refetch: refetchSystemSettings } = useQuery<any[]>({
+    queryKey: ['/api/system-settings'],
     enabled: user?.isAdmin === true,
   });
 
@@ -179,6 +190,17 @@ export default function Settings() {
   const stations = localStations;
   const gaugeTypes = localGaugeTypes;
   const gauges = localGauges;
+
+  // Initialize reset time settings from system settings
+  useEffect(() => {
+    if (systemSettings.length > 0) {
+      const resetTimeSetting = systemSettings.find(s => s.key === 'machine_reset_time');
+      if (resetTimeSetting) {
+        setResetTimeEnabled(resetTimeSetting.enabled);
+        setResetTime(resetTimeSetting.value);
+      }
+    }
+  }, [systemSettings]);
 
   // Move item up/down handlers
   const moveItemUp = (index: number, type: 'machines' | 'stations' | 'gaugeTypes' | 'gauges') => {
@@ -458,6 +480,52 @@ export default function Settings() {
     }
   });
 
+  // System Settings mutations
+  const updateSystemSettingMutation = useMutation({
+    mutationFn: async ({ key, value, enabled }: { key: string; value: string; enabled: boolean }) => {
+      const existingSetting = systemSettings.find(s => s.key === key);
+      if (existingSetting) {
+        return apiRequest('PUT', `/api/system-settings/${key}`, { value, enabled });
+      } else {
+        return apiRequest('POST', '/api/system-settings', { key, value, enabled });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
+      toast({ title: "Success", description: "System setting updated successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update system setting.", variant: "destructive" });
+    }
+  });
+
+  // Machine Status Reset mutation
+  const resetMachineStatusMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/machines/reset-status');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      toast({ title: "Success", description: "All machine statuses reset to 'Require Morning Check'." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to reset machine statuses.", variant: "destructive" });
+    }
+  });
+
+  // Handle reset time settings save
+  const handleResetTimeSubmit = () => {
+    setResetTimeLoading(true);
+    updateSystemSettingMutation.mutate(
+      { key: 'machine_reset_time', value: resetTime, enabled: resetTimeEnabled },
+      {
+        onSettled: () => {
+          setResetTimeLoading(false);
+        }
+      }
+    );
+  };
+
 
 
   // Load settings from local storage on component mount
@@ -581,6 +649,17 @@ export default function Settings() {
                 >
                   <Users className="h-4 w-4 inline mr-2" />
                   Manage Users
+                </button>
+                <button
+                  onClick={() => setActiveTab("reset-time")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "reset-time"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <Key className="h-4 w-4 inline mr-2" />
+                  Machine Status Reset Time
                 </button>
               </nav>
             </div>
@@ -1888,6 +1967,78 @@ export default function Settings() {
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Machine Status Reset Time Tab */}
+            {activeTab === "reset-time" && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-6">Machine Status Reset Time</h2>
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      This feature allows you to automatically reset all machine statuses to "Require Morning Check" at a specified time each day. 
+                      This ensures daily maintenance checks are performed consistently.
+                    </p>
+                  </div>
+
+                  {/* Enable/Disable Feature */}
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="reset-time-enabled"
+                      type="checkbox"
+                      checked={resetTimeEnabled}
+                      onChange={(e) => setResetTimeEnabled(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="reset-time-enabled" className="block text-sm font-medium text-gray-700">
+                      Enable automatic machine status reset
+                    </label>
+                  </div>
+
+                  {/* Time Setting */}
+                  <div className={`space-y-3 ${!resetTimeEnabled ? 'opacity-50' : ''}`}>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Reset Time (24-hour format)
+                    </label>
+                    <input
+                      type="time"
+                      value={resetTime}
+                      onChange={(e) => setResetTime(e.target.value)}
+                      disabled={!resetTimeEnabled}
+                      className="w-48 border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100"
+                    />
+                    <p className="text-xs text-gray-500">
+                      All machines will be reset to "Require Morning Check" at this time daily
+                    </p>
+                  </div>
+
+                  {/* Manual Reset Button */}
+                  <div className="border-t pt-6">
+                    <h3 className="text-md font-medium text-gray-700 mb-3">Manual Reset</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      You can also manually reset all machine statuses immediately.
+                    </p>
+                    <button
+                      onClick={() => resetMachineStatusMutation.mutate()}
+                      disabled={resetMachineStatusMutation.isPending}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {resetMachineStatusMutation.isPending ? 'Resetting...' : 'Reset All Machines Now'}
+                    </button>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4 border-t">
+                    <button
+                      onClick={handleResetTimeSubmit}
+                      disabled={resetTimeLoading || updateSystemSettingMutation.isPending}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {resetTimeLoading || updateSystemSettingMutation.isPending ? 'Saving...' : 'Save Settings'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

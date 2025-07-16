@@ -1218,6 +1218,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System Settings API routes (admin only)
+  app.get('/api/system-settings', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      const settings = await storage.getAllSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      res.status(500).json({ message: "Failed to fetch system settings" });
+    }
+  });
+
+  app.get('/api/system-settings/:key', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      const setting = await storage.getSystemSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error fetching system setting:', error);
+      res.status(500).json({ message: "Failed to fetch system setting" });
+    }
+  });
+
+  app.post('/api/system-settings', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      const { key, value, enabled } = req.body;
+      
+      if (!key || !value) {
+        return res.status(400).json({ message: "Key and value are required" });
+      }
+      
+      const setting = await storage.createSystemSetting({
+        key,
+        value,
+        enabled: enabled || false
+      });
+      
+      res.status(201).json(setting);
+    } catch (error) {
+      console.error('Error creating system setting:', error);
+      res.status(500).json({ message: "Failed to create system setting" });
+    }
+  });
+
+  app.put('/api/system-settings/:key', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      const { value, enabled } = req.body;
+      
+      if (!value) {
+        return res.status(400).json({ message: "Value is required" });
+      }
+      
+      const setting = await storage.updateSystemSetting(req.params.key, value, enabled);
+      res.json(setting);
+    } catch (error) {
+      console.error('Error updating system setting:', error);
+      res.status(500).json({ message: "Failed to update system setting" });
+    }
+  });
+
+  app.delete('/api/system-settings/:key', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      await storage.deleteSystemSetting(req.params.key);
+      res.json({ message: "Setting deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting system setting:', error);
+      res.status(500).json({ message: "Failed to delete system setting" });
+    }
+  });
+
+  // Machine Status Reset API route (admin only)
+  app.post('/api/machines/reset-status', async (req: Request, res: Response) => {
+    try {
+      if (!req.session?.userId || !req.session?.isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+      
+      await storage.resetAllMachineStatus();
+      res.json({ message: "All machine statuses reset to 'Require Morning Check'" });
+    } catch (error) {
+      console.error('Error resetting machine status:', error);
+      res.status(500).json({ message: "Failed to reset machine status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

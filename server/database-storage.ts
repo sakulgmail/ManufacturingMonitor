@@ -3,23 +3,23 @@ import {
   stations, 
   gaugeTypes,
   gauges, 
- 
   readings,
   users,
+  systemSettings,
   type Machine,
   type Station, 
   type GaugeType,
   type Gauge, 
- 
   type Reading,
   type User,
+  type SystemSettings,
   type InsertMachine,
   type InsertStation, 
   type InsertGaugeType,
   type InsertGauge, 
- 
   type InsertReading,
   type InsertUser,
+  type InsertSystemSettings,
   type ReadingWithDetails, 
   type StationWithGauges,
   type MachineWithStations,
@@ -440,6 +440,54 @@ export class DatabaseStorage implements IStorage {
       throw new Error("User not found");
     }
     return updatedUser;
+  }
+
+  // System Settings
+  async getSystemSetting(key: string): Promise<SystemSettings | undefined> {
+    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    return setting || undefined;
+  }
+
+  async getAllSystemSettings(): Promise<SystemSettings[]> {
+    return db.select().from(systemSettings);
+  }
+
+  async createSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings> {
+    const [newSetting] = await db.insert(systemSettings).values(setting).returning();
+    return newSetting;
+  }
+
+  async updateSystemSetting(key: string, value: string, enabled?: boolean): Promise<SystemSettings> {
+    const updateData: Partial<SystemSettings> = { value };
+    if (enabled !== undefined) {
+      updateData.enabled = enabled;
+    }
+
+    const [updatedSetting] = await db
+      .update(systemSettings)
+      .set(updateData)
+      .where(eq(systemSettings.key, key))
+      .returning();
+    
+    if (!updatedSetting) {
+      throw new Error("System setting not found");
+    }
+    return updatedSetting;
+  }
+
+  async deleteSystemSetting(key: string): Promise<void> {
+    const result = await db.delete(systemSettings).where(eq(systemSettings.key, key));
+    
+    if (!result.rowCount || result.rowCount === 0) {
+      throw new Error("System setting not found");
+    }
+  }
+
+  // Machine Status Reset
+  async resetAllMachineStatus(): Promise<void> {
+    await db
+      .update(machines)
+      .set({ status: "Require Morning Check" });
   }
 
   private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {
