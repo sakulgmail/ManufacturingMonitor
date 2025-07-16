@@ -214,8 +214,8 @@ export default function Dashboard() {
                       className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
                       onClick={() => handleMachineSelect(machine)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                      <div className="flex items-start space-x-6">
+                        <div className="flex flex-col items-center space-y-3">
                           <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
                             isRunning 
                               ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
@@ -225,15 +225,15 @@ export default function Dashboard() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                             </svg>
                           </div>
-                          <div>
+                          <div className="text-center">
                             <h3 className="text-xl font-bold text-gray-900">{machine.name}</h3>
                             <p className="text-sm text-gray-600">{machine.machineNo}</p>
                           </div>
                         </div>
-                        <div className="flex flex-col space-y-3">
-                          <div className="flex items-center justify-between min-w-[200px]">
-                            <span className="text-sm text-gray-500 w-20">Machine Status</span>
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        <div className="flex-1 grid grid-cols-2 gap-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-500 mb-2">Machine Status</span>
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium text-center ${
                               isRunning 
                                 ? 'bg-emerald-100 text-emerald-800' 
                                 : 'bg-gray-100 text-gray-800'
@@ -244,9 +244,9 @@ export default function Dashboard() {
                                machine.status === 'Out of Order' ? 'Out of Order' : machine.status}
                             </div>
                           </div>
-                          <div className="flex items-center justify-between min-w-[200px]">
-                            <span className="text-sm text-gray-500 w-20">Gauge Status</span>
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-500 mb-2">Gauge Status</span>
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium text-center ${
                               gaugeStatus === 'alert' 
                                 ? 'bg-red-100 text-red-800' 
                                 : 'bg-emerald-100 text-emerald-800'
