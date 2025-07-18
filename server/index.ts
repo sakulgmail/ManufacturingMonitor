@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+import { machineStatusScheduler } from "./scheduler";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -49,6 +50,13 @@ app.use((req, res, next) => {
     }
   } catch (error) {
     console.error("Error initializing test data:", error);
+  }
+  
+  // Initialize the machine status scheduler
+  try {
+    await machineStatusScheduler.initialize();
+  } catch (error) {
+    console.error("Error initializing machine status scheduler:", error);
   }
   
   const server = await registerRoutes(app);

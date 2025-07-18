@@ -140,6 +140,11 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**July 17, 2025:**
+- Updated machine status label from "Require Morning Check" to "To Check" for better mobile display
+- Changed status throughout all files: schema types, database operations, UI components, and scheduler
+- Shortened status text to improve readability in mobile and compact interfaces
+
 **July 5, 2025:**
 - CRITICAL FIX: Resolved image embedding issue in report exports
 - Fixed Excel export to properly handle base64 data URI images from database
