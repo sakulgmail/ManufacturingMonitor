@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery } from "@tanstack/react-query";
 import { Machine, Station, Gauge } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import DataInputForm from "@/components/stations/DataInputForm";
+import { queryClient } from "@/lib/queryClient";
 
 type DrillDownLevel = 'machines' | 'stations' | 'gauges';
 
@@ -49,15 +50,20 @@ export default function Dashboard() {
         })
     : [];
 
-  // Get gauges from selected station
-  const stationGauges = selectedStation?.gauges 
-    ? [...selectedStation.gauges].sort((a, b) => {
-        const getNumberFromName = (name: string) => {
-          const match = name.match(/^(\d+)\./);
-          return match ? parseInt(match[1]) : 999;
-        };
-        return getNumberFromName(a.name) - getNumberFromName(b.name);
-      })
+  // Get gauges from selected station - always get fresh data from stationsData
+  const stationGauges = selectedStation 
+    ? (() => {
+        const freshStation = stationsData.find(station => station.id === selectedStation.id);
+        return freshStation?.gauges 
+          ? [...freshStation.gauges].sort((a, b) => {
+              const getNumberFromName = (name: string) => {
+                const match = name.match(/^(\d+)\./);
+                return match ? parseInt(match[1]) : 999;
+              };
+              return getNumberFromName(a.name) - getNumberFromName(b.name);
+            })
+          : [];
+      })()
     : [];
 
   // Navigation handlers
@@ -102,6 +108,12 @@ export default function Dashboard() {
   const handleCloseReadingModal = () => {
     setShowReadingModal(false);
     setReadingModalContext(null);
+    
+    // Force immediate refetch of all data to ensure gauge information is updated
+    queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+    queryClient.refetchQueries({ queryKey: ['/api/stations'] });
+    queryClient.refetchQueries({ queryKey: ['/api/machines'] });
   };
 
   // Breadcrumb component

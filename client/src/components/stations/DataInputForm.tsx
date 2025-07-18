@@ -120,10 +120,14 @@ export default function DataInputForm({
       return savedReading;
     },
     onSuccess: () => {
-      // Invalidate queries to refresh data
+      // Invalidate and refetch queries to refresh data immediately
       queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/readings'] });
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      
+      // Force refetch of critical data for immediate UI updates
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/machines'] });
       
       // Show success message
       toast({
