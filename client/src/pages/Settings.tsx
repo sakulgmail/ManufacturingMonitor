@@ -168,12 +168,12 @@ export default function Settings() {
   useEffect(() => {
     const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
     setLocalMachines(orderedMachines);
-  }, [machinesData.length]);
+  }, [JSON.stringify(machinesData)]);
 
   useEffect(() => {
     const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
     setLocalStations(orderedStations);
-  }, [stationsData.length]);
+  }, [JSON.stringify(stationsData)]);
 
   useEffect(() => {
     const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
@@ -284,7 +284,14 @@ export default function Settings() {
       return apiRequest('PUT', `/api/machines/${id}`, machineData);
     },
     onSuccess: () => {
+      // Invalidate and refetch queries for immediate UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      
+      // Force refetch of critical data for real-time updates
+      queryClient.refetchQueries({ queryKey: ['/api/machines'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
+      
       toast({ title: "Success", description: "Machine updated successfully." });
       setEditingMachine(null);
     },
@@ -505,7 +512,14 @@ export default function Settings() {
       return apiRequest('POST', '/api/machines/reset-status');
     },
     onSuccess: () => {
+      // Invalidate and refetch queries for immediate UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
+      
+      // Force refetch of critical data for real-time updates
+      queryClient.refetchQueries({ queryKey: ['/api/machines'] });
+      queryClient.refetchQueries({ queryKey: ['/api/stations'] });
+      
       toast({ title: "Success", description: "All machine statuses reset to 'To Check'." });
     },
     onError: () => {

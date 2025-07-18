@@ -140,6 +140,14 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**July 18, 2025:**
+- CRITICAL FIX: Resolved real-time data update issues across the application
+- Fixed Dashboard gauge cards to show immediate updates after reading entry
+- Fixed Settings > Manage Machine to show immediate machine status updates
+- Enhanced cache invalidation strategy with both invalidateQueries and refetchQueries
+- Fixed Settings page local state management to watch data content changes, not just length changes
+- All data updates now reflect immediately in the UI without requiring page navigation
+
 **July 17, 2025:**
 - Updated machine status label from "Require Morning Check" to "To Check" for better mobile display
 - Changed status throughout all files: schema types, database operations, UI components, and scheduler
