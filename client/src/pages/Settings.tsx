@@ -168,12 +168,12 @@ export default function Settings() {
   useEffect(() => {
     const orderedMachines = loadSavedOrder(machinesData, 'machineOrder');
     setLocalMachines(orderedMachines);
-  }, [machinesData.length]);
+  }, [JSON.stringify(machinesData)]);
 
   useEffect(() => {
     const orderedStations = loadSavedOrder(stationsData, 'stationOrder');
     setLocalStations(orderedStations);
-  }, [stationsData.length]);
+  }, [JSON.stringify(stationsData)]);
 
   useEffect(() => {
     const orderedGaugeTypes = loadSavedOrder(gaugeTypesData, 'gaugeTypeOrder');
