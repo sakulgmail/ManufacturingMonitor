@@ -506,7 +506,7 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
-      toast({ title: "Success", description: "All machine statuses reset to 'Require Morning Check'." });
+      toast({ title: "Success", description: "All machine statuses reset to 'To Check'." });
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to reset machine statuses.", variant: "destructive" });
@@ -718,7 +718,7 @@ export default function Settings() {
                         >
                           <option value="RUNNING">RUNNING</option>
                           <option value="STOP">STOP</option>
-                          <option value="Require Morning Check">Require Morning Check</option>
+                          <option value="To Check">To Check</option>
                           <option value="Out of Order">Out of Order</option>
                         </select>
                       </div>
@@ -821,7 +821,7 @@ export default function Settings() {
                                     >
                                       <option value="RUNNING">RUNNING</option>
                                       <option value="STOP">STOP</option>
-                                      <option value="Require Morning Check">Require Morning Check</option>
+                                      <option value="To Check">To Check</option>
                                       <option value="Out of Order">Out of Order</option>
                                     </select>
                                   </div>
@@ -1978,7 +1978,7 @@ export default function Settings() {
                 <div className="space-y-6">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      This feature allows you to automatically reset all machine statuses to "Require Morning Check" at a specified time each day. 
+                      This feature allows you to automatically reset all machine statuses to "To Check" at a specified time each day. 
                       This ensures daily maintenance checks are performed consistently.
                     </p>
                   </div>
@@ -2010,7 +2010,7 @@ export default function Settings() {
                       className="w-48 border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100"
                     />
                     <p className="text-xs text-gray-500">
-                      All machines will be reset to "Require Morning Check" at this time daily
+                      All machines will be reset to "To Check" at this time daily
                     </p>
                   </div>
 

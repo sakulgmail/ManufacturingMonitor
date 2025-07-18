@@ -583,7 +583,7 @@ export class MemStorage implements IStorage {
   // Machine Status Reset
   async resetAllMachineStatus(): Promise<void> {
     this.machines.forEach(machine => {
-      machine.status = "Require Morning Check";
+      machine.status = "To Check";
     });
   }
 

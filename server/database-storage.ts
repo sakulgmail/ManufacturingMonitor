@@ -487,7 +487,7 @@ export class DatabaseStorage implements IStorage {
   async resetAllMachineStatus(): Promise<void> {
     await db
       .update(machines)
-      .set({ status: "Require Morning Check" });
+      .set({ status: "To Check" });
   }
 
   private async enrichReadingWithDetails(reading: Reading): Promise<ReadingWithDetails> {

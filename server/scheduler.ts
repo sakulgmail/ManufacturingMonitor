@@ -54,7 +54,7 @@ class MachineStatusScheduler {
         try {
           console.log(`Running scheduled machine status reset at ${timeValue}`);
           await storage.resetAllMachineStatus();
-          console.log('All machine statuses reset to "Require Morning Check"');
+          console.log('All machine statuses reset to "To Check"');
         } catch (error) {
           console.error('Error during scheduled machine status reset:', error);
         }
