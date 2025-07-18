@@ -8,14 +8,22 @@ import { Image, Upload } from "lucide-react";
 
 interface DataInputFormProps {
   onClose: () => void;
+  preSelectedMachineId?: number;
+  preSelectedStationId?: number;
+  preSelectedGaugeId?: number;
 }
 
-export default function DataInputForm({ onClose }: DataInputFormProps) {
+export default function DataInputForm({ 
+  onClose, 
+  preSelectedMachineId, 
+  preSelectedStationId, 
+  preSelectedGaugeId 
+}: DataInputFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(null);
-  const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
-  const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(null);
+  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(preSelectedMachineId || null);
+  const [selectedStationId, setSelectedStationId] = useState<number | null>(preSelectedStationId || null);
+  const [selectedGaugeId, setSelectedGaugeId] = useState<number | null>(preSelectedGaugeId || null);
   const [readingValue, setReadingValue] = useState<number | string>("");
   const [condition, setCondition] = useState<string>("");
   const [comment, setComment] = useState<string>("");
@@ -115,6 +123,7 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/stations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/readings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
       
       // Show success message
       toast({
@@ -291,6 +300,14 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
   console.log("Selected station:", selectedStation);
   console.log("Station gauges:", stationGauges);
 
+  // Check if we have pre-selected values
+  const isPreSelected = !!(preSelectedMachineId && preSelectedStationId && preSelectedGaugeId);
+  
+  // Get selected machine, station, and gauge names for display
+  const selectedMachineName = selectedMachineId ? allMachines.find(m => m.id === selectedMachineId)?.name : '';
+  const selectedStationName = selectedStationId ? sortedStations.find(s => s.id === selectedStationId)?.name : '';
+  const selectedGaugeName = selectedGaugeId ? stationGauges.find(g => g.id === selectedGaugeId)?.name : '';
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-auto">
       <h2 className="text-xl font-bold mb-4">Enter New Reading</h2>
@@ -301,19 +318,25 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Select Machine
           </label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={selectedMachineId || ""}
-            onChange={(e) => handleMachineChange(e.target.value ? parseInt(e.target.value) : null)}
-            required
-          >
-            <option value="">-- Select Machine --</option>
-            {allMachines.map((machine: Machine) => (
-              <option key={machine.id} value={machine.id}>
-                {machine.name}
-              </option>
-            ))}
-          </select>
+          {isPreSelected ? (
+            <div className="w-full p-2 border border-gray-200 rounded-md bg-gray-50 text-gray-700">
+              {selectedMachineName}
+            </div>
+          ) : (
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={selectedMachineId || ""}
+              onChange={(e) => handleMachineChange(e.target.value ? parseInt(e.target.value) : null)}
+              required
+            >
+              <option value="">-- Select Machine --</option>
+              {allMachines.map((machine: Machine) => (
+                <option key={machine.id} value={machine.id}>
+                  {machine.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Station Selection */}
@@ -321,20 +344,26 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Select Station
           </label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={selectedStationId || ""}
-            onChange={handleStationChange}
-            required
-            disabled={!selectedMachineId}
-          >
-            <option value="">-- Select Station --</option>
-            {sortedStations.map((station: Station) => (
-              <option key={station.id} value={station.id}>
-                {station.name}
-              </option>
-            ))}
-          </select>
+          {isPreSelected ? (
+            <div className="w-full p-2 border border-gray-200 rounded-md bg-gray-50 text-gray-700">
+              {selectedStationName}
+            </div>
+          ) : (
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={selectedStationId || ""}
+              onChange={handleStationChange}
+              required
+              disabled={!selectedMachineId}
+            >
+              <option value="">-- Select Station --</option>
+              {sortedStations.map((station: Station) => (
+                <option key={station.id} value={station.id}>
+                  {station.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         
         {/* Gauge Selection (only shown if station is selected) */}
@@ -343,23 +372,29 @@ export default function DataInputForm({ onClose }: DataInputFormProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Gauge
             </label>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md"
-              value={selectedGaugeId || ""}
-              onChange={handleGaugeChange}
-              required
-            >
-              <option value="">-- Select Gauge --</option>
-              {stationGauges && stationGauges.length > 0 ? (
-                stationGauges.map((gauge: Gauge) => (
-                  <option key={gauge.id} value={gauge.id}>
-                    {gauge.name} ({gauge.unit})
-                  </option>
-                ))
-              ) : (
-                <option disabled>No gauges available for this station</option>
-              )}
-            </select>
+            {isPreSelected ? (
+              <div className="w-full p-2 border border-gray-200 rounded-md bg-gray-50 text-gray-700">
+                {selectedGaugeName}
+              </div>
+            ) : (
+              <select
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedGaugeId || ""}
+                onChange={handleGaugeChange}
+                required
+              >
+                <option value="">-- Select Gauge --</option>
+                {stationGauges && stationGauges.length > 0 ? (
+                  stationGauges.map((gauge: Gauge) => (
+                    <option key={gauge.id} value={gauge.id}>
+                      {gauge.name} ({gauge.unit})
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No gauges available for this station</option>
+                )}
+              </select>
+            )}
           </div>
         )}
         

@@ -3,6 +3,7 @@ import NavigationTabs from "@/components/layout/NavigationTabs";
 import { useQuery } from "@tanstack/react-query";
 import { Machine, Station, Gauge } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import DataInputForm from "@/components/stations/DataInputForm";
 
 type DrillDownLevel = 'machines' | 'stations' | 'gauges';
 
@@ -19,6 +20,12 @@ export default function Dashboard() {
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [selectedGauge, setSelectedGauge] = useState<Gauge | null>(null);
+  const [showReadingModal, setShowReadingModal] = useState(false);
+  const [readingModalContext, setReadingModalContext] = useState<{
+    machineId: number;
+    stationId: number;
+    gaugeId: number;
+  } | null>(null);
 
   // Sort machines by machine number (MACH01, MACH02, etc.)
   const sortedMachines = [...machinesData].sort((a, b) => {
@@ -78,6 +85,23 @@ export default function Dashboard() {
     setSelectedStation(null);
     setSelectedGauge(null);
     setCurrentLevel('stations');
+  };
+
+  // Handle gauge click to open reading modal
+  const handleGaugeClick = (gauge: Gauge) => {
+    if (selectedMachine && selectedStation) {
+      setReadingModalContext({
+        machineId: selectedMachine.id,
+        stationId: selectedStation.id,
+        gaugeId: gauge.id
+      });
+      setShowReadingModal(true);
+    }
+  };
+
+  const handleCloseReadingModal = () => {
+    setShowReadingModal(false);
+    setReadingModalContext(null);
   };
 
   // Breadcrumb component
@@ -344,7 +368,8 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={gauge.id}
-                    className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6"
+                    className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                    onClick={() => handleGaugeClick(gauge)}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
@@ -417,6 +442,13 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
+                    
+                    {/* Click indicator */}
+                    <div className="mt-4 flex items-center justify-center">
+                      <div className="bg-blue-50 px-3 py-1 rounded-full text-xs text-blue-600 font-medium">
+                        Click to Enter Reading
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -424,6 +456,20 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      
+      {/* Reading Entry Modal */}
+      {showReadingModal && readingModalContext && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <DataInputForm 
+              onClose={handleCloseReadingModal}
+              preSelectedMachineId={readingModalContext.machineId}
+              preSelectedStationId={readingModalContext.stationId}
+              preSelectedGaugeId={readingModalContext.gaugeId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
