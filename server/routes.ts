@@ -463,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reading = await storage.createReading(readingData);
       
       // Update gauge current reading
-      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp);
+      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp || new Date().toISOString());
       
       res.status(201).json(reading);
     } catch (error) {
@@ -631,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Created reading:', reading);
       
       // Update gauge current reading
-      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp);
+      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp || new Date().toISOString());
       
       res.status(201).json(reading);
     } catch (error) {
