@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import NavigationTabs from "@/components/layout/NavigationTabs";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Machine, Station, Gauge } from "@/lib/types";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import DataInputForm from "@/components/stations/DataInputForm";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 type DrillDownLevel = 'machines' | 'stations' | 'gauges';
 
@@ -27,6 +27,7 @@ export default function Dashboard() {
     stationId: number;
     gaugeId: number;
   } | null>(null);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
 
   // Sort machines by machine number - try multiple patterns
   const sortedMachines = [...machinesData].sort((a, b) => {
@@ -139,6 +140,36 @@ export default function Dashboard() {
     queryClient.refetchQueries({ queryKey: ['/api/stations'] });
     queryClient.refetchQueries({ queryKey: ['/api/machines'] });
   };
+
+  const statusOptions = ['RUNNING', 'STOP', 'To Check', 'Out of Order'];
+
+  // Machine status update mutation
+  const updateMachineStatusMutation = useMutation({
+    mutationFn: async ({ machineId, status }: { machineId: number; status: string }) => {
+      return apiRequest(`/api/machines/${machineId}`, 'PUT', { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
+      queryClient.refetchQueries({ queryKey: ['/api/machines'] });
+      setStatusDropdownOpen(null);
+    },
+  });
+
+  const handleStatusChange = (machineId: number, newStatus: string) => {
+    updateMachineStatusMutation.mutate({ machineId, status: newStatus });
+  };
+
+  const toggleStatusDropdown = (machineId: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent triggering machine selection
+    setStatusDropdownOpen(statusDropdownOpen === machineId ? null : machineId);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setStatusDropdownOpen(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Breadcrumb component
   const Breadcrumb = () => (
@@ -292,15 +323,46 @@ export default function Dashboard() {
                         <div className="flex-1 grid grid-cols-2 gap-6">
                           <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Machine Status</span>
-                            <div className={`px-4 py-2 rounded-full text-sm font-medium min-w-[120px] text-center ${
-                              isRunning 
-                                ? 'bg-emerald-100 text-emerald-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {machine.status === 'RUNNING' ? 'Running' : 
-                               machine.status === 'STOP' ? 'Stop' :
-                               machine.status === 'Require Morning Check' ? 'Require Morning Check' :
-                               machine.status === 'Out of Order' ? 'Out of Order' : machine.status}
+                            <div className="relative">
+                              <button
+                                onClick={(e) => toggleStatusDropdown(machine.id, e)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium min-w-[120px] text-center cursor-pointer hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1 ${
+                                  isRunning 
+                                    ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' 
+                                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                }`}
+                              >
+                                <span>
+                                  {machine.status === 'RUNNING' ? 'Running' : 
+                                   machine.status === 'STOP' ? 'Stop' :
+                                   machine.status === 'To Check' ? 'To Check' :
+                                   machine.status === 'Require Morning Check' ? 'To Check' :
+                                   machine.status === 'Out of Order' ? 'Out of Order' : machine.status}
+                                </span>
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                              
+                              {statusDropdownOpen === machine.id && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                  {statusOptions.map((status) => (
+                                    <button
+                                      key={status}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleStatusChange(machine.id, status);
+                                      }}
+                                      className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors ${
+                                        machine.status === status ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                                      }`}
+                                    >
+                                      {status === 'RUNNING' ? 'Running' : 
+                                       status === 'STOP' ? 'Stop' :
+                                       status === 'To Check' ? 'To Check' :
+                                       status === 'Out of Order' ? 'Out of Order' : status}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex flex-col items-center">
