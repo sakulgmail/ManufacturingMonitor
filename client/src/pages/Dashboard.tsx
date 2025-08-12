@@ -287,7 +287,6 @@ export default function Dashboard() {
                           </div>
                           <div className="text-center">
                             <h3 className="text-xl font-bold text-gray-900">{machine.name}</h3>
-                            <p className="text-sm text-gray-600">{machine.machineNo}</p>
                           </div>
                         </div>
                         <div className="flex-1 grid grid-cols-2 gap-6">
