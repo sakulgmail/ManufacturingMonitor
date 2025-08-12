@@ -1833,78 +1833,152 @@ export default function Settings() {
                   </div>
                 )}
 
-                {/* Gauges List with Manual Ordering */}
-                <div className="space-y-4">
-                  {stations.map((station) => {
-                    const machine = machines.find(m => m.id === station.machineId);
-                    const stationGauges = gauges.filter(g => g.stationId === station.id);
-                    
-                    return (
-                      <div key={station.id} className="border border-gray-200 rounded-md p-4">
-                        <h3 className="font-medium text-gray-900 mb-2">
-                          {machine?.name || 'Unknown Machine'} → {station.name}
-                        </h3>
-                        {stationGauges.length > 0 ? (
-                          <div className="space-y-3">
-                            {stationGauges.map((gauge, index) => (
-                              <div key={gauge.id} className="border border-gray-200 rounded-md p-4">
-                                <div className="flex items-center">
-                                  <div className="flex flex-col mr-3">
-                                    <button
-                                      onClick={() => {
-                                        const gaugeIndex = gauges.findIndex(g => g.id === gauge.id);
-                                        moveItemUp(gaugeIndex, 'gauges');
-                                      }}
-                                      disabled={gauges.findIndex(g => g.id === gauge.id) === 0}
-                                      className="text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed p-1"
-                                    >
-                                      <ChevronUp className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        const gaugeIndex = gauges.findIndex(g => g.id === gauge.id);
-                                        moveItemDown(gaugeIndex, 'gauges');
-                                      }}
-                                      disabled={gauges.findIndex(g => g.id === gauge.id) === gauges.length - 1}
-                                      className="text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed p-1"
-                                    >
-                                      <ChevronDown className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-medium text-sm">{gauge.name}</h4>
-                                    <p className="text-xs text-gray-600">
-                                      Type: {gauge.gaugeType?.name || gaugeTypes.find(gt => gt.id === gauge.gaugeTypeId)?.name || 'Unknown'}
-                                    </p>
-                                  </div>
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() => setEditingGauge(gauge)}
-                                      className="text-blue-600 hover:text-blue-800"
-                                    >
-                                      <Edit2 className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        if (confirm(`Are you sure you want to delete "${gauge.name}"?`)) {
-                                          deleteGaugeMutation.mutate(gauge.id);
-                                        }
-                                      }}
-                                      className="text-red-600 hover:text-red-800"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </button>
-                                  </div>
+                {/* Gauges List Grouped by Machine > Station */}
+                <div className="space-y-6">
+                  {gauges.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No gauges found. Add your first gauge above.</p>
+                  ) : (
+                    machines.map((machine) => {
+                      const machineStations = stations.filter(station => station.machineId === machine.id);
+                      const machineHasGauges = machineStations.some(station => 
+                        gauges.some(gauge => gauge.stationId === station.id)
+                      );
+                      
+                      if (!machineHasGauges) return null;
+                      
+                      return (
+                        <div key={machine.id} className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/30">
+                          {/* Machine Header */}
+                          <div className="mb-4 pb-2 border-b border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                  <Factory className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-bold text-gray-900">{machine.name}</h3>
+                                  <p className="text-sm text-gray-600">Machine No: {machine.machineNo}</p>
                                 </div>
                               </div>
-                            ))}
+                              <div className="flex items-center">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  machine.status === 'RUNNING' ? 'bg-green-100 text-green-800' :
+                                  machine.status === 'STOP' ? 'bg-red-100 text-red-800' :
+                                  machine.status === 'To Check' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {machine.status}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        ) : (
-                          <p className="text-gray-500 text-sm">No gauges configured for this station.</p>
-                        )}
-                      </div>
-                    );
-                  })}
+                          
+                          {/* Stations in this Machine */}
+                          <div className="space-y-4">
+                            {machineStations.map((station) => {
+                              const stationGauges = gauges.filter(gauge => gauge.stationId === station.id);
+                              if (stationGauges.length === 0) return null;
+                              
+                              return (
+                                <div key={station.id} className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm">
+                                  {/* Station Header */}
+                                  <div className="mb-3 pb-2 border-b border-gray-200">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
+                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold text-gray-900">{station.name}</h4>
+                                        {station.description && (
+                                          <p className="text-sm text-gray-500">{station.description}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Gauges in this Station */}
+                                  <div className="space-y-2">
+                                    {stationGauges.map((gauge, index) => {
+                                      const globalIndex = gauges.findIndex(g => g.id === gauge.id);
+                                      return (
+                                        <div key={gauge.id} className="bg-gray-50 border border-gray-200 rounded-md p-3">
+                                          <div className="flex items-center">
+                                            <div className="flex flex-col mr-3">
+                                              <button
+                                                onClick={() => moveItemUp(globalIndex, 'gauges')}
+                                                disabled={globalIndex === 0}
+                                                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                                title="Move up"
+                                              >
+                                                <ChevronUp className="h-4 w-4" />
+                                              </button>
+                                              <button
+                                                onClick={() => moveItemDown(globalIndex, 'gauges')}
+                                                disabled={globalIndex === gauges.length - 1}
+                                                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                                title="Move down"
+                                              >
+                                                <ChevronDown className="h-4 w-4" />
+                                              </button>
+                                            </div>
+                                            <div className="flex items-center space-x-3 flex-1">
+                                              <div className="w-5 h-5 bg-purple-600 rounded flex items-center justify-center">
+                                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m6 2l-1.5 1.5M18 12h2M6 12H4m2.5-5.5L5 5m7 7l3-3" />
+                                                  <circle cx="12" cy="12" r="8" strokeWidth={2} />
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8" />
+                                                </svg>
+                                              </div>
+                                              <div className="flex-1">
+                                                <div className="flex justify-between items-center">
+                                                  <div className="flex-1">
+                                                    <div>
+                                                      <h5 className="font-medium text-sm text-gray-900">{gauge.name}</h5>
+                                                      <p className="text-xs text-gray-600">
+                                                        Type: {gauge.gaugeType?.name || gaugeTypes.find(gt => gt.id === gauge.gaugeTypeId)?.name || 'Unknown'}
+                                                      </p>
+                                                    </div>
+                                                  </div>
+                                                  <div className="flex space-x-2">
+                                                    <button
+                                                      onClick={() => setEditingGauge(gauge)}
+                                                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 flex items-center"
+                                                    >
+                                                      <Edit2 className="h-3 w-3 mr-1" />
+                                                      Edit
+                                                    </button>
+                                                    <button
+                                                      onClick={() => {
+                                                        if (confirm(`Are you sure you want to delete "${gauge.name}"?`)) {
+                                                          deleteGaugeMutation.mutate(gauge.id);
+                                                        }
+                                                      }}
+                                                      disabled={deleteGaugeMutation.isPending}
+                                                      className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50 flex items-center"
+                                                    >
+                                                      <Trash2 className="h-3 w-3 mr-1" />
+                                                      {deleteGaugeMutation.isPending ? "Deleting..." : "Delete"}
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
