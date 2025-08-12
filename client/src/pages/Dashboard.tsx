@@ -478,12 +478,12 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           status === 'alert' 
                             ? 'bg-gradient-to-br from-red-500 to-red-600' 
                             : 'bg-gradient-to-br from-purple-500 to-pink-600'
                         }`}>
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m6 2l-1.5 1.5M18 12h2M6 12H4m2.5-5.5L5 5m7 7l3-3" />
                             <circle cx="12" cy="12" r="8" strokeWidth={2} />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8" />
