@@ -140,6 +140,12 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**January 18, 2025:**
+- IMPROVEMENT: Enhanced machine sorting logic in Dashboard to handle various naming patterns
+- Fixed machine ordering to work with MACH01, ACH03, and custom machine names
+- Machine sorting now uses machineNo field as primary sort key with multiple fallback patterns
+- Ensures consistent machine display order regardless of naming convention
+
 **July 18, 2025:**
 - CRITICAL FIX: Resolved real-time data update issues across the application
 - Fixed Dashboard gauge cards to show immediate updates after reading entry

@@ -51,6 +51,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Test data initialization is handled in server/index.ts
 
+  // Health check endpoint for container orchestration
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage()
+    });
+  });
+
   // Public signup disabled - users must be created by administrators
   app.post('/api/auth/signup', async (req, res) => {
     res.status(403).json({ message: "Public registration is disabled. Contact an administrator for account access." });
@@ -453,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reading = await storage.createReading(readingData);
       
       // Update gauge current reading
-      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp);
+      await storage.updateGaugeReading(gaugeId, readingData.value, readingData.timestamp || new Date().toISOString());
       
       res.status(201).json(reading);
     } catch (error) {
@@ -621,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Created reading:', reading);
       
       // Update gauge current reading
-      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp);
+      await storage.updateGaugeReading(readingData.gaugeId, readingData.value, readingData.timestamp || new Date().toISOString());
       
       res.status(201).json(reading);
     } catch (error) {
