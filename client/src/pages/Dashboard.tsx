@@ -146,7 +146,7 @@ export default function Dashboard() {
   // Machine status update mutation
   const updateMachineStatusMutation = useMutation({
     mutationFn: async ({ machineId, status }: { machineId: number; status: string }) => {
-      return apiRequest(`/api/machines/${machineId}`, 'PUT', { status });
+      return apiRequest('PUT', `/api/machines/${machineId}`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
