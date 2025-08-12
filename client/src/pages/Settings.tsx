@@ -64,6 +64,7 @@ export default function Settings() {
     instruction: ""
   });
   const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
+  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(null);
   const [showAddGauge, setShowAddGauge] = useState(false);
 
   // Gauge Type management state
@@ -432,6 +433,7 @@ export default function Settings() {
       toast({ title: "Success", description: "Gauge created successfully." });
       setNewGauge({ name: "", gaugeTypeId: 0, stationId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
       setSelectedStationId(null);
+      setSelectedMachineId(null);
       setShowAddGauge(false);
     },
     onError: () => {
@@ -1520,21 +1522,40 @@ export default function Settings() {
                     <h3 className="text-md font-medium mb-4">Add New Gauge</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Machine</label>
+                        <select
+                          value={selectedMachineId || ""}
+                          onChange={(e) => {
+                            const machineId = Number(e.target.value);
+                            setSelectedMachineId(machineId);
+                            setSelectedStationId(null); // Reset station when machine changes
+                          }}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        >
+                          <option value="">Select a machine</option>
+                          {machines.map((machine) => (
+                            <option key={machine.id} value={machine.id}>
+                              {machine.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Station</label>
                         <select
                           value={selectedStationId || ""}
                           onChange={(e) => setSelectedStationId(Number(e.target.value))}
                           className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          disabled={!selectedMachineId}
                         >
                           <option value="">Select a station</option>
-                          {stations.map((station) => {
-                            const machine = machines.find(m => m.id === station.machineId);
-                            return (
+                          {selectedMachineId && stations
+                            .filter(station => station.machineId === selectedMachineId)
+                            .map((station) => (
                               <option key={station.id} value={station.id}>
-                                {machine?.name || 'Unknown Machine'} → {station.name}
+                                {station.name}
                               </option>
-                            );
-                          })}
+                            ))}
                         </select>
                       </div>
                       <div>
@@ -1673,6 +1694,7 @@ export default function Settings() {
                             setShowAddGauge(false);
                             setNewGauge({ name: "", gaugeTypeId: 0, stationId: 0, unit: "", minValue: 0, maxValue: 100, step: 1, condition: "", instruction: "" });
                             setSelectedStationId(null);
+                            setSelectedMachineId(null);
                           }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
                         >
