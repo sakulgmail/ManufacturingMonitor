@@ -307,7 +307,9 @@ export default function Dashboard() {
                   return (
                     <div 
                       key={machine.id}
-                      className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      className={`bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300 ${
+                        statusDropdownOpen === machine.id ? 'relative z-[101]' : 'relative'
+                      }`}
                       onClick={() => handleMachineSelect(machine)}
                     >
                       <div className="flex items-start space-x-6">
@@ -348,7 +350,7 @@ export default function Dashboard() {
                               </button>
                               
                               {statusDropdownOpen === machine.id && (
-                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-[100]">
                                   {statusOptions.map((status) => (
                                     <button
                                       key={status}
