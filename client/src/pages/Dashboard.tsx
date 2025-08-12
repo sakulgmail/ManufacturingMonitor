@@ -145,8 +145,13 @@ export default function Dashboard() {
 
   // Machine status update mutation
   const updateMachineStatusMutation = useMutation({
-    mutationFn: async ({ machineId, status }: { machineId: number; status: string }) => {
-      return apiRequest('PUT', `/api/machines/${machineId}`, { status });
+    mutationFn: async ({ machine, status }: { machine: Machine; status: string }) => {
+      const response = await apiRequest('PUT', `/api/machines/${machine.id}`, { 
+        name: machine.name,
+        machineNo: machine.machineNo,
+        status 
+      });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/machines'] });
@@ -155,8 +160,8 @@ export default function Dashboard() {
     },
   });
 
-  const handleStatusChange = (machineId: number, newStatus: string) => {
-    updateMachineStatusMutation.mutate({ machineId, status: newStatus });
+  const handleStatusChange = (machine: Machine, newStatus: string) => {
+    updateMachineStatusMutation.mutate({ machine, status: newStatus });
   };
 
   const toggleStatusDropdown = (machineId: number, event: React.MouseEvent) => {
@@ -349,7 +354,7 @@ export default function Dashboard() {
                                       key={status}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleStatusChange(machine.id, status);
+                                        handleStatusChange(machine, status);
                                       }}
                                       className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors ${
                                         machine.status === status ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
