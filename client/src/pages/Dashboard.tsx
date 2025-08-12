@@ -28,13 +28,37 @@ export default function Dashboard() {
     gaugeId: number;
   } | null>(null);
 
-  // Sort machines by machine number (MACH01, MACH02, etc.)
+  // Sort machines by machine number - try multiple patterns
   const sortedMachines = [...machinesData].sort((a, b) => {
-    const getMachineNumber = (name: string) => {
-      const match = name.match(/MACH(\d+)/);
-      return match ? parseInt(match[1]) : 999;
+    const getMachineNumber = (machine: Machine) => {
+      // First try to extract from machineNo field
+      if (machine.machineNo) {
+        const machineNoMatch = machine.machineNo.match(/(\d+)/);
+        if (machineNoMatch) {
+          return parseInt(machineNoMatch[1]);
+        }
+      }
+      
+      // Then try various patterns in name field
+      const name = machine.name;
+      
+      // Pattern 1: MACH01, MACH02, etc.
+      let match = name.match(/MACH(\d+)/i);
+      if (match) return parseInt(match[1]);
+      
+      // Pattern 2: ACH01, ACH02, etc. (missing M)
+      match = name.match(/ACH(\d+)/i);
+      if (match) return parseInt(match[1]);
+      
+      // Pattern 3: Any word followed by numbers
+      match = name.match(/[A-Z]*(\d+)/i);
+      if (match) return parseInt(match[1]);
+      
+      // Default: use machine ID as fallback for consistent ordering
+      return machine.id;
     };
-    return getMachineNumber(a.name) - getMachineNumber(b.name);
+    
+    return getMachineNumber(a) - getMachineNumber(b);
   });
 
   // Filter and sort stations by selected machine
