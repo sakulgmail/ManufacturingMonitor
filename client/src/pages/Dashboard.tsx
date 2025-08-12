@@ -307,7 +307,9 @@ export default function Dashboard() {
                   return (
                     <div 
                       key={machine.id}
-                      className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      className={`bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300 ${
+                        statusDropdownOpen === machine.id ? 'relative z-[101]' : 'relative'
+                      }`}
                       onClick={() => handleMachineSelect(machine)}
                     >
                       <div className="flex items-start space-x-6">
@@ -348,7 +350,7 @@ export default function Dashboard() {
                               </button>
                               
                               {statusDropdownOpen === machine.id && (
-                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-[100]">
                                   {statusOptions.map((status) => (
                                     <button
                                       key={status}
@@ -427,7 +429,8 @@ export default function Dashboard() {
                               : 'bg-gradient-to-br from-teal-500 to-blue-600'
                           }`}>
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 12a5 5 0 0 0-5-5m5 5a5 5 0 0 1-5 5m5-5H3m14-5-3-3m3 3-3 3" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                           </div>
                           <div>
@@ -475,13 +478,15 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           status === 'alert' 
                             ? 'bg-gradient-to-br from-red-500 to-red-600' 
                             : 'bg-gradient-to-br from-purple-500 to-pink-600'
                         }`}>
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m6 2l-1.5 1.5M18 12h2M6 12H4m2.5-5.5L5 5m7 7l3-3" />
+                            <circle cx="12" cy="12" r="8" strokeWidth={2} />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8" />
                           </svg>
                         </div>
                         <div>
