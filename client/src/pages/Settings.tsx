@@ -1068,71 +1068,116 @@ export default function Settings() {
                   </div>
                 )}
 
-                {/* Stations List with Manual Ordering */}
-                <div className="space-y-3">
+                {/* Stations List Grouped by Machine */}
+                <div className="space-y-6">
                   {stations.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">No stations found. Add your first station above.</p>
                   ) : (
-                    stations.map((station, index) => (
-                      <div key={station.id} className="border border-gray-200 rounded-md p-4">
-                        <div className="flex items-center">
-                          <div className="flex flex-col mr-3">
-                            <button
-                              onClick={() => moveItemUp(index, 'stations')}
-                              disabled={index === 0}
-                              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                              title="Move up"
-                            >
-                              <ChevronUp className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => moveItemDown(index, 'stations')}
-                              disabled={index === stations.length - 1}
-                              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                              title="Move down"
-                            >
-                              <ChevronDown className="h-4 w-4" />
-                            </button>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center">
-                              <div className="flex-1">
+                    machines.map((machine) => {
+                      const machineStations = stations.filter(station => station.machineId === machine.id);
+                      if (machineStations.length === 0) return null;
+                      
+                      return (
+                        <div key={machine.id} className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/30">
+                          {/* Machine Header */}
+                          <div className="mb-4 pb-2 border-b border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                  <Factory className="w-5 h-5 text-white" />
+                                </div>
                                 <div>
-                                  <h3 className="font-medium text-gray-900">{station.name}</h3>
-                                  <p className="text-sm text-gray-600">
-                                    Machine: {machines.find(m => m.id === station.machineId)?.name || 'Unknown'}
-                                  </p>
-                                  {station.description && (
-                                    <p className="text-sm text-gray-500">{station.description}</p>
-                                  )}
+                                  <h3 className="text-lg font-bold text-gray-900">{machine.name}</h3>
+                                  <p className="text-sm text-gray-600">Machine No: {machine.machineNo}</p>
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => setEditingStation(station)}
-                                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
-                                >
-                                  <Edit2 className="h-3 w-3 mr-1" />
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm(`Are you sure you want to delete "${station.name}"? This will also delete all associated gauges.`)) {
-                                      deleteStationMutation.mutate(station.id);
-                                    }
-                                  }}
-                                  disabled={deleteStationMutation.isPending}
-                                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50 flex items-center"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  {deleteStationMutation.isPending ? "Deleting..." : "Delete"}
-                                </button>
+                              <div className="flex items-center">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  machine.status === 'RUNNING' ? 'bg-green-100 text-green-800' :
+                                  machine.status === 'STOP' ? 'bg-red-100 text-red-800' :
+                                  machine.status === 'To Check' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {machine.status}
+                                </span>
                               </div>
                             </div>
                           </div>
+                          
+                          {/* Stations in this Machine */}
+                          <div className="space-y-3">
+                            {machineStations.map((station, stationIndex) => {
+                              const globalIndex = stations.findIndex(s => s.id === station.id);
+                              return (
+                                <div key={station.id} className="bg-white border border-gray-200 rounded-md p-4 shadow-sm">
+                                  <div className="flex items-center">
+                                    <div className="flex flex-col mr-3">
+                                      <button
+                                        onClick={() => moveItemUp(globalIndex, 'stations')}
+                                        disabled={globalIndex === 0}
+                                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                        title="Move up"
+                                      >
+                                        <ChevronUp className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => moveItemDown(globalIndex, 'stations')}
+                                        disabled={globalIndex === stations.length - 1}
+                                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                        title="Move down"
+                                      >
+                                        <ChevronDown className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                    <div className="flex items-center space-x-3 flex-1">
+                                      <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
+                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex justify-between items-center">
+                                          <div className="flex-1">
+                                            <div>
+                                              <h4 className="font-medium text-gray-900">{station.name}</h4>
+                                              {station.description && (
+                                                <p className="text-sm text-gray-500">{station.description}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="flex space-x-2">
+                                            <button
+                                              onClick={() => setEditingStation(station)}
+                                              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                                            >
+                                              <Edit2 className="h-3 w-3 mr-1" />
+                                              Edit
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                if (confirm(`Are you sure you want to delete "${station.name}"? This will also delete all associated gauges.`)) {
+                                                  deleteStationMutation.mutate(station.id);
+                                                }
+                                              }}
+                                              disabled={deleteStationMutation.isPending}
+                                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50 flex items-center"
+                                            >
+                                              <Trash2 className="h-3 w-3 mr-1" />
+                                              {deleteStationMutation.isPending ? "Deleting..." : "Delete"}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
