@@ -5,7 +5,7 @@ import { Machine, Station, Gauge } from "@/lib/types";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import DataInputForm from "@/components/stations/DataInputForm";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import machineIcon from "@assets/machine_icon_bw_low_1757410628356.png";
+import machineIcon from "@assets/machine_icon_bw_low_1757411197293.png";
 
 type DrillDownLevel = 'machines' | 'stations' | 'gauges';
 
@@ -323,10 +323,10 @@ export default function Dashboard() {
                             <img 
                               src={machineIcon} 
                               alt="Machine"
-                              className={`w-8 h-8 ${
+                              className={`w-12 h-12 ${
                                 isRunning 
-                                  ? 'filter brightness-0 invert' 
-                                  : 'filter brightness-0 invert opacity-90'
+                                  ? 'filter invert' 
+                                  : 'filter invert opacity-80'
                               }`}
                             />
                           </div>
