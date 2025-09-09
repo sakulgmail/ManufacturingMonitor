@@ -327,7 +327,7 @@ export default function Dashboard() {
                             <h3 className="text-xl font-bold text-gray-900">{machine.name}</h3>
                           </div>
                         </div>
-                        <div className="w-full lg:flex-1 grid grid-cols-2 gap-6">
+                        <div className="w-full lg:flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                           <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Machine Status</span>
                             <div className="relative">
