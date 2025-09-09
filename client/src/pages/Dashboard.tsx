@@ -312,8 +312,9 @@ export default function Dashboard() {
                       }`}
                       onClick={() => handleMachineSelect(machine)}
                     >
-                      <div className="flex flex-col lg:flex-row lg:items-start space-y-4 lg:space-y-0 lg:space-x-6">
-                        <div className="flex flex-col items-center space-y-3 lg:min-w-0">
+                      <div className="space-y-4">
+                        {/* Top: Machine Icon and Name */}
+                        <div className="flex items-center space-x-4">
                           <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
                             isRunning 
                               ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
@@ -323,11 +324,12 @@ export default function Dashboard() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                             </svg>
                           </div>
-                          <div className="text-center">
+                          <div>
                             <h3 className="text-xl font-bold text-gray-900">{machine.name}</h3>
                           </div>
                         </div>
-                        <div className="w-full lg:flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        {/* Bottom: Status Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Machine Status</span>
                             <div className="relative">
