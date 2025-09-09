@@ -312,8 +312,8 @@ export default function Dashboard() {
                       }`}
                       onClick={() => handleMachineSelect(machine)}
                     >
-                      <div className="flex items-start space-x-6">
-                        <div className="flex flex-col items-center space-y-3">
+                      <div className="flex flex-col lg:flex-row lg:items-start space-y-4 lg:space-y-0 lg:space-x-6">
+                        <div className="flex flex-col items-center space-y-3 lg:min-w-0">
                           <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
                             isRunning 
                               ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
@@ -327,7 +327,7 @@ export default function Dashboard() {
                             <h3 className="text-xl font-bold text-gray-900">{machine.name}</h3>
                           </div>
                         </div>
-                        <div className="flex-1 grid grid-cols-2 gap-6">
+                        <div className="w-full lg:flex-1 grid grid-cols-2 gap-6">
                           <div className="flex flex-col items-center">
                             <span className="text-sm text-gray-500 mb-2">Machine Status</span>
                             <div className="relative">
