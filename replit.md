@@ -140,6 +140,13 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**September 9, 2025:**
+- LAYOUT IMPROVEMENT: Fixed machine card layout in Dashboard to handle long machine names
+- Restructured machine cards to use two-tier vertical layout preventing text overlap
+- Machine icon and name now display horizontally in top section with dedicated space
+- Machine Status and Gauge Status sections moved to separate bottom grid
+- Layout is fully responsive and works perfectly with any machine name length
+
 **January 18, 2025:**
 - IMPROVEMENT: Enhanced machine sorting logic in Dashboard to handle various naming patterns
 - Fixed machine ordering to work with MACH01, ACH03, and custom machine names
