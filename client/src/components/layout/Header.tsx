@@ -77,16 +77,13 @@ export default function Header() {
   // Store state with default values
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
-  const [customImage, setCustomImage] = useState<string | null>(null);
   const [showDataInput, setShowDataInput] = useState(false);
-  const [useCustomImage, setUseCustomImage] = useState(false);
+  const [logoExists, setLogoExists] = useState(false);
 
   // Load settings from local storage on component mount
   useEffect(() => {
     const storedTitle = localStorage.getItem("appTitle");
     const storedIcon = localStorage.getItem("appIcon") as IconKey;
-    const storedCustomImage = localStorage.getItem("customImage");
-    const storedUseCustomImage = localStorage.getItem("useCustomImage");
 
     if (storedTitle) {
       setTitle(storedTitle);
@@ -95,15 +92,68 @@ export default function Header() {
     if (storedIcon && Object.keys(icons).includes(storedIcon)) {
       setCurrentIcon(storedIcon);
     }
-    
-    if (storedCustomImage) {
-      setCustomImage(storedCustomImage);
-    }
-    
-    if (storedUseCustomImage === "true") {
-      setUseCustomImage(true);
-    }
+
+    // Check if logo file exists on server
+    checkLogoExists();
   }, []);
+
+  // Function to check if logo file exists on server
+  const checkLogoExists = async () => {
+    const logoFormats = ['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.gif'];
+    
+    for (const format of logoFormats) {
+      try {
+        const response = await fetch(`/${format}`, { method: 'HEAD' });
+        if (response.ok) {
+          setLogoExists(true);
+          return;
+        }
+      } catch (error) {
+        // Continue to next format
+      }
+    }
+    setLogoExists(false);
+  };
+
+  // Logo component with fallback logic
+  const LogoComponent = () => {
+    const [currentFormat, setCurrentFormat] = useState('logo.png');
+    const [showFallback, setShowFallback] = useState(false);
+
+    const handleImageError = () => {
+      const formats = ['logo.png', 'logo.jpg', 'logo.jpeg', 'logo.gif'];
+      const currentIndex = formats.indexOf(currentFormat);
+      
+      if (currentIndex < formats.length - 1) {
+        // Try next format
+        setCurrentFormat(formats[currentIndex + 1]);
+      } else {
+        // All formats failed, show fallback icon
+        setShowFallback(true);
+        setLogoExists(false);
+      }
+    };
+
+    if (showFallback || !logoExists) {
+      return (
+        <div className="h-16 w-16 flex items-center justify-center">
+          {icons[currentIcon]}
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-16 w-16 flex items-center justify-center">
+        <img 
+          src={`/${currentFormat}`}
+          alt="Logo" 
+          className="max-h-16 max-w-16 object-contain rounded"
+          style={{ maxHeight: "64px", maxWidth: "64px" }}
+          onError={handleImageError}
+        />
+      </div>
+    );
+  };
 
   const handleRefresh = useCallback(() => {
     // Invalidate all queries to force a refresh of data
@@ -131,18 +181,7 @@ export default function Header() {
           onClick={() => setLocation("/")}
           style={{ cursor: "pointer" }}
         >
-          {useCustomImage && customImage ? (
-            <div className="h-16 w-16 flex items-center justify-center">
-              <img 
-                src={customImage} 
-                alt="Logo" 
-                className="max-h-16 max-w-16 object-contain rounded"
-                style={{ maxHeight: "64px", maxWidth: "64px" }}
-              />
-            </div>
-          ) : (
-            icons[currentIcon]
-          )}
+          <LogoComponent />
           <h1 className="text-xl font-bold text-gray-600">{title}</h1>
         </div>
         <div className="flex items-center space-x-4">
