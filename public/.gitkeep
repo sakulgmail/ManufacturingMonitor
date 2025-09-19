@@ -1,0 +1,8 @@
+# This file ensures the public directory is tracked by git
+# You can place your logo file here as:
+# - logo.png (preferred)
+# - logo.jpg
+# - logo.jpeg
+# - logo.gif
+#
+# Simply replace the file and restart the server to change the logo.
