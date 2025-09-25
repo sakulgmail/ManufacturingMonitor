@@ -140,6 +140,13 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**September 25, 2025:**
+- COMPATIBILITY FIX: Resolved Windows compatibility issue with Vite plugins
+- Fixed error: "ENOENT: no such file or directory, open 'D:\proc\self\environ'"
+- Created Windows-specific development scripts (dev-windows.ps1, dev-windows.bat)
+- Updated WINDOWS_SETUP_GUIDE.md with comprehensive solutions for Windows users
+- Windows users can now run development server without Linux plugin compatibility errors
+
 **September 9, 2025:**
 - LAYOUT IMPROVEMENT: Fixed machine card layout in Dashboard to handle long machine names
 - Restructured machine cards to use two-tier vertical layout preventing text overlap
