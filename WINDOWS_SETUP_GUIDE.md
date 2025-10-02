@@ -1,6 +1,69 @@
 # Windows 11 Local Server Setup Guide
 
-## Issue: History page shows incorrect status on local server
+## Issue 1: Vite Plugin Compatibility Error (NEW)
+
+### Problem
+**Error:** `ENOENT: no such file or directory, open 'D:\proc\self\environ'`
+
+**Cause:** The `@replit/vite-plugin-runtime-error-modal` plugin tries to read Linux-specific environment variables (`/proc/self/environ`) which don't exist on Windows.
+
+### Solutions
+
+#### Solution 1: Use PowerShell Script (Recommended)
+
+Run the provided PowerShell script instead of `npm run dev`:
+
+```powershell
+.\dev-windows.ps1
+```
+
+This script:
+- Sets up the correct environment variables
+- Prevents Replit-specific plugins from loading
+- Starts the development server safely on Windows
+
+#### Solution 2: Manual Environment Setup
+
+If you prefer to run commands manually, set these environment variables before starting:
+
+**In PowerShell:**
+```powershell
+$env:NODE_ENV = "development"
+$env:REPL_ID = $null
+Remove-Item Env:REPL_ID -ErrorAction SilentlyContinue
+npm run dev
+```
+
+**In Command Prompt:**
+```cmd
+set NODE_ENV=development
+set REPL_ID=
+npm run dev
+```
+
+#### Solution 3: Use Batch File
+
+Run the provided batch file:
+```cmd
+.\dev-windows.bat
+```
+
+### What These Solutions Do
+
+1. **Prevent Repl ID Detection**: By ensuring `REPL_ID` is undefined, the Replit-specific plugins (including the problematic runtime error overlay) won't load
+2. **Maintain Development Mode**: Keeps `NODE_ENV=development` for proper development functionality  
+3. **Windows Compatibility**: Avoids Linux-specific file system access
+
+### Verification
+
+After using any of these solutions, you should see:
+- Server starts without the `/proc/self/environ` error
+- Application runs normally on `http://localhost:5000`
+- All functionality works except Replit-specific debugging features (which aren't needed on Windows)
+
+---
+
+## Issue 2: History page shows incorrect status on local server
 
 ### Problem
 The History page shows "Normal" status for "Bad" condition readings on local server, while working correctly on Replit.
