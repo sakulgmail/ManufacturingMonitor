@@ -644,11 +644,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all readings with details
+  // Get all readings with details (with pagination)
   app.get('/api/readings', async (req, res) => {
     try {
-      const readings = await storage.getAllReadingsWithDetails();
-      res.json(readings);
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const readings = await storage.getAllReadingsWithDetailsPaginated(limit, offset);
+      const totalCount = await storage.getReadingsCount();
+      
+      res.json({
+        readings,
+        totalCount,
+        limit,
+        offset
+      });
     } catch (error) {
       console.error("Error fetching all readings:", error);
       res.status(500).json({ message: "Failed to fetch readings" });

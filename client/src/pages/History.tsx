@@ -20,9 +20,16 @@ export default function History() {
     setSelectedGauge("all");
   }, [selectedStation]);
   
-  const { data: readings = [], isLoading } = useQuery<ReadingWithDetails[]>({
+  const { data: readingsResponse, isLoading } = useQuery<{
+    readings: ReadingWithDetails[];
+    totalCount: number;
+    limit: number;
+    offset: number;
+  }>({
     queryKey: ['/api/readings'],
   });
+  
+  const readings = readingsResponse?.readings || [];
   
   const { data: stationsData = [] } = useQuery<Station[]>({
     queryKey: ['/api/stations'],

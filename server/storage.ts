@@ -61,6 +61,8 @@ export interface IStorage {
   getReadingsByGauge(gaugeId: number): Promise<ReadingWithDetails[]>;
   createReading(reading: InsertReading): Promise<Reading>;
   getAllReadingsWithDetails(): Promise<ReadingWithDetails[]>;
+  getAllReadingsWithDetailsPaginated(limit: number, offset: number): Promise<ReadingWithDetails[]>;
+  getReadingsCount(): Promise<number>;
   
   // User Authentication
   getUser(id: number): Promise<User | undefined>;
@@ -465,6 +467,20 @@ export class MemStorage implements IStorage {
     return Promise.all(allReadings.map(async reading => {
       return this.enrichReadingWithDetails(reading);
     }));
+  }
+
+  async getAllReadingsWithDetailsPaginated(limit: number, offset: number): Promise<ReadingWithDetails[]> {
+    const allReadings = Array.from(this.readingRecords.values())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(offset, offset + limit);
+    
+    return Promise.all(allReadings.map(async reading => {
+      return this.enrichReadingWithDetails(reading);
+    }));
+  }
+
+  async getReadingsCount(): Promise<number> {
+    return this.readingRecords.size;
   }
 
   // Helper method to enrich a reading with station, gauge, and staff details
