@@ -27,7 +27,7 @@ import {
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   // Machines
@@ -373,6 +373,24 @@ export class DatabaseStorage implements IStorage {
 
     return Promise.all(allReadings.map(reading => this.enrichReadingWithDetails(reading)));
   }
+
+  async getAllReadingsWithDetailsPaginated(limit: number, offset: number): Promise<ReadingWithDetails[]> {
+    const paginatedReadings = await db
+      .select()
+      .from(readings)
+      .orderBy(desc(readings.timestamp))
+      .limit(limit)
+      .offset(offset);
+
+    return Promise.all(paginatedReadings.map(reading => this.enrichReadingWithDetails(reading)));
+  }
+
+  async getReadingsCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(readings);
+    return result[0]?.count || 0;
+  }
   
   // User Authentication
   async getUser(id: number): Promise<User | undefined> {
@@ -495,10 +513,8 @@ export class DatabaseStorage implements IStorage {
     const [gauge] = await db.select().from(gauges).where(eq(gauges.id, reading.gaugeId));
     
     let username = "Unknown";
-    console.log('Enriching reading with userId:', reading.userId);
     if (reading.userId) {
-      const [user] = await db.select().from(users).where(eq(users.id, reading.userId));
-      console.log('Found user for reading:', user);
+      const [user] = await db.select({ username: users.username }).from(users).where(eq(users.id, reading.userId));
       if (user) {
         username = user.username;
       }
