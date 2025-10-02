@@ -140,6 +140,14 @@ The application is configured to be deployed on Replit with the following setup:
 
 ## Recent Changes
 
+**October 2, 2025:**
+- CRITICAL FIX: Resolved "Invalid string length" error on Windows when loading History page with large datasets
+- Fixed security vulnerability: Removed password hash logging from enrichReadingWithDetails method
+- Optimized database queries: Only fetch username instead of full user object to reduce data transfer
+- Added pagination support to /api/readings endpoint (default: 100 records per request)
+- Updated History page to handle paginated API response format
+- Performance improvement: Dramatically reduced response payload size for large reading datasets
+
 **September 25, 2025:**
 - COMPATIBILITY FIX: Resolved Windows compatibility issue with Vite plugins
 - Fixed error: "ENOENT: no such file or directory, open 'D:\proc\self\environ'"
