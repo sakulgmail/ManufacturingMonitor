@@ -27,7 +27,7 @@ import {
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   // Machines
@@ -394,17 +394,21 @@ export class DatabaseStorage implements IStorage {
 
     // Step 3: Fetch all related data in bulk (4 queries instead of N*4)
     const [allStations, allGauges, allUsers] = await Promise.all([
-      db.select().from(stations).where(sql`${stations.id} = ANY(${stationIds})`),
-      db.select().from(gauges).where(sql`${gauges.id} = ANY(${gaugeIds})`),
+      stationIds.length > 0 
+        ? db.select().from(stations).where(inArray(stations.id, stationIds))
+        : Promise.resolve([]),
+      gaugeIds.length > 0
+        ? db.select().from(gauges).where(inArray(gauges.id, gaugeIds))
+        : Promise.resolve([]),
       userIds.length > 0 
-        ? db.select({ id: users.id, username: users.username }).from(users).where(sql`${users.id} = ANY(${userIds})`)
+        ? db.select({ id: users.id, username: users.username }).from(users).where(inArray(users.id, userIds as number[]))
         : Promise.resolve([])
     ]);
 
     // Get unique gauge type IDs from gauges
     const gaugeTypeIds = Array.from(new Set(allGauges.map(g => g.gaugeTypeId).filter(id => id !== null)));
     const allGaugeTypes = gaugeTypeIds.length > 0
-      ? await db.select().from(gaugeTypes).where(sql`${gaugeTypes.id} = ANY(${gaugeTypeIds})`)
+      ? await db.select().from(gaugeTypes).where(inArray(gaugeTypes.id, gaugeTypeIds as number[]))
       : [];
 
     // Step 4: Create lookup maps for O(1) access
