@@ -375,6 +375,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllReadingsWithDetailsPaginated(limit: number, offset: number): Promise<ReadingWithDetails[]> {
+    // Step 1: Fetch paginated readings
     const paginatedReadings = await db
       .select()
       .from(readings)
@@ -382,7 +383,68 @@ export class DatabaseStorage implements IStorage {
       .limit(limit)
       .offset(offset);
 
-    return Promise.all(paginatedReadings.map(reading => this.enrichReadingWithDetails(reading)));
+    if (paginatedReadings.length === 0) {
+      return [];
+    }
+
+    // Step 2: Collect unique IDs
+    const stationIds = Array.from(new Set(paginatedReadings.map(r => r.stationId)));
+    const gaugeIds = Array.from(new Set(paginatedReadings.map(r => r.gaugeId)));
+    const userIds = Array.from(new Set(paginatedReadings.map(r => r.userId).filter(id => id !== null)));
+
+    // Step 3: Fetch all related data in bulk (4 queries instead of N*4)
+    const [allStations, allGauges, allUsers] = await Promise.all([
+      db.select().from(stations).where(sql`${stations.id} = ANY(${stationIds})`),
+      db.select().from(gauges).where(sql`${gauges.id} = ANY(${gaugeIds})`),
+      userIds.length > 0 
+        ? db.select({ id: users.id, username: users.username }).from(users).where(sql`${users.id} = ANY(${userIds})`)
+        : Promise.resolve([])
+    ]);
+
+    // Get unique gauge type IDs from gauges
+    const gaugeTypeIds = Array.from(new Set(allGauges.map(g => g.gaugeTypeId).filter(id => id !== null)));
+    const allGaugeTypes = gaugeTypeIds.length > 0
+      ? await db.select().from(gaugeTypes).where(sql`${gaugeTypes.id} = ANY(${gaugeTypeIds})`)
+      : [];
+
+    // Step 4: Create lookup maps for O(1) access
+    const stationMap = new Map(allStations.map(s => [s.id, s]));
+    const gaugeMap = new Map(allGauges.map(g => [g.id, g]));
+    const userMap = new Map(allUsers.map(u => [u.id, u.username]));
+    const gaugeTypeMap = new Map(allGaugeTypes.map(gt => [gt.id, gt]));
+
+    // Step 5: Enrich readings using the maps (no additional queries)
+    return paginatedReadings.map(reading => {
+      const station = stationMap.get(reading.stationId);
+      const gauge = gaugeMap.get(reading.gaugeId);
+      const username = reading.userId ? (userMap.get(reading.userId) || "Unknown") : "Unknown";
+      const gaugeType = gauge?.gaugeTypeId ? gaugeTypeMap.get(gauge.gaugeTypeId) : null;
+
+      return {
+        ...reading,
+        stationName: station?.name || "Unknown Station",
+        gaugeName: gauge?.name || "Unknown Gauge",
+        unit: gauge?.unit || "",
+        minValue: gauge?.minValue || 0,
+        maxValue: gauge?.maxValue || 0,
+        gaugeType: gaugeType || {
+          id: 0,
+          name: "Unknown",
+          hasUnit: false,
+          hasMinValue: false,
+          hasMaxValue: false,
+          hasStep: false,
+          hasCondition: false,
+          hasInstruction: false,
+          defaultUnit: "",
+          defaultMinValue: 0,
+          defaultMaxValue: 100,
+          defaultStep: 1,
+          instruction: ""
+        },
+        username
+      };
+    });
   }
 
   async getReadingsCount(): Promise<number> {
