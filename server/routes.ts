@@ -647,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all readings with details (with pagination)
   app.get('/api/readings', async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 100;
+      const limit = parseInt(req.query.limit as string) || 25;
       const offset = parseInt(req.query.offset as string) || 0;
       
       const readings = await storage.getAllReadingsWithDetailsPaginated(limit, offset);
