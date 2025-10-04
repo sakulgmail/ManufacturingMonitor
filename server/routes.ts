@@ -609,9 +609,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
+      // Handle image upload - convert Base64 to file if present
+      let imageUrl = req.body.imageUrl;
+      if (imageUrl && imageUrl.startsWith('data:image/')) {
+        // It's a Base64 image, save it as a file
+        const { saveBase64Image } = await import('./file-storage.js');
+        imageUrl = await saveBase64Image(imageUrl);
+        console.log('Saved image as file:', imageUrl);
+      }
+      
       // Validate the request body with userId
       const readingData = insertReadingSchema.parse({
         ...req.body,
+        imageUrl,
         userId
       });
       
@@ -1072,45 +1082,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Add image if available and images are included
         if (includeImages === 'true' && reading.imageUrl) {
           try {
-            // Check if image file exists (for local files)
-            const imagePath = reading.imageUrl.startsWith('/') ? 
-              path.join(process.cwd(), 'public', reading.imageUrl) : 
-              reading.imageUrl;
-            
-            console.log('Excel: Processing image for reading', reading.id);
-            console.log('Excel: Original imageUrl:', reading.imageUrl);
-            console.log('Excel: Computed imagePath:', imagePath);
-            console.log('Excel: File exists:', fs.existsSync(imagePath));
+            let imageBuffer: Buffer;
+            let extension: string;
             
             if (reading.imageUrl.startsWith('data:')) {
-              // Handle base64 data URI
+              // Handle base64 data URI (legacy data)
               const base64Data = reading.imageUrl.split(',')[1];
-              const imageBuffer = Buffer.from(base64Data, 'base64');
+              imageBuffer = Buffer.from(base64Data, 'base64');
               
               // Determine image type from data URI
               const mimeType = reading.imageUrl.split(';')[0].split(':')[1];
-              const extension = mimeType.split('/')[1];
+              extension = mimeType.split('/')[1];
               
-              console.log('Excel: Detected image type:', extension);
+              console.log('Excel: Processing Base64 image, type:', extension);
+            } else if (reading.imageUrl.startsWith('/uploads/')) {
+              // Handle file-based image (new approach)
+              const imagePath = path.join(process.cwd(), 'public', reading.imageUrl);
               
-              const imageId = workbook.addImage({
-                buffer: imageBuffer,
-                extension: extension as any,
-              });
-
-              // Calculate cell position for image column
-              const imageColumnIndex = columns.findIndex(col => col.key === 'image');
-              if (imageColumnIndex >= 0) {
-                worksheet.addImage(imageId, {
-                  tl: { col: imageColumnIndex, row: i + 1 }, // +1 because header is row 0
-                  ext: { width: 100, height: 75 }
-                });
-                // Set row height to accommodate image
-                row.height = 75;
-                console.log('Excel: Image embedded successfully for reading', reading.id);
+              console.log('Excel: Processing file-based image:', imagePath);
+              console.log('Excel: File exists:', fs.existsSync(imagePath));
+              
+              if (fs.existsSync(imagePath)) {
+                imageBuffer = fs.readFileSync(imagePath);
+                extension = path.extname(imagePath).substring(1); // Remove the dot
+                console.log('Excel: File loaded, type:', extension);
+              } else {
+                console.log('Excel: File not found, skipping');
+                continue; // Skip this image
               }
             } else {
-              console.log('Excel: Image is not a data URI, skipping');
+              console.log('Excel: Unknown image format, skipping');
+              continue;
+            }
+            
+            const imageId = workbook.addImage({
+              buffer: imageBuffer,
+              extension: extension as any,
+            });
+
+            // Calculate cell position for image column
+            const imageColumnIndex = columns.findIndex(col => col.key === 'image');
+            if (imageColumnIndex >= 0) {
+              worksheet.addImage(imageId, {
+                tl: { col: imageColumnIndex, row: i + 1 }, // +1 because header is row 0
+                ext: { width: 100, height: 75 }
+              });
+              // Set row height to accommodate image
+              row.height = 75;
+              console.log('Excel: Image embedded successfully for reading', reading.id);
             }
           } catch (error) {
             console.error('Error adding image to Excel:', error);
@@ -1191,22 +1210,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Add image if available
           if (includeImages === 'true' && reading.imageUrl) {
             try {
-              console.log('PDF: Processing image for reading', reading.id);
-              console.log('PDF: Original imageUrl type:', typeof reading.imageUrl);
-              console.log('PDF: Original imageUrl starts with data:', reading.imageUrl.startsWith('data:'));
+              let imageBuffer: Buffer;
               
               if (reading.imageUrl.startsWith('data:')) {
-                // Handle base64 data URI
+                // Handle base64 data URI (legacy data)
                 const base64Data = reading.imageUrl.split(',')[1];
-                const imageBuffer = Buffer.from(base64Data, 'base64');
+                imageBuffer = Buffer.from(base64Data, 'base64');
+                console.log('PDF: Processing Base64 image for reading', reading.id);
+              } else if (reading.imageUrl.startsWith('/uploads/')) {
+                // Handle file-based image (new approach)
+                const imagePath = path.join(process.cwd(), 'public', reading.imageUrl);
                 
-                doc.moveDown(0.5);
-                doc.text('Image:');
-                doc.image(imageBuffer, { width: 200, height: 150 });
-                console.log('PDF: Image embedded successfully for reading', reading.id);
+                console.log('PDF: Processing file-based image:', imagePath);
+                console.log('PDF: File exists:', fs.existsSync(imagePath));
+                
+                if (fs.existsSync(imagePath)) {
+                  imageBuffer = fs.readFileSync(imagePath);
+                  console.log('PDF: File loaded successfully');
+                } else {
+                  console.log('PDF: File not found, skipping');
+                  doc.text('Image: [File not found]');
+                  continue;
+                }
               } else {
-                console.log('PDF: Image is not a data URI, skipping');
+                console.log('PDF: Unknown image format, skipping');
+                doc.text('Image: [Unsupported format]');
+                continue;
               }
+              
+              doc.moveDown(0.5);
+              doc.text('Image:');
+              doc.image(imageBuffer, { width: 200, height: 150 });
+              console.log('PDF: Image embedded successfully for reading', reading.id);
             } catch (error) {
               console.error('PDF: Error adding image:', error);
               doc.text('Image: [Error loading image]');
