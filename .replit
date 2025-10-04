@@ -16,7 +16,7 @@ externalPort = 80
 exposeLocalhost = true
 
 [[ports]]
-localPort = 43521
+localPort = 35617
 externalPort = 3000
 
 [workflows]
