@@ -1,17 +1,63 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const UPLOADS_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
+// Image compression configuration
+const COMPRESSION_CONFIG = {
+  quality: 85,
+  maxWidth: 1600,
+  maxHeight: 1600,
+  format: 'jpeg' as const,
+};
+
 export async function ensureUploadsDirectory() {
   try {
     await fs.access(UPLOADS_DIR);
   } catch {
     await fs.mkdir(UPLOADS_DIR, { recursive: true });
+  }
+}
+
+async function compressImage(buffer: Buffer): Promise<{ buffer: Buffer; format: string }> {
+  try {
+    const image = sharp(buffer);
+    const metadata = await image.metadata();
+    
+    // Resize if image is larger than max dimensions
+    let resized = image;
+    if (metadata.width && metadata.height) {
+      if (metadata.width > COMPRESSION_CONFIG.maxWidth || metadata.height > COMPRESSION_CONFIG.maxHeight) {
+        resized = image.resize(COMPRESSION_CONFIG.maxWidth, COMPRESSION_CONFIG.maxHeight, {
+          fit: 'inside',
+          withoutEnlargement: true
+        });
+      }
+    }
+    
+    // Convert to JPEG with compression
+    const compressedBuffer = await resized
+      .jpeg({ quality: COMPRESSION_CONFIG.quality })
+      .toBuffer();
+    
+    console.log(`Image compressed: ${buffer.length} bytes -> ${compressedBuffer.length} bytes (${Math.round((1 - compressedBuffer.length / buffer.length) * 100)}% reduction)`);
+    
+    return {
+      buffer: compressedBuffer,
+      format: 'jpeg'
+    };
+  } catch (error) {
+    console.warn('Image compression failed, using original:', error);
+    // Fallback to original if compression fails
+    return {
+      buffer,
+      format: 'original'
+    };
   }
 }
 
@@ -24,15 +70,21 @@ export async function saveBase64Image(base64Data: string, filename?: string): Pr
     throw new Error('Invalid base64 image data');
   }
   
-  const imageType = matches[1]; // e.g., 'png', 'jpeg'
+  const originalImageType = matches[1]; // e.g., 'png', 'jpeg'
   const imageBuffer = Buffer.from(matches[2], 'base64');
+  
+  // Compress the image
+  const { buffer: compressedBuffer, format: compressedFormat } = await compressImage(imageBuffer);
+  
+  // Use compressed format for filename, or original if compression failed
+  const imageType = compressedFormat === 'original' ? originalImageType : compressedFormat;
   
   // Generate unique filename if not provided
   const imageFilename = filename || `${Date.now()}-${Math.random().toString(36).substring(7)}.${imageType}`;
   const filePath = path.join(UPLOADS_DIR, imageFilename);
   
-  // Save the file
-  await fs.writeFile(filePath, imageBuffer);
+  // Save the compressed file
+  await fs.writeFile(filePath, compressedBuffer);
   
   // Return the relative URL path
   return `/uploads/${imageFilename}`;
