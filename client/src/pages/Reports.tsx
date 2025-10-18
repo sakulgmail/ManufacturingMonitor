@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Download, Play, Save, Trash2, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Download, Play, Save, Trash2, Calendar, Mail } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ReportQuery {
   id?: number;
@@ -55,6 +58,11 @@ export function Reports() {
   const [savedQueries, setSavedQueries] = useState<ReportQuery[]>([]);
   const [reportResults, setReportResults] = useState<ReportResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  
+  const { toast } = useToast();
 
   // Fetch machines for filter options
   const { data: machines = [] } = useQuery<any[]>({
@@ -124,6 +132,48 @@ export function Reports() {
       document.body.removeChild(a);
     } catch (error) {
       console.error(`Error exporting to ${exportFormat}:`, error);
+    }
+  };
+
+  const sendPDFEmail = async () => {
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await apiRequest('POST', '/api/reports/email', {
+        recipientEmail,
+        machines: currentQuery.machines.join(','),
+        stations: currentQuery.stations.join(','),
+        gauges: currentQuery.gauges.join(','),
+        dateFrom: currentQuery.dateFrom,
+        dateTo: currentQuery.dateTo,
+        statusFilter: currentQuery.statusFilter,
+        includeImages: currentQuery.includeImages.toString(),
+        includeComments: currentQuery.includeComments.toString(),
+      });
+
+      toast({
+        title: "Email Sent Successfully",
+        description: `Report sent to ${recipientEmail}`,
+      });
+      setEmailDialogOpen(false);
+      setRecipientEmail("");
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Email Failed",
+        description: error instanceof Error ? error.message : "Failed to send email. Please check your email configuration.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -334,20 +384,24 @@ export function Reports() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button onClick={runReport} disabled={isRunning}>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={runReport} disabled={isRunning} data-testid="button-run-report">
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Report"}
               </Button>
-              <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0}>
+              <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0} data-testid="button-export-excel">
                 <Download className="h-4 w-4 mr-2" />
                 Export to Excel
               </Button>
-              <Button onClick={() => exportToFormat('pdf')} variant="outline" disabled={reportResults.length === 0}>
+              <Button onClick={() => exportToFormat('pdf')} variant="outline" disabled={reportResults.length === 0} data-testid="button-export-pdf">
                 <Download className="h-4 w-4 mr-2" />
                 Export to PDF
               </Button>
-              <Button onClick={saveQuery} variant="outline" disabled={!currentQuery.name}>
+              <Button onClick={() => setEmailDialogOpen(true)} variant="outline" data-testid="button-send-email">
+                <Mail className="h-4 w-4 mr-2" />
+                Send PDF Email
+              </Button>
+              <Button onClick={saveQuery} variant="outline" disabled={!currentQuery.name} data-testid="button-save-query">
                 <Save className="h-4 w-4 mr-2" />
                 Save Query
               </Button>
@@ -461,6 +515,53 @@ export function Reports() {
           </Card>
         )}
       </div>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send PDF Report via Email</DialogTitle>
+            <DialogDescription>
+              Enter the recipient's email address to send the PDF report with the current filters and settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="recipientEmail">Recipient Email</Label>
+              <Input
+                id="recipientEmail"
+                type="email"
+                placeholder="example@company.com"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isSendingEmail) {
+                    sendPDFEmail();
+                  }
+                }}
+                data-testid="input-recipient-email"
+              />
+            </div>
+            <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
+              <p><strong>Report Details:</strong></p>
+              <ul className="mt-1 space-y-1">
+                <li>• Date Range: {currentQuery.dateFrom} to {currentQuery.dateTo}</li>
+                <li>• Format: PDF with {currentQuery.includeImages ? 'images' : 'no images'}</li>
+                <li>• Comments: {currentQuery.includeComments ? 'Included' : 'Not included'}</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={isSendingEmail} data-testid="button-cancel-email">
+              Cancel
+            </Button>
+            <Button onClick={sendPDFEmail} disabled={isSendingEmail || !recipientEmail} data-testid="button-confirm-send-email">
+              <Mail className="h-4 w-4 mr-2" />
+              {isSendingEmail ? "Sending..." : "Send Email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

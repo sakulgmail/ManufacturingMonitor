@@ -9,13 +9,13 @@ interface Reading {
   stationName: string;
   gaugeName: string;
   value: number;
-  unit?: string;
-  condition?: string;
+  unit?: string | null;
+  condition?: string | null;
   username: string;
-  imageUrl?: string;
-  comment?: string;
-  minValue?: number;
-  maxValue?: number;
+  imageUrl?: string | null;
+  comment?: string | null;
+  minValue?: number | null;
+  maxValue?: number | null;
   gaugeType?: {
     hasCondition: boolean;
     hasMinValue: boolean;
