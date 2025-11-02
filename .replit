@@ -4,6 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["unzip", "noto-fonts"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -18,10 +19,6 @@ exposeLocalhost = true
 [[ports]]
 localPort = 40997
 externalPort = 3000
-
-[[ports]]
-localPort = 41545
-externalPort = 3001
 
 [workflows]
 runButton = "Project"
