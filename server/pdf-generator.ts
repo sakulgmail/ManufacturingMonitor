@@ -50,11 +50,24 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
       const chunks: Buffer[] = [];
 
       // Register Thai fonts for proper Thai text rendering
-      const thaiRegularFont = path.join(__dirname, 'fonts', 'NotoSansThai-Regular.ttf');
-      const thaiBoldFont = path.join(__dirname, 'fonts', 'NotoSansThai-Bold.ttf');
+      // Use process.cwd() instead of __dirname to get correct path in TypeScript
+      const thaiRegularFont = path.join(process.cwd(), 'server', 'fonts', 'NotoSansThai-Regular.ttf');
+      const thaiBoldFont = path.join(process.cwd(), 'server', 'fonts', 'NotoSansThai-Bold.ttf');
       
-      doc.registerFont('ThaiRegular', thaiRegularFont);
-      doc.registerFont('ThaiBold', thaiBoldFont);
+      console.log('PDF: Attempting to register Thai fonts...');
+      console.log('PDF: Regular font path:', thaiRegularFont);
+      console.log('PDF: Bold font path:', thaiBoldFont);
+      console.log('PDF: Regular font exists:', fs.existsSync(thaiRegularFont));
+      console.log('PDF: Bold font exists:', fs.existsSync(thaiBoldFont));
+      
+      try {
+        doc.registerFont('ThaiRegular', thaiRegularFont);
+        doc.registerFont('ThaiBold', thaiBoldFont);
+        console.log('PDF: Thai fonts registered successfully');
+      } catch (error) {
+        console.error('PDF: Error registering Thai fonts:', error);
+        // Fall back to default fonts if registration fails
+      }
 
       doc.on('data', (chunk) => chunks.push(chunk));
       doc.on('end', () => {
