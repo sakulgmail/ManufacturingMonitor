@@ -49,6 +49,13 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
       const doc = new PDFDocument({ margin: 50 });
       const chunks: Buffer[] = [];
 
+      // Register Thai fonts for proper Thai text rendering
+      const thaiRegularFont = path.join(__dirname, 'fonts', 'NotoSansThai-Regular.ttf');
+      const thaiBoldFont = path.join(__dirname, 'fonts', 'NotoSansThai-Bold.ttf');
+      
+      doc.registerFont('ThaiRegular', thaiRegularFont);
+      doc.registerFont('ThaiBold', thaiBoldFont);
+
       doc.on('data', (chunk) => chunks.push(chunk));
       doc.on('end', () => {
         const pdfBuffer = Buffer.concat(chunks);
@@ -59,9 +66,9 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
       });
 
       // Add title
-      doc.fontSize(20).text('Manufacturing Report', { align: 'center' });
+      doc.font('ThaiBold').fontSize(20).text('Manufacturing Report', { align: 'center' });
       doc.moveDown();
-      doc.fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.font('ThaiRegular').fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
       doc.moveDown(2);
 
       // Process each reading
@@ -85,10 +92,10 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
         }
 
         // Add reading information
-        doc.fontSize(14).fillColor('black').text(`Reading #${reading.id}`, { underline: true });
+        doc.font('ThaiBold').fontSize(14).fillColor('black').text(`Reading #${reading.id}`, { underline: true });
         doc.moveDown(0.5);
 
-        doc.fontSize(10);
+        doc.font('ThaiRegular').fontSize(10);
         doc.text(`Timestamp: ${new Date(reading.timestamp).toLocaleString()}`);
         doc.text(`Machine: ${machine?.name || 'Unknown'}`);
         doc.text(`Station: ${reading.stationName}`);
@@ -118,20 +125,20 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
               if (fs.existsSync(imagePath)) {
                 imageBuffer = fs.readFileSync(imagePath);
               } else {
-                doc.text('Image: [File not found]');
+                doc.font('ThaiRegular').text('Image: [File not found]');
                 continue;
               }
             } else {
-              doc.text('Image: [Unsupported format]');
+              doc.font('ThaiRegular').text('Image: [Unsupported format]');
               continue;
             }
 
             doc.moveDown(0.5);
-            doc.text('Image:');
+            doc.font('ThaiRegular').text('Image:');
             doc.image(imageBuffer, { width: 200, height: 150 });
           } catch (error) {
             console.error('PDF: Error adding image:', error);
-            doc.text('Image: [Error loading image]');
+            doc.font('ThaiRegular').text('Image: [Error loading image]');
           }
         }
 
