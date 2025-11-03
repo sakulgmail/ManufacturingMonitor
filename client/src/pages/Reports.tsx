@@ -124,17 +124,24 @@ export function Reports() {
       }
       
       const blob = await response.blob();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
       const extension = exportFormat === 'excel' ? 'xlsx' : 'pdf';
-      a.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      
+      // Try multiple download methods for better compatibility
+      const url = window.URL.createObjectURL(blob);
+      
+      // Method 1: Create and click link (works in most browsers)
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `manufacturing_report_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.${extension}`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup after a short delay
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
       
       toast({
         title: "Export Successful",
