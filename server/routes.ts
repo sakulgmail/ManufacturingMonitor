@@ -1151,114 +1151,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const buffer = await workbook.xlsx.writeBuffer();
 
       if (format === 'pdf') {
-        // Create PDF with embedded images
-        const doc = new PDFDocument({ margin: 50 });
-        const chunks: Buffer[] = [];
-        
-        doc.on('data', (chunk) => chunks.push(chunk));
-        doc.on('end', () => {
-          const pdfBuffer = Buffer.concat(chunks);
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.pdf"`);
-          res.send(pdfBuffer);
+        // Generate PDF using Puppeteer for proper Thai text rendering
+        const { generatePDFReport } = await import('./puppeteer-pdf-generator.js');
+        const pdfBuffer = await generatePDFReport({
+          readings,
+          machineMap,
+          stationMap,
+          includeImages: includeImages === 'true',
+          includeComments: includeComments === 'true'
         });
 
-        // Add title
-        doc.fontSize(20).text('Manufacturing Report', { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
-        doc.moveDown(2);
-
-        // Process each reading
-        for (const reading of readings) {
-          const station = stationMap.get(reading.stationId);
-          const machine = station ? machineMap.get(station.machineId) : null;
-          
-          let isAlert = false;
-          if (reading.gaugeType?.hasCondition) {
-            isAlert = reading.value > 0;
-          }
-          if (reading.gaugeType?.hasMinValue || reading.gaugeType?.hasMaxValue) {
-            let isOutOfRange = false;
-            if (reading.gaugeType?.hasMinValue && reading.minValue != null) {
-              isOutOfRange = isOutOfRange || reading.value < reading.minValue;
-            }
-            if (reading.gaugeType?.hasMaxValue && reading.maxValue != null) {
-              isOutOfRange = isOutOfRange || reading.value > reading.maxValue;
-            }
-            isAlert = isOutOfRange;
-          }
-
-          // Add reading information
-          doc.fontSize(14).fillColor('black').text(`Reading #${reading.id}`, { underline: true });
-          doc.moveDown(0.5);
-          
-          doc.fontSize(10);
-          doc.text(`Timestamp: ${new Date(reading.timestamp).toLocaleString()}`);
-          doc.text(`Machine: ${machine?.name || 'Unknown'}`);
-          doc.text(`Station: ${reading.stationName}`);
-          doc.text(`Gauge: ${reading.gaugeName}`);
-          doc.text(`Value: ${reading.gaugeType?.hasCondition ? (reading.condition || 'N/A') : reading.value}`);
-          doc.text(`Unit: ${reading.unit || ''}`);
-          doc.text(`Status: ${isAlert ? 'Alert' : 'Normal'}`);
-          doc.text(`User: ${reading.username}`);
-          
-          if (includeComments === 'true' && reading.comment) {
-            doc.text(`Comment: ${reading.comment}`);
-          }
-
-          // Add image if available
-          if (includeImages === 'true' && reading.imageUrl) {
-            try {
-              let imageBuffer: Buffer;
-              
-              if (reading.imageUrl.startsWith('data:')) {
-                // Handle base64 data URI (legacy data)
-                const base64Data = reading.imageUrl.split(',')[1];
-                imageBuffer = Buffer.from(base64Data, 'base64');
-                console.log('PDF: Processing Base64 image for reading', reading.id);
-              } else if (reading.imageUrl.startsWith('/uploads/')) {
-                // Handle file-based image (new approach)
-                const imagePath = path.join(process.cwd(), 'public', reading.imageUrl);
-                
-                console.log('PDF: Processing file-based image:', imagePath);
-                console.log('PDF: File exists:', fs.existsSync(imagePath));
-                
-                if (fs.existsSync(imagePath)) {
-                  imageBuffer = fs.readFileSync(imagePath);
-                  console.log('PDF: File loaded successfully');
-                } else {
-                  console.log('PDF: File not found, skipping');
-                  doc.text('Image: [File not found]');
-                  continue;
-                }
-              } else {
-                console.log('PDF: Unknown image format, skipping');
-                doc.text('Image: [Unsupported format]');
-                continue;
-              }
-              
-              doc.moveDown(0.5);
-              doc.text('Image:');
-              doc.image(imageBuffer, { width: 200, height: 150 });
-              console.log('PDF: Image embedded successfully for reading', reading.id);
-            } catch (error) {
-              console.error('PDF: Error adding image:', error);
-              doc.text('Image: [Error loading image]');
-            }
-          }
-
-          doc.moveDown(1);
-          
-          // Add page break if needed (except for last reading)
-          if (readings.indexOf(reading) < readings.length - 1) {
-            if (doc.y > 600) { // Check if we need a new page
-              doc.addPage();
-            }
-          }
-        }
-
-        doc.end();
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="manufacturing_report_${new Date().toISOString().split('T')[0]}.pdf"`);
+        res.send(pdfBuffer);
       } else {
         // Excel format (existing code)
         // Set headers for Excel download
@@ -1359,8 +1264,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allStations = await storage.getAllStations();
       const stationMap = new Map(allStations.map(s => [s.id, s]));
 
-      // Generate PDF using utility function
-      const { generatePDFReport } = await import('./pdf-generator.js');
+      // Generate PDF using Puppeteer for proper Thai text rendering
+      const { generatePDFReport } = await import('./puppeteer-pdf-generator.js');
       const pdfBuffer = await generatePDFReport({
         readings,
         machineMap,
