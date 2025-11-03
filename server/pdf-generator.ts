@@ -51,8 +51,8 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
 
       // Register Thai fonts for proper Thai text rendering
       // Use process.cwd() instead of __dirname to get correct path in TypeScript
-      const thaiRegularFont = path.join(process.cwd(), 'server', 'fonts', 'NotoSansThai-Regular.ttf');
-      const thaiBoldFont = path.join(process.cwd(), 'server', 'fonts', 'NotoSansThai-Bold.ttf');
+      const thaiRegularFont = path.join(process.cwd(), 'server', 'fonts', 'THSarabun.ttf');
+      const thaiBoldFont = path.join(process.cwd(), 'server', 'fonts', 'THSarabunNew.ttf');
       
       console.log('PDF: Attempting to register Thai fonts...');
       console.log('PDF: Regular font path:', thaiRegularFont);
