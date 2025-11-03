@@ -113,20 +113,20 @@ function generateHTML(options: PDFGenerationOptions): string {
       : '';
 
     const commentHTML = includeComments && reading.comment
-      ? `<p><strong>ความคิดเห็น:</strong> ${reading.comment}</p>`
+      ? `<p><strong>Comment:</strong> ${reading.comment}</p>`
       : '';
 
     return `
       <div class="reading">
         <h2>Reading #${reading.id}</h2>
         <div class="details">
-          <p><strong>เวลา:</strong> ${new Date(reading.timestamp).toLocaleString('th-TH')}</p>
-          <p><strong>เครื่องจักร:</strong> ${machine?.name || 'Unknown'}</p>
-          <p><strong>สถานี:</strong> ${reading.stationName}</p>
-          <p><strong>เกจ:</strong> ${reading.gaugeName}</p>
-          <p><strong>ค่า:</strong> ${displayValue} ${reading.unit || ''}</p>
-          <p><strong>สถานะ:</strong> <span class="${isAlert ? 'alert' : 'normal'}">${isAlert ? 'แจ้งเตือน' : 'ปกติ'}</span></p>
-          <p><strong>ผู้บันทึก:</strong> ${reading.username}</p>
+          <p><strong>Timestamp:</strong> ${new Date(reading.timestamp).toLocaleString()}</p>
+          <p><strong>Machine:</strong> ${machine?.name || 'Unknown'}</p>
+          <p><strong>Station:</strong> ${reading.stationName}</p>
+          <p><strong>Gauge:</strong> ${reading.gaugeName}</p>
+          <p><strong>Value:</strong> ${displayValue} ${reading.unit || ''}</p>
+          <p><strong>Status:</strong> <span class="${isAlert ? 'alert' : 'normal'}">${isAlert ? 'Alert' : 'Normal'}</span></p>
+          <p><strong>User:</strong> ${reading.username}</p>
           ${commentHTML}
         </div>
         ${imageHTML}
@@ -249,8 +249,8 @@ function generateHTML(options: PDFGenerationOptions): string {
       </style>
     </head>
     <body>
-      <h1>รายงานการตรวจสอบเกจ</h1>
-      <p class="generated-date">สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}</p>
+      <h1>Manufacturing Report</h1>
+      <p class="generated-date">Generated on: ${new Date().toLocaleString()}</p>
       ${readingsHTML}
     </body>
     </html>
