@@ -118,6 +118,11 @@ export function Reports() {
       });
 
       const response = await fetch(`/api/reports/export?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`Export failed with status: ${response.status}`);
+      }
+      
       const blob = await response.blob();
       
       // Create download link
@@ -130,8 +135,18 @@ export function Reports() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      toast({
+        title: "Export Successful",
+        description: `Report exported as ${extension.toUpperCase()} file`,
+      });
     } catch (error) {
       console.error(`Error exporting to ${exportFormat}:`, error);
+      toast({
+        title: "Export Failed",
+        description: `Failed to export report to ${exportFormat.toUpperCase()}`,
+        variant: "destructive",
+      });
     }
   };
 
