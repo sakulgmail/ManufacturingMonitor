@@ -42,6 +42,7 @@ async function compressImage(buffer: Buffer): Promise<{ buffer: Buffer; format: 
     
     // Convert to JPEG with compression
     const compressedBuffer = await resized
+      .rotate()
       .jpeg({ quality: COMPRESSION_CONFIG.quality })
       .toBuffer();
     
