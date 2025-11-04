@@ -1,0 +1,91 @@
+1:49:50 PM [express] GET /api/reports/run 304 in 1288ms :: [{"id":1198,"timestamp":"2025-11-03T01:22…
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132980051-dq38i.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1198
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132954658-aa8ro.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1197
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132929465-dcngd.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1196
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132904295-53navj.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1195
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132887895-zrrnlm.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1194
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132864313-071b54.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1193
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132818101-6e4p1.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1192
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132795827-xcv0u.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1191
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132778880-3idcnl.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1190
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132729816-lqj415.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1189
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132672298-vs7m2.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1188
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132657508-3z32ng.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1187
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132604974-7drcl.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1186
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132580380-4wvkwj.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1185
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132553889-yq2bvk.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1184
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132529377-8nctdg.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1183
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132502652-ohfbj.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1182
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132476726-kmmwhm.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1181
+Excel: Processing file-based image: D:\ManufacturingMonitor\public\uploads\1762132453962-8xdlg8.jpeg
+Excel: File exists: true
+Excel: File loaded, type: jpeg
+Excel: Image embedded successfully for reading 1180
+Error exporting report: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'puppeteer' imported from D:\ManufacturingMonitor\server\puppeteer-pdf-generator.ts
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:256:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:854:18)
+    at defaultResolve (node:internal/modules/esm/resolve:984:11)
+    at nextResolve (node:internal/modules/esm/hooks:748:28)
+    at resolveBase (file:///D:/ManufacturingMonitor/node_modules/tsx/dist/esm/index.mjs?1762238957307:2:3212)
+    at resolveDirectory (file:///D:/ManufacturingMonitor/node_modules/tsx/dist/esm/index.mjs?1762238957307:2:3584)
+    at resolveTsPaths (file:///D:/ManufacturingMonitor/node_modules/tsx/dist/esm/index.mjs?1762238957307:2:4073)
+    at async resolve (file:///D:/ManufacturingMonitor/node_modules/tsx/dist/esm/index.mjs?1762238957307:2:4441)
+    at async nextResolve (node:internal/modules/esm/hooks:748:22) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+1:55:13 PM [express] GET /api/reports/export 500 in 1539ms :: {"message":"Failed to export report"}
