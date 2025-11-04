@@ -162,14 +162,14 @@ function generateHTML(options: PDFGenerationOptions): string {
         
         body {
           font-family: 'THSarabun', sans-serif;
-          font-size: 14px;
-          line-height: 1.6;
+          font-size: 17.5px;
+          line-height: 1.2;
           color: #333;
           padding: 40px;
         }
         
         h1 {
-          font-size: 24px;
+          font-size: 30px;
           font-weight: 700;
           text-align: center;
           margin-bottom: 10px;
@@ -178,7 +178,7 @@ function generateHTML(options: PDFGenerationOptions): string {
         
         .generated-date {
           text-align: center;
-          font-size: 12px;
+          font-size: 15px;
           color: #666;
           margin-bottom: 30px;
         }
@@ -186,13 +186,11 @@ function generateHTML(options: PDFGenerationOptions): string {
         .reading {
           margin-bottom: 30px;
           padding: 20px;
-          border: 1px solid #ddd;
-          border-radius: 8px;
           page-break-inside: avoid;
         }
         
         .reading h2 {
-          font-size: 18px;
+          font-size: 22.5px;
           font-weight: 700;
           margin-bottom: 15px;
           padding-bottom: 10px;
@@ -200,8 +198,8 @@ function generateHTML(options: PDFGenerationOptions): string {
         }
         
         .details p {
-          margin-bottom: 8px;
-          font-size: 13px;
+          margin-bottom: 6px;
+          font-size: 16.25px;
         }
         
         .details strong {
@@ -234,7 +232,7 @@ function generateHTML(options: PDFGenerationOptions): string {
         .error {
           color: #dc3545;
           font-style: italic;
-          font-size: 12px;
+          font-size: 15px;
         }
         
         @media print {
