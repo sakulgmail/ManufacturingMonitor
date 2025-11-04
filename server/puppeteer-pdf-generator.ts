@@ -107,8 +107,8 @@ function generateHTML(options: PDFGenerationOptions): string {
       ? (() => {
           const base64Image = convertImageToBase64(reading.imageUrl);
           return base64Image 
-            ? `<div class="image-container"><img src="${base64Image}" alt="Reading image" /></div>`
-            : '<p class="error">Image: [Error loading image]</p>';
+            ? `<div class="image-column"><img src="${base64Image}" alt="Reading image" /></div>`
+            : '<div class="image-column"><p class="error">Image: [Error loading image]</p></div>';
         })()
       : '';
 
@@ -119,17 +119,19 @@ function generateHTML(options: PDFGenerationOptions): string {
     return `
       <div class="reading">
         <h2>Reading #${reading.id}</h2>
-        <div class="details">
-          <p><strong>Timestamp:</strong> ${new Date(reading.timestamp).toLocaleString()}</p>
-          <p><strong>Machine:</strong> ${machine?.name || 'Unknown'}</p>
-          <p><strong>Station:</strong> ${reading.stationName}</p>
-          <p><strong>Gauge:</strong> ${reading.gaugeName}</p>
-          <p><strong>Value:</strong> ${displayValue} ${reading.unit || ''}</p>
-          <p><strong>Status:</strong> <span class="${isAlert ? 'alert' : 'normal'}">${isAlert ? 'Alert' : 'Normal'}</span></p>
-          <p><strong>User:</strong> ${reading.username}</p>
-          ${commentHTML}
+        <div class="reading-content">
+          <div class="details-column">
+            <p><strong>Timestamp:</strong> ${new Date(reading.timestamp).toLocaleString()}</p>
+            <p><strong>Machine:</strong> ${machine?.name || 'Unknown'}</p>
+            <p><strong>Station:</strong> ${reading.stationName}</p>
+            <p><strong>Gauge:</strong> ${reading.gaugeName}</p>
+            <p><strong>Value:</strong> ${displayValue} ${reading.unit || ''}</p>
+            <p><strong>Status:</strong> <span class="${isAlert ? 'alert' : 'normal'}">${isAlert ? 'Alert' : 'Normal'}</span></p>
+            <p><strong>User:</strong> ${reading.username}</p>
+            ${commentHTML}
+          </div>
+          ${imageHTML}
         </div>
-        ${imageHTML}
       </div>
     `;
   }).join('');
@@ -185,7 +187,6 @@ function generateHTML(options: PDFGenerationOptions): string {
         
         .reading {
           margin-bottom: 30px;
-          padding: 20px;
           page-break-inside: avoid;
         }
         
@@ -197,14 +198,40 @@ function generateHTML(options: PDFGenerationOptions): string {
           border-bottom: 2px solid #333;
         }
         
-        .details p {
-          margin-bottom: 6px;
-          font-size: 16.25px;
+        .reading-content {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
         }
         
-        .details strong {
+        .details-column {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .details-column p {
+          margin-bottom: 6px;
+          font-size: 16.25px;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
+        
+        .details-column strong {
           font-weight: 700;
           color: #1a1a1a;
+        }
+        
+        .image-column {
+          flex-shrink: 0;
+          width: 280px;
+          text-align: center;
+        }
+        
+        .image-column img {
+          max-width: 100%;
+          height: auto;
+          max-height: 300px;
+          object-fit: contain;
         }
         
         .alert {
@@ -215,18 +242,6 @@ function generateHTML(options: PDFGenerationOptions): string {
         .normal {
           color: #28a745;
           font-weight: 700;
-        }
-        
-        .image-container {
-          margin-top: 15px;
-          text-align: center;
-        }
-        
-        .image-container img {
-          max-width: 400px;
-          max-height: 300px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
         }
         
         .error {
