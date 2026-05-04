@@ -9,5 +9,6 @@ backup_20250702.sql
 migrate_add_condition_column .sql
 package-18Jul25.json
 package-lock-18Jul25.json
+/public/
 
 
