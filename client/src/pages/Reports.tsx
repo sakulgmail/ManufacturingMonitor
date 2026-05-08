@@ -58,6 +58,7 @@ export function Reports() {
   const [savedQueries, setSavedQueries] = useState<ReportQuery[]>([]);
   const [reportResults, setReportResults] = useState<ReportResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<'excel' | 'pdf' | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -104,6 +105,7 @@ export function Reports() {
   };
 
   const exportToFormat = async (exportFormat: 'excel' | 'pdf') => {
+    setExportingFormat(exportFormat);
     try {
       const queryParams = new URLSearchParams({
         machines: currentQuery.machines.join(','),
@@ -154,6 +156,8 @@ export function Reports() {
         description: `Failed to export report to ${exportFormat.toUpperCase()}`,
         variant: "destructive",
       });
+    } finally {
+      setExportingFormat(null);
     }
   };
 
@@ -411,13 +415,13 @@ export function Reports() {
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Report"}
               </Button>
-              <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0} data-testid="button-export-excel">
+              <Button onClick={() => exportToFormat('excel')} variant="outline" disabled={reportResults.length === 0 || exportingFormat !== null} data-testid="button-export-excel">
                 <Download className="h-4 w-4 mr-2" />
-                Export to Excel
+                {exportingFormat === 'excel' ? "Exporting..." : "Export to Excel"}
               </Button>
-              <Button onClick={() => exportToFormat('pdf')} variant="outline" disabled={reportResults.length === 0} data-testid="button-export-pdf">
+              <Button onClick={() => exportToFormat('pdf')} variant="outline" disabled={reportResults.length === 0 || exportingFormat !== null} data-testid="button-export-pdf">
                 <Download className="h-4 w-4 mr-2" />
-                Export to PDF
+                {exportingFormat === 'pdf' ? "Exporting..." : "Export to PDF"}
               </Button>
               <Button onClick={() => setEmailDialogOpen(true)} variant="outline" data-testid="button-send-email">
                 <Mail className="h-4 w-4 mr-2" />
