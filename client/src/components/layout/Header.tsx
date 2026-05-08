@@ -71,7 +71,7 @@ const icons: IconsObject = {
 
 export default function Header() {
   const [location, setLocation] = useLocation();
-  const { formattedTime } = useClock();
+  const { formattedTime, compactTime } = useClock();
   const { isAuthenticated } = useAuth();
 
   // Store state with default values
@@ -185,7 +185,10 @@ export default function Header() {
           <h1 className="text-xl font-bold text-gray-600">{title}</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <span className="text-gray-600">{formattedTime}</span>
+          <span className="text-gray-600 whitespace-nowrap text-sm sm:text-base tabular-nums">
+            <span className="sm:hidden">{compactTime}</span>
+            <span className="hidden sm:inline">{formattedTime}</span>
+          </span>
           <button
             className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
             onClick={handleRefresh}

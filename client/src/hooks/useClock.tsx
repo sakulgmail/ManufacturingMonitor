@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 
 interface ClockReturn {
   formattedTime: string;
+  compactTime: string;
   date: Date;
+}
+
+function pad(n: number): string {
+  return n.toString().padStart(2, "0");
 }
 
 export function useClock(): ClockReturn {
@@ -11,13 +16,21 @@ export function useClock(): ClockReturn {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setDate(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => clearInterval(intervalId);
   }, []);
 
-  // Format as YYYY-MM-DD HH:MM
-  const formattedTime = `${date.toISOString().split('T')[0]} ${date.toTimeString().split(' ')[0].substring(0, 5)}`;
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const mi = pad(date.getMinutes());
 
-  return { formattedTime, date };
+  const formattedTime = `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+
+  const monthShort = date.toLocaleString("en-US", { month: "short" });
+  const compactTime = `${monthShort} ${date.getDate()}, ${hh}:${mi}`;
+
+  return { formattedTime, compactTime, date };
 }
