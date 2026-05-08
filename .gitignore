@@ -10,5 +10,7 @@ migrate_add_condition_column .sql
 package-18Jul25.json
 package-lock-18Jul25.json
 /public/
-
+*.pptx
+USER_MANUAL.md
+build_user_manual_pptx.py
 

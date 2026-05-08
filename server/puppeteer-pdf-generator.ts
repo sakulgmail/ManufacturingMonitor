@@ -1,6 +1,13 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import { pathToFileURL } from 'url';
+import sharp from 'sharp';
+
+const PDF_IMAGE_MAX_WIDTH = 800;
+const PDF_IMAGE_MAX_HEIGHT = 800;
+const PDF_IMAGE_JPEG_QUALITY = 70;
 
 interface Reading {
   id: number;
@@ -41,46 +48,74 @@ export interface PDFGenerationOptions {
   includeComments: boolean;
 }
 
-function convertImageToBase64(imageUrl: string): string | null {
+async function prepareImageForPdf(
+  imageUrl: string,
+  outDir: string,
+  cache: Map<string, string | null>
+): Promise<string | null> {
+  if (cache.has(imageUrl)) {
+    return cache.get(imageUrl)!;
+  }
+
   try {
     if (imageUrl.startsWith('data:')) {
+      cache.set(imageUrl, imageUrl);
       return imageUrl;
     }
-    
-    if (imageUrl.startsWith('/uploads/')) {
-      const imagePath = path.join(process.cwd(), 'public', imageUrl);
-      if (fs.existsSync(imagePath)) {
-        const imageBuffer = fs.readFileSync(imagePath);
-        const ext = path.extname(imagePath).toLowerCase();
-        const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
-        return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
-      }
+
+    if (!imageUrl.startsWith('/uploads/')) {
+      cache.set(imageUrl, null);
+      return null;
     }
-    
-    return null;
+
+    const sourcePath = path.join(process.cwd(), 'public', imageUrl);
+    if (!fs.existsSync(sourcePath)) {
+      cache.set(imageUrl, null);
+      return null;
+    }
+
+    const outPath = path.join(outDir, `img-${cache.size}.jpg`);
+    await sharp(sourcePath)
+      .rotate()
+      .resize(PDF_IMAGE_MAX_WIDTH, PDF_IMAGE_MAX_HEIGHT, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ quality: PDF_IMAGE_JPEG_QUALITY, mozjpeg: true })
+      .toFile(outPath);
+
+    const fileUrl = pathToFileURL(outPath).href;
+    cache.set(imageUrl, fileUrl);
+    return fileUrl;
   } catch (error) {
-    console.error('Error converting image to base64:', error);
+    console.error('Error preparing image for PDF:', imageUrl, error);
+    cache.set(imageUrl, null);
     return null;
   }
 }
 
-function loadFontAsBase64(fontPath: string): string {
-  try {
-    const fontBuffer = fs.readFileSync(fontPath);
-    return fontBuffer.toString('base64');
-  } catch (error) {
-    console.error('Error loading font:', error);
-    return '';
-  }
+function fontFileUrl(fontPath: string): string {
+  return pathToFileURL(fontPath).href;
 }
 
-function generateHTML(options: PDFGenerationOptions): string {
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function generateHTML(options: PDFGenerationOptions, imageOutDir: string): Promise<string> {
   const { readings, machineMap, stationMap, includeImages, includeComments } = options;
-  
-  const thsarabunRegularBase64 = loadFontAsBase64(path.join(process.cwd(), 'server', 'fonts', 'THSarabun.ttf'));
-  const thsarabunBoldBase64 = loadFontAsBase64(path.join(process.cwd(), 'server', 'fonts', 'THSarabunNew.ttf'));
-  
-  const readingsHTML = readings.map(reading => {
+
+  const thsarabunRegularUrl = fontFileUrl(path.join(process.cwd(), 'server', 'fonts', 'THSarabun.ttf'));
+  const thsarabunBoldUrl = fontFileUrl(path.join(process.cwd(), 'server', 'fonts', 'THSarabunNew.ttf'));
+
+  const imageCache = new Map<string, string | null>();
+
+  const readingBlocks = await Promise.all(readings.map(async reading => {
     const station = stationMap.get(reading.stationId);
     const machine = station ? machineMap.get(station.machineId) : null;
 
@@ -99,21 +134,20 @@ function generateHTML(options: PDFGenerationOptions): string {
       isAlert = isOutOfRange;
     }
 
-    const displayValue = reading.gaugeType?.hasCondition 
-      ? (reading.condition || 'N/A') 
+    const displayValue = reading.gaugeType?.hasCondition
+      ? (reading.condition || 'N/A')
       : reading.value;
 
-    const imageHTML = includeImages && reading.imageUrl
-      ? (() => {
-          const base64Image = convertImageToBase64(reading.imageUrl);
-          return base64Image 
-            ? `<div class="image-column"><img src="${base64Image}" alt="Reading image" /></div>`
-            : '<div class="image-column"><p class="error">Image: [Error loading image]</p></div>';
-        })()
-      : '';
+    let imageHTML = '';
+    if (includeImages && reading.imageUrl) {
+      const fileUrl = await prepareImageForPdf(reading.imageUrl, imageOutDir, imageCache);
+      imageHTML = fileUrl
+        ? `<div class="image-column"><img src="${fileUrl}" alt="Reading image" /></div>`
+        : '<div class="image-column"><p class="error">Image: [Error loading image]</p></div>';
+    }
 
     const commentHTML = includeComments && reading.comment
-      ? `<p><strong>Comment:</strong> ${reading.comment}</p>`
+      ? `<p><strong>Comment:</strong> ${escapeHtml(reading.comment)}</p>`
       : '';
 
     return `
@@ -121,20 +155,22 @@ function generateHTML(options: PDFGenerationOptions): string {
         <h2>Reading #${reading.id}</h2>
         <div class="reading-content">
           <div class="details-column">
-            <p><strong>Timestamp:</strong> ${new Date(reading.timestamp).toLocaleString()}</p>
-            <p><strong>Machine:</strong> ${machine?.name || 'Unknown'}</p>
-            <p><strong>Station:</strong> ${reading.stationName}</p>
-            <p><strong>Gauge:</strong> ${reading.gaugeName}</p>
-            <p><strong>Value:</strong> ${displayValue} ${reading.unit || ''}</p>
+            <p><strong>Timestamp:</strong> ${escapeHtml(new Date(reading.timestamp).toLocaleString())}</p>
+            <p><strong>Machine:</strong> ${escapeHtml(machine?.name || 'Unknown')}</p>
+            <p><strong>Station:</strong> ${escapeHtml(reading.stationName)}</p>
+            <p><strong>Gauge:</strong> ${escapeHtml(reading.gaugeName)}</p>
+            <p><strong>Value:</strong> ${escapeHtml(String(displayValue))} ${escapeHtml(reading.unit || '')}</p>
             <p><strong>Status:</strong> <span class="${isAlert ? 'alert' : 'normal'}">${isAlert ? 'Alert' : 'Normal'}</span></p>
-            <p><strong>User:</strong> ${reading.username}</p>
+            <p><strong>User:</strong> ${escapeHtml(reading.username)}</p>
             ${commentHTML}
           </div>
           ${imageHTML}
         </div>
       </div>
     `;
-  }).join('');
+  }));
+
+  const readingsHTML = readingBlocks.join('');
 
   return `
     <!DOCTYPE html>
@@ -145,14 +181,14 @@ function generateHTML(options: PDFGenerationOptions): string {
       <style>
         @font-face {
           font-family: 'THSarabun';
-          src: url(data:font/ttf;base64,${thsarabunRegularBase64}) format('truetype');
+          src: url('${thsarabunRegularUrl}') format('truetype');
           font-weight: 400;
           font-style: normal;
         }
-        
+
         @font-face {
           font-family: 'THSarabun';
-          src: url(data:font/ttf;base64,${thsarabunBoldBase64}) format('truetype');
+          src: url('${thsarabunBoldUrl}') format('truetype');
           font-weight: 700;
           font-style: normal;
         }
@@ -161,7 +197,7 @@ function generateHTML(options: PDFGenerationOptions): string {
           padding: 0;
           box-sizing: border-box;
         }
-        
+
         body {
           font-family: 'THSarabun', sans-serif;
           font-size: 17.5px;
@@ -169,7 +205,7 @@ function generateHTML(options: PDFGenerationOptions): string {
           color: #333;
           padding: 40px;
         }
-        
+
         h1 {
           font-size: 30px;
           font-weight: 700;
@@ -177,19 +213,19 @@ function generateHTML(options: PDFGenerationOptions): string {
           margin-bottom: 10px;
           color: #1a1a1a;
         }
-        
+
         .generated-date {
           text-align: center;
           font-size: 15px;
           color: #666;
           margin-bottom: 30px;
         }
-        
+
         .reading {
           margin-bottom: 30px;
           page-break-inside: avoid;
         }
-        
+
         .reading h2 {
           font-size: 22.5px;
           font-weight: 700;
@@ -197,64 +233,64 @@ function generateHTML(options: PDFGenerationOptions): string {
           padding-bottom: 10px;
           border-bottom: 2px solid #333;
         }
-        
+
         .reading-content {
           display: flex;
           gap: 20px;
           align-items: flex-start;
         }
-        
+
         .details-column {
           flex: 1;
           min-width: 0;
         }
-        
+
         .details-column p {
           margin-bottom: 6px;
           font-size: 16.25px;
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
-        
+
         .details-column strong {
           font-weight: 700;
           color: #1a1a1a;
         }
-        
+
         .image-column {
           flex-shrink: 0;
           width: 280px;
           text-align: center;
         }
-        
+
         .image-column img {
           max-width: 100%;
           height: auto;
           max-height: 300px;
           object-fit: contain;
         }
-        
+
         .alert {
           color: #dc3545;
           font-weight: 700;
         }
-        
+
         .normal {
           color: #28a745;
           font-weight: 700;
         }
-        
+
         .error {
           color: #dc3545;
           font-style: italic;
           font-size: 15px;
         }
-        
+
         @media print {
           body {
             padding: 20px;
           }
-          
+
           .reading {
             page-break-inside: avoid;
           }
@@ -263,7 +299,7 @@ function generateHTML(options: PDFGenerationOptions): string {
     </head>
     <body>
       <h1>Manufacturing Report</h1>
-      <p class="generated-date">Generated on: ${new Date().toLocaleString()}</p>
+      <p class="generated-date">Generated on: ${escapeHtml(new Date().toLocaleString())}</p>
       ${readingsHTML}
     </body>
     </html>
@@ -272,8 +308,16 @@ function generateHTML(options: PDFGenerationOptions): string {
 
 export async function generatePDFReport(options: PDFGenerationOptions): Promise<Buffer> {
   console.log('Puppeteer: Starting PDF generation...');
-  
-  let browser;
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mm-pdf-'));
+  const imageOutDir = path.join(tmpDir, 'images');
+  fs.mkdirSync(imageOutDir);
+  const tmpHtmlPath = path.join(tmpDir, 'report.html');
+  const html = await generateHTML(options, imageOutDir);
+  fs.writeFileSync(tmpHtmlPath, html, 'utf8');
+  const tmpHtmlUrl = pathToFileURL(tmpHtmlPath).href;
+
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
   try {
     browser = await puppeteer.launch({
       headless: true,
@@ -282,19 +326,18 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--allow-file-access-from-files'
       ]
     });
-    
+
     const page = await browser.newPage();
-    
-    const html = generateHTML(options);
-    
-    await page.setContent(html, { 
-      waitUntil: 'networkidle0',
-      timeout: 30000
+
+    await page.goto(tmpHtmlUrl, {
+      waitUntil: 'load',
+      timeout: 120000
     });
-    
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
@@ -305,16 +348,25 @@ export async function generatePDFReport(options: PDFGenerationOptions): Promise<
         left: '15mm'
       }
     });
-    
+
     console.log('Puppeteer: PDF generated successfully');
-    
+
     return Buffer.from(pdfBuffer);
   } catch (error) {
     console.error('Puppeteer: Error generating PDF:', error);
     throw error;
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (closeErr) {
+        console.warn('Puppeteer: browser.close warning (non-fatal):', closeErr);
+      }
+    }
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {
+      // best-effort cleanup; Windows sometimes holds the file briefly
     }
   }
 }
