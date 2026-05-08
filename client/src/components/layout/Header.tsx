@@ -144,9 +144,9 @@ export default function Header() {
 
     return (
       <div className="h-16 w-16 flex items-center justify-center">
-        <img 
+        <img
           src={`/${currentFormat}`}
-          alt="Logo" 
+          alt="Logo"
           className="max-h-16 max-w-16 object-contain rounded"
           style={{ maxHeight: "64px", maxWidth: "64px" }}
           onError={handleImageError}
@@ -182,28 +182,32 @@ export default function Header() {
           style={{ cursor: "pointer" }}
         >
           <LogoComponent />
-          <h1 className="text-xl font-bold text-gray-600">{title}</h1>
+          <h1 className="hidden sm:block text-xl font-bold text-gray-600">{title}</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-600 whitespace-nowrap text-sm sm:text-base tabular-nums">
-            <span className="sm:hidden">{compactTime}</span>
-            <span className="hidden sm:inline">{formattedTime}</span>
+        <span className="sm:hidden flex-1 text-center text-gray-600 whitespace-nowrap text-sm tabular-nums">
+          {compactTime}
+        </span>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <span className="hidden sm:inline text-gray-600 whitespace-nowrap text-base tabular-nums">
+            {formattedTime}
           </span>
           <button
-            className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600"
+            className="bg-white bg-opacity-20 rounded px-2 sm:px-3 py-1.5 flex items-center text-gray-600"
             onClick={handleRefresh}
+            aria-label="Refresh"
           >
-            <RefreshCcw className="h-4 w-4 mr-1" />
-            <span className="text-gray-600">Refresh</span>
+            <RefreshCcw className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline text-gray-600">Refresh</span>
           </button>
-          
+
           {isAuthenticated && (
             <button
-              className="bg-white bg-opacity-20 rounded px-3 py-1.5 flex items-center text-gray-600 mr-2"
+              className="bg-white bg-opacity-20 rounded px-2 sm:px-3 py-1.5 flex items-center text-gray-600"
               onClick={() => setShowDataInput(true)}
+              aria-label="Enter Data"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              <span className="text-gray-600">Enter Data</span>
+              <Plus className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline text-gray-600">Enter Data</span>
             </button>
           )}
           <AuthButtons />

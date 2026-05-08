@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key, ChevronUp, ChevronDown } from "lucide-react";
+import { Factory, Gauge, Monitor, Upload, X, Plus, Edit2, Trash2, Save, XCircle, Users, Key, ChevronUp, ChevronDown, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, type User } from "@/hooks/useAuth";
 import NavigationTabs from "@/components/layout/NavigationTabs";
@@ -19,6 +19,18 @@ export default function Settings() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"app" | "machines" | "stations" | "gauges" | "gauge-types" | "users" | "reset-time">("app");
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+
+  const settingsTabs: Array<{ id: typeof activeTab; label: string; icon: JSX.Element | null }> = [
+    { id: "app", label: "Application Settings", icon: null },
+    { id: "machines", label: "Manage Machines", icon: <Factory className="h-4 w-4" /> },
+    { id: "stations", label: "Manage Stations", icon: <Monitor className="h-4 w-4" /> },
+    { id: "gauges", label: "Manage Gauges", icon: <Gauge className="h-4 w-4" /> },
+    { id: "gauge-types", label: "Manage Gauge Types", icon: <Key className="h-4 w-4" /> },
+    { id: "users", label: "Manage Users", icon: <Users className="h-4 w-4" /> },
+    { id: "reset-time", label: "Machine Status Reset Time", icon: <Key className="h-4 w-4" /> },
+  ];
+  const activeSettingsTab = settingsTabs.find((t) => t.id === activeTab);
   const [title, setTitle] = useState("Manufacturing Monitor System");
   const [currentIcon, setCurrentIcon] = useState<IconKey>("gauge");
   const [customImage, setCustomImage] = useState<string | null>(null);
@@ -600,7 +612,48 @@ export default function Settings() {
           {/* Settings Tabs */}
           <div className="bg-white rounded-lg shadow-md mb-6">
             <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8 px-6">
+              {/* Mobile: hamburger row */}
+              <div className="sm:hidden flex items-center justify-between px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => setSettingsMenuOpen((open) => !open)}
+                  aria-label={settingsMenuOpen ? "Close settings menu" : "Open settings menu"}
+                  aria-expanded={settingsMenuOpen}
+                  className="p-2 -ml-2 text-gray-700"
+                >
+                  {settingsMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+                <span className="font-medium text-gray-700 truncate">
+                  {activeSettingsTab?.label ?? "Settings"}
+                </span>
+                <span className="w-9" aria-hidden="true" />
+              </div>
+
+              {/* Mobile: dropdown */}
+              {settingsMenuOpen && (
+                <div className="sm:hidden border-t flex flex-col">
+                  {settingsTabs.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(t.id);
+                        setSettingsMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-4 py-3 text-left ${
+                        activeTab === t.id
+                          ? "text-blue-600 font-medium bg-gray-50"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {t.icon}
+                      <span>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <nav className="hidden sm:flex -mb-px space-x-8 px-6">
                 <button
                   onClick={() => setActiveTab("app")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${

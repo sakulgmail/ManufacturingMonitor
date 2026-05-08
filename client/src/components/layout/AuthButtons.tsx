@@ -16,16 +16,17 @@ export default function AuthButtons() {
   if (isAuthenticated) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="text-sm text-gray-600 mr-1">
+        <div className="hidden sm:block text-sm text-gray-600 mr-1">
           <span className="font-medium">Welcome, {user?.username}</span>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="flex items-center space-x-1 text-gray-600"
           onClick={() => logout()}
+          aria-label="Logout"
         >
           <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <span className="hidden sm:inline">Logout</span>
         </Button>
       </div>
     );
@@ -33,13 +34,14 @@ export default function AuthButtons() {
 
   return (
     <div className="flex items-center space-x-2">
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="flex items-center space-x-1 text-gray-600"
         onClick={() => setLocation("/login")}
+        aria-label="Login"
       >
         <LogIn className="h-4 w-4" />
-        <span>Login</span>
+        <span className="hidden sm:inline">Login</span>
       </Button>
     </div>
   );
