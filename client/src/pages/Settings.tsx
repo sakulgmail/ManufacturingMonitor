@@ -736,7 +736,7 @@ export default function Settings() {
             {/* Machines Management Tab */}
             {activeTab === "machines" && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Manage Machines</h2>
                   <button
                     onClick={() => setShowAddMachine(true)}
@@ -921,9 +921,9 @@ export default function Settings() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-4">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                                     <div>
                                       <h3 className="font-medium text-gray-900">{machine.name}</h3>
                                       <p className="text-sm text-gray-600">Machine No: {machine.machineNo}</p>
@@ -975,7 +975,7 @@ export default function Settings() {
             {/* Stations Management Tab */}
             {activeTab === "stations" && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Manage Stations</h2>
                   <button
                     onClick={() => setShowAddStation(true)}
@@ -1191,9 +1191,9 @@ export default function Settings() {
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                       </div>
-                                      <div className="flex-1">
-                                        <div className="flex justify-between items-center">
-                                          <div className="flex-1">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                          <div className="flex-1 min-w-0">
                                             <div>
                                               <h4 className="font-medium text-gray-900">{station.name}</h4>
                                               {station.description && (
@@ -1241,7 +1241,7 @@ export default function Settings() {
             {/* Gauge Types Management Tab */}
             {activeTab === "gauge-types" && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Manage Gauge Types</h2>
                   <button
                     onClick={() => setShowAddGaugeType(true)}
@@ -1507,9 +1507,9 @@ export default function Settings() {
                               <ChevronDown className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center">
-                              <div className="flex-1">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                              <div className="flex-1 min-w-0">
                                 <div>
                                   <h3 className="font-medium text-gray-900">{gaugeType.name}</h3>
                                   <div className="text-sm text-gray-600 mt-1">
@@ -1558,7 +1558,7 @@ export default function Settings() {
             {/* Manage Gauges Tab */}
             {activeTab === "gauges" && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Manage Gauges</h2>
                   <button
                     onClick={() => setShowAddGauge(true)}
@@ -2007,9 +2007,9 @@ export default function Settings() {
                                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8" />
                                                 </svg>
                                               </div>
-                                              <div className="flex-1">
-                                                <div className="flex justify-between items-center">
-                                                  <div className="flex-1">
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                                  <div className="flex-1 min-w-0">
                                                     <div>
                                                       <h5 className="font-medium text-sm text-gray-900">{gauge.name}</h5>
                                                       <p className="text-xs text-gray-600">
@@ -2061,7 +2061,7 @@ export default function Settings() {
             {/* Manage Users Tab */}
             {activeTab === "users" && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Manage Users</h2>
                   <button
                     onClick={() => setShowAddUser(true)}
@@ -2147,8 +2147,8 @@ export default function Settings() {
                   ) : (
                     users.map((userItem) => (
                       <div key={userItem.id} className="border border-gray-200 rounded-md p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                          <div className="min-w-0">
                             <h3 className="font-medium text-gray-900">{userItem.username}</h3>
                             <p className="text-sm text-gray-600">
                               Role: {userItem.isAdmin ? 'Administrator' : 'User'}
