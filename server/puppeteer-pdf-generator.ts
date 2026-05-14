@@ -48,50 +48,51 @@ export interface PDFGenerationOptions {
   includeComments: boolean;
 }
 
-async function prepareImageForPdf(
+function prepareImageForPdf(
   imageUrl: string,
   outDir: string,
-  cache: Map<string, string | null>
+  cache: Map<string, Promise<string | null>>
 ): Promise<string | null> {
-  if (cache.has(imageUrl)) {
-    return cache.get(imageUrl)!;
-  }
+  const existing = cache.get(imageUrl);
+  if (existing) return existing;
 
-  try {
-    if (imageUrl.startsWith('data:')) {
-      cache.set(imageUrl, imageUrl);
-      return imageUrl;
-    }
+  const work = (async (): Promise<string | null> => {
+    try {
+      if (imageUrl.startsWith('data:')) {
+        return imageUrl;
+      }
 
-    if (!imageUrl.startsWith('/uploads/')) {
-      cache.set(imageUrl, null);
+      if (!imageUrl.startsWith('/uploads/')) {
+        return null;
+      }
+
+      const sourcePath = path.join(process.cwd(), 'public', imageUrl);
+      if (!fs.existsSync(sourcePath)) {
+        return null;
+      }
+
+      const sourceBase = path.basename(sourcePath, path.extname(sourcePath));
+      const safeBase = sourceBase.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const outPath = path.join(outDir, `${safeBase}.jpg`);
+
+      await sharp(sourcePath)
+        .rotate()
+        .resize(PDF_IMAGE_MAX_WIDTH, PDF_IMAGE_MAX_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: PDF_IMAGE_JPEG_QUALITY, mozjpeg: true })
+        .toFile(outPath);
+
+      return pathToFileURL(outPath).href;
+    } catch (error) {
+      console.error('Error preparing image for PDF:', imageUrl, error);
       return null;
     }
+  })();
 
-    const sourcePath = path.join(process.cwd(), 'public', imageUrl);
-    if (!fs.existsSync(sourcePath)) {
-      cache.set(imageUrl, null);
-      return null;
-    }
-
-    const outPath = path.join(outDir, `img-${cache.size}.jpg`);
-    await sharp(sourcePath)
-      .rotate()
-      .resize(PDF_IMAGE_MAX_WIDTH, PDF_IMAGE_MAX_HEIGHT, {
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .jpeg({ quality: PDF_IMAGE_JPEG_QUALITY, mozjpeg: true })
-      .toFile(outPath);
-
-    const fileUrl = pathToFileURL(outPath).href;
-    cache.set(imageUrl, fileUrl);
-    return fileUrl;
-  } catch (error) {
-    console.error('Error preparing image for PDF:', imageUrl, error);
-    cache.set(imageUrl, null);
-    return null;
-  }
+  cache.set(imageUrl, work);
+  return work;
 }
 
 function fontFileUrl(fontPath: string): string {
@@ -113,7 +114,7 @@ async function generateHTML(options: PDFGenerationOptions, imageOutDir: string):
   const thsarabunRegularUrl = fontFileUrl(path.join(process.cwd(), 'server', 'fonts', 'THSarabun.ttf'));
   const thsarabunBoldUrl = fontFileUrl(path.join(process.cwd(), 'server', 'fonts', 'THSarabunNew.ttf'));
 
-  const imageCache = new Map<string, string | null>();
+  const imageCache = new Map<string, Promise<string | null>>();
 
   const readingBlocks = await Promise.all(readings.map(async reading => {
     const station = stationMap.get(reading.stationId);

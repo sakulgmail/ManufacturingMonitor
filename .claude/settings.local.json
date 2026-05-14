@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python -c \"import pptx; print\\('python-pptx', pptx.__version__\\)\")",
       "Bash(python -m pip install python-pptx)",
-      "Bash(python build_user_manual_pptx.py)"
+      "Bash(python build_user_manual_pptx.py)",
+      "Bash(npx tsc *)"
     ]
   }
 }
