@@ -9,7 +9,11 @@ backup_20250702.sql
 migrate_add_condition_column .sql
 package-18Jul25.json
 package-lock-18Jul25.json
+# Runtime / per-deployment assets — never tracked.
+# Logo is uploaded via the app; uploads/ holds operator gauge photos.
 /public/
+public/logo.png
+public/uploads/
 *.pptx
 *.md
 build_user_manual_pptx.py
