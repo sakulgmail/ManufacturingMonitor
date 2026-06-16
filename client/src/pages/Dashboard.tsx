@@ -143,6 +143,22 @@ export default function Dashboard() {
 
   const statusOptions = ['RUNNING', 'STOP', 'To Check', 'Out of Order'];
 
+  // Icon color by full machine status
+  const getMachineIconStyle = (status: string) => {
+    switch (status) {
+      case 'RUNNING':
+        return 'bg-green-100 text-green-700'; // dark green on light green
+      case 'Out of Order':
+        return 'bg-red-100 text-red-600'; // bright red on light red
+      case 'STOP':
+        return 'bg-gray-200 text-gray-900'; // black on gray
+      case 'To Check':
+      case 'Require Morning Check':
+      default:
+        return 'bg-slate-100 text-slate-600'; // dark grey on light grey
+    }
+  };
+
   // Machine status update mutation
   const updateMachineStatusMutation = useMutation({
     mutationFn: async ({ machine, status }: { machine: Machine; status: string }) => {
@@ -275,7 +291,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-slate-50">
       <NavigationTabs activeTab="dashboard" />
       
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
@@ -295,7 +311,7 @@ export default function Dashboard() {
             {machinesLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 h-32 animate-pulse"></div>
+                  <div key={index} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-32 animate-pulse"></div>
                 ))}
               </div>
             ) : (
@@ -307,7 +323,7 @@ export default function Dashboard() {
                   return (
                     <div 
                       key={machine.id}
-                      className={`bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300 ${
+                      className={`bg-white rounded-xl border border-slate-200 shadow-sm p-6 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200 ${
                         statusDropdownOpen === machine.id ? 'relative z-[101]' : 'relative'
                       }`}
                       onClick={() => handleMachineSelect(machine)}
@@ -315,12 +331,8 @@ export default function Dashboard() {
                       <div className="space-y-4">
                         {/* Top: Machine Icon and Name */}
                         <div className="flex items-center space-x-4">
-                          <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
-                            isRunning 
-                              ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
-                              : 'bg-gradient-to-br from-gray-500 to-gray-600'
-                          }`}>
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${getMachineIconStyle(machine.status)}`}>
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                             </svg>
                           </div>
@@ -410,7 +422,7 @@ export default function Dashboard() {
             {stationsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 h-32 animate-pulse"></div>
+                  <div key={index} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-32 animate-pulse"></div>
                 ))}
               </div>
             ) : (
@@ -420,17 +432,17 @@ export default function Dashboard() {
                   return (
                     <div 
                       key={station.id}
-                      className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
                       onClick={() => handleStationSelect(station)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                            status === 'alert' 
-                              ? 'bg-gradient-to-br from-red-500 to-red-600' 
-                              : 'bg-gradient-to-br from-teal-500 to-blue-600'
+                            status === 'alert'
+                              ? 'bg-red-50 text-red-600'
+                              : 'bg-blue-50 text-blue-600'
                           }`}>
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -475,17 +487,17 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={gauge.id}
-                    className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                    className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
                     onClick={() => handleGaugeClick(gauge)}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          status === 'alert' 
-                            ? 'bg-gradient-to-br from-red-500 to-red-600' 
-                            : 'bg-gradient-to-br from-purple-500 to-pink-600'
+                          status === 'alert'
+                            ? 'bg-red-50 text-red-600'
+                            : 'bg-blue-50 text-blue-600'
                         }`}>
-                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m6 2l-1.5 1.5M18 12h2M6 12H4m2.5-5.5L5 5m7 7l3-3" />
                             <circle cx="12" cy="12" r="8" strokeWidth={2} />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8" />

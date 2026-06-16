@@ -174,40 +174,42 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-[#e0e0e0] shadow-md sticky top-0 z-50 w-full" style={{ backgroundColor: '#e0e0e0' }}>
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50 w-full">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center gap-3">
         <div
-          className="flex items-center space-x-2"
+          className="flex items-center gap-3 min-w-0"
           onClick={() => setLocation("/")}
           style={{ cursor: "pointer" }}
         >
-          <LogoComponent />
-          <h1 className="hidden sm:block text-xl font-bold text-gray-600">{title}</h1>
+          <div className="text-slate-700">
+            <LogoComponent />
+          </div>
+          <h1 className="hidden sm:block text-lg font-semibold text-slate-800 truncate">{title}</h1>
         </div>
-        <span className="sm:hidden flex-1 text-center text-gray-600 whitespace-nowrap text-sm tabular-nums">
+        <span className="sm:hidden flex-1 text-center text-slate-500 whitespace-nowrap text-sm tabular-nums">
           {compactTime}
         </span>
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <span className="hidden sm:inline text-gray-600 whitespace-nowrap text-base tabular-nums">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="hidden sm:inline text-slate-500 whitespace-nowrap text-sm tabular-nums">
             {formattedTime}
           </span>
           <button
-            className="bg-white bg-opacity-20 rounded px-2 sm:px-3 py-1.5 flex items-center text-gray-600"
+            className="border border-slate-200 rounded-md px-2.5 sm:px-3 py-1.5 flex items-center text-slate-600 hover:bg-slate-50 transition-colors"
             onClick={handleRefresh}
             aria-label="Refresh"
           >
-            <RefreshCcw className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline text-gray-600">Refresh</span>
+            <RefreshCcw className="refresh-button h-4 w-4 sm:mr-1.5" />
+            <span className="hidden sm:inline text-sm font-medium">Refresh</span>
           </button>
 
           {isAuthenticated && (
             <button
-              className="bg-white bg-opacity-20 rounded px-2 sm:px-3 py-1.5 flex items-center text-gray-600"
+              className="bg-blue-600 rounded-md px-2.5 sm:px-3 py-1.5 flex items-center text-white hover:bg-blue-700 transition-colors"
               onClick={() => setShowDataInput(true)}
               aria-label="Enter Data"
             >
-              <Plus className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline text-gray-600">Enter Data</span>
+              <Plus className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline text-sm font-medium">Enter Data</span>
             </button>
           )}
           <AuthButtons />
